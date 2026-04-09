@@ -1,0 +1,69 @@
+<resources>
+    <string name="app_name">FosterConnect</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="current_fosters_label">Current Fosters</string>
+    <string name="current_weight_label">Current Weight</string>
+    <string name="add_weight_button">Add Current Weight</string>
+    <string name="weight_history_label">Weight History</string>
+    <string name="no_weight_logged">No weight logged yet</string>
+    <string name="add_weight_dialog_title">Log Weight</string>
+    <string name="weight_hint">Weight in grams (e.g. 120)</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="medications_label">Medications</string>
+    <string name="add_medication_button">Add Medication</string>
+    <string name="add_medication_title">Add Medication</string>
+    <string name="med_name_hint">Medication name</string>
+    <string name="strength_hint">Strength (e.g. 0.3%, 250mg)</string>
+    <string name="instructions_hint">Instructions</string>
+    <string name="no_medications">No medications</string>
+    <string name="active_label">Active</string>
+    <string name="stop_medication">Stop</string>
+
+    <string name="weight_alert_title">Weight Concern</string>
+    <string name="weight_alert_message">%s has had declining or flat weight for the last 3 entries. Would you like to check for symptoms?</string>
+    <string name="alert_check_symptoms">Check Symptoms</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="symptom_check_title">Symptom Check</string>
+    <string name="symptom_vomiting">Vomiting</string>
+    <string name="symptom_diarrhea">Diarrhea</string>
+    <string name="next">Next</string>
+    <string name="ok">OK</string>
+    <string name="feeding_suggestion_title">Feeding Suggestion</string>
+    <string name="feeding_suggestion_message">No immediate symptoms observed. Try helping %s eat by offering a different food/treats in food, or hand feeding - %s may still be learning. If weight continues to decline at the next check, please email the foster office.</string>
+    <string name="escalation_title">Contact Foster Office</string>
+    <string name="escalation_message">%s may need veterinary attention. Please copy the weight history and email it to the foster office so they can schedule a check-up.</string>
+    <string name="copy_email_request">Copy Request Body</string>
+    <string name="message_center_title">Alerts</string>
+    <string name="no_alerts_yet">No alerts yet</string>
+    <string name="menu_current_fosters">Current Fosters</string>
+    <string name="menu_previous_fosters">Previous Fosters</string>
+    <string name="previous_fosters_empty">Your previous fosters will appear here once they have been adopted.</string>
+
+    <string name="set_birthday_button">Set Estimated Birthday</string>
+    <string name="edit_birthday_button">Edit Birthday</string>
+    <string name="birthday_age_format">Born ~%1$s (%2$d weeks old)</string>
+    <string name="birthday_not_set">Birthday not set</string>
+    <string name="treatment_schedule_label">Vaccine &amp; Treatment Schedule</string>
+    <string name="set_birthday_for_schedule">Set birthday to determine when schedule ends</string>
+    <string name="administer_vaccine">Administer vaccine</string>
+    <string name="weigh_kitten_first">Weigh kitten first</string>
+    <string name="mark_as_given">Mark as Given</string>
+    <string name="dose_given">Given</string>
+    <string name="dose_header_format">Dose %1$d — %2$s</string>
+    <string name="overdue">Overdue</string>
+    <string name="upcoming">Upcoming</string>
+    <string name="see_history">See History</string>
+    <string name="treatment_history_title">Treatment &amp; Medication History</string>
+    <string name="no_history_yet">No completed treatments or stopped medications yet</string>
+    <string name="no_scheduled_treatments">No upcoming treatments</string>
+    <string name="completed_treatments_header">Completed Treatments</string>
+    <string name="stopped_medications_header">Stopped Medications</string>
+    <string name="treatment_complete_title">Treatment Complete</string>
+    <string name="treatment_complete_message">All treatments for %1$s dose %2$d have been given. Please email the foster office to report this treatment.</string>
+    <string name="scan_label_button">Scan Label</string>
+    <string name="start_date_format">Started: %1$s</string>
+    <string name="day_n_format">Day %1$d</string>
+</resources>

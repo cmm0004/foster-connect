@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/FosterListFragment"
+            android:icon="@android:drawable/ic_menu_myplaces"
+            android:title="@string/menu_current_fosters" />
+        <item
+            android:id="@+id/MessageCenterFragment"
+            android:icon="@android:drawable/ic_dialog_info"
+            android:title="@string/message_center_title" />
+        <item
+            android:id="@+id/PreviousFostersFragment"
+            android:icon="@android:drawable/ic_menu_recent_history"
+            android:title="@string/menu_previous_fosters" />
+    </group>
+
+    <item android:title="@string/action_settings">
+        <menu>
+            <item
+                android:id="@+id/action_settings"
+                android:icon="@android:drawable/ic_menu_preferences"
+                android:title="@string/action_settings" />
+        </menu>
+    </item>
+</menu>

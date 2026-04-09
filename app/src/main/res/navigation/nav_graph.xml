@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/FosterListFragment">
+
+    <fragment
+        android:id="@+id/FosterListFragment"
+        android:name="com.example.fosterconnect.foster.FosterListFragment"
+        android:label="@string/app_name"
+        tools:layout="@layout/fragment_foster_list">
+
+        <action
+            android:id="@+id/action_FosterList_to_KittenDetail"
+            app:destination="@id/KittenDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/KittenDetailFragment"
+        android:name="com.example.fosterconnect.foster.KittenDetailFragment"
+        android:label="@string/app_name"
+        tools:layout="@layout/fragment_kitten_detail">
+
+        <argument
+            android:name="kittenId"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/MessageCenterFragment"
+        android:name="com.example.fosterconnect.history.MessageCenterFragment"
+        android:label="@string/message_center_title"
+        tools:layout="@layout/fragment_message_center">
+        <action
+            android:id="@+id/action_MessageCenter_to_KittenDetail"
+            app:destination="@id/KittenDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/PreviousFostersFragment"
+        android:name="com.example.fosterconnect.foster.PreviousFostersFragment"
+        android:label="Previous Fosters"
+        tools:layout="@layout/fragment_previous_fosters">
+        <action
+            android:id="@+id/action_PreviousFosters_to_KittenDetail"
+            app:destination="@id/KittenDetailFragment" />
+    </fragment>
+
+</navigation>
