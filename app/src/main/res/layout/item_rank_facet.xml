@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/text_facet_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+    <TextView
+        android:id="@+id/text_facet_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/text_average"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="2dp"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:visibility="gone" />
+
+    <RatingBar
+        android:id="@+id/rating_bar"
+        style="?android:attr/ratingBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:numStars="5"
+        android:stepSize="1" />
+
+    <TextView
+        android:id="@+id/text_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+</LinearLayout>

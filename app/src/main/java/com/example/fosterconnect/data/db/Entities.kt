@@ -88,6 +88,39 @@ data class MessageEntity(
     val isRead: Boolean
 )
 
+@Entity(tableName = "rank_facets")
+data class RankFacetEntity(
+    @PrimaryKey val id: String,
+    val displayName: String,
+    val description: String? = null,
+    val sortOrder: Int = 0
+)
+
+@Entity(
+    tableName = "kitten_rank_scores",
+    primaryKeys = ["kittenId", "facetId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = KittenEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["kittenId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = RankFacetEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["facetId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("kittenId"), Index("facetId")]
+)
+data class KittenRankScoreEntity(
+    val kittenId: String,
+    val facetId: String,
+    val score: Int
+)
+
 data class KittenWithDetails(
     @Embedded val kitten: KittenEntity,
     @Relation(parentColumn = "id", entityColumn = "kittenId")
@@ -95,5 +128,7 @@ data class KittenWithDetails(
     @Relation(parentColumn = "id", entityColumn = "kittenId")
     val medications: List<MedicationEntity>,
     @Relation(parentColumn = "id", entityColumn = "kittenId")
-    val administeredTreatments: List<AdministeredTreatmentEntity>
+    val administeredTreatments: List<AdministeredTreatmentEntity>,
+    @Relation(parentColumn = "id", entityColumn = "kittenId")
+    val rankScores: List<KittenRankScoreEntity>
 )

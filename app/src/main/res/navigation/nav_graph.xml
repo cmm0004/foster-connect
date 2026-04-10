@@ -45,6 +45,19 @@
         <action
             android:id="@+id/action_PreviousFosters_to_KittenDetail"
             app:destination="@id/KittenDetailFragment" />
+        <action
+            android:id="@+id/action_PreviousFosters_to_KittenRanking"
+            app:destination="@id/KittenRankingFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/KittenRankingFragment"
+        android:name="com.example.fosterconnect.foster.KittenRankingFragment"
+        android:label="Rank Kitten"
+        tools:layout="@layout/fragment_kitten_ranking">
+        <argument
+            android:name="kittenId"
+            app:argType="string" />
     </fragment>
 
 </navigation>

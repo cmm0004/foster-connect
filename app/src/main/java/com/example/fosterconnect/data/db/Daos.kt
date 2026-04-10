@@ -47,7 +47,33 @@ interface KittenDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAdministeredTreatment(treatment: AdministeredTreatmentEntity)
+
+    @Query("SELECT * FROM rank_facets ORDER BY sortOrder, displayName")
+    fun observeRankFacets(): Flow<List<RankFacetEntity>>
+
+    @Query("SELECT * FROM rank_facets ORDER BY sortOrder, displayName")
+    suspend fun getRankFacets(): List<RankFacetEntity>
+
+    @Query("SELECT COUNT(*) FROM rank_facets")
+    suspend fun rankFacetCount(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRankFacet(facet: RankFacetEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRankScore(score: KittenRankScoreEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRankScores(scores: List<KittenRankScoreEntity>)
+
+    @Query("SELECT facetId, AVG(CAST(score AS REAL)) AS averageScore FROM kitten_rank_scores GROUP BY facetId")
+    fun observeFacetAverages(): Flow<List<FacetAverage>>
 }
+
+data class FacetAverage(
+    val facetId: String,
+    val averageScore: Double
+)
 
 @Dao
 interface MessageDao {

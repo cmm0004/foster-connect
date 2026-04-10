@@ -3,15 +3,19 @@ package com.example.fosterconnect.data
 import android.content.Context
 import com.example.fosterconnect.data.db.AdministeredTreatmentEntity
 import com.example.fosterconnect.data.db.AppDatabase
+import com.example.fosterconnect.data.db.FacetAverage
 import com.example.fosterconnect.data.db.KittenEntity
+import com.example.fosterconnect.data.db.KittenRankScoreEntity
 import com.example.fosterconnect.data.db.KittenWithDetails
 import com.example.fosterconnect.data.db.MedicationEntity
 import com.example.fosterconnect.data.db.MessageEntity
+import com.example.fosterconnect.data.db.RankFacetEntity
 import com.example.fosterconnect.data.db.WeightEntryEntity
 import com.example.fosterconnect.foster.AdministeredTreatment
 import com.example.fosterconnect.foster.Breed
 import com.example.fosterconnect.foster.CoatColor
 import com.example.fosterconnect.foster.Kitten
+import com.example.fosterconnect.foster.RankFacet
 import com.example.fosterconnect.foster.Sex
 import com.example.fosterconnect.history.Message
 import com.example.fosterconnect.history.WeightEntry
@@ -35,8 +39,18 @@ object KittenRepository {
     private val _messagesFlow = MutableStateFlow<List<Message>>(emptyList())
     val messagesFlow: StateFlow<List<Message>> = _messagesFlow.asStateFlow()
 
+    private val _facetsFlow = MutableStateFlow<List<RankFacet>>(emptyList())
+    val facetsFlow: StateFlow<List<RankFacet>> = _facetsFlow.asStateFlow()
+
+    private val _scoresFlow = MutableStateFlow<Map<String, Map<String, Int>>>(emptyMap())
+    val scoresFlow: StateFlow<Map<String, Map<String, Int>>> = _scoresFlow.asStateFlow()
+
+    private val _facetAveragesFlow = MutableStateFlow<Map<String, Double>>(emptyMap())
+    val facetAveragesFlow: StateFlow<Map<String, Double>> = _facetAveragesFlow.asStateFlow()
+
     val kittens: List<Kitten> get() = _kittensFlow.value
     val messages: List<Message> get() = _messagesFlow.value
+    val facets: List<RankFacet> get() = _facetsFlow.value
 
     fun init(context: Context) {
         if (::db.isInitialized) return
@@ -46,10 +60,16 @@ object KittenRepository {
             if (db.kittenDao().count() == 0) {
                 seedDefaults()
             }
+            if (db.kittenDao().rankFacetCount() == 0) {
+                seedRankFacets()
+            }
         }
         scope.launch {
             db.kittenDao().observeAllWithDetails().collect { list ->
                 _kittensFlow.value = list.map { it.toDomain() }
+                _scoresFlow.value = list.associate { details ->
+                    details.kitten.id to details.rankScores.associate { it.facetId to it.score }
+                }
             }
         }
         scope.launch {
@@ -57,7 +77,30 @@ object KittenRepository {
                 _messagesFlow.value = list.map { it.toDomain() }
             }
         }
+        scope.launch {
+            db.kittenDao().observeRankFacets().collect { list ->
+                _facetsFlow.value = list.map { RankFacet(it.id, it.displayName, it.description) }
+            }
+        }
+        scope.launch {
+            db.kittenDao().observeFacetAverages().collect { list ->
+                _facetAveragesFlow.value = list.associate { it.facetId to it.averageScore }
+            }
+        }
     }
+
+    fun saveRankScores(kittenId: String, scores: Map<String, Int>) {
+        scope.launch {
+            db.kittenDao().insertRankScores(
+                scores.map { (facetId, score) ->
+                    KittenRankScoreEntity(kittenId = kittenId, facetId = facetId, score = score)
+                }
+            )
+        }
+    }
+
+    fun getScoresFor(kittenId: String): Map<String, Int> =
+        _scoresFlow.value[kittenId].orEmpty()
 
     fun getKitten(id: String): Kitten? = _kittensFlow.value.find { it.id == id }
 
@@ -120,6 +163,17 @@ object KittenRepository {
         scope.launch {
             db.kittenDao().markAdopted(kittenId, System.currentTimeMillis())
         }
+    }
+
+    private suspend fun seedRankFacets() {
+        val defaults = listOf(
+            RankFacetEntity("prey_drive", "Prey Drive", "How driven they are to chase and hunt", 0),
+            RankFacetEntity("cleanliness", "Cleanliness", "How tidy they keep themselves", 1),
+            RankFacetEntity("noisiness", "Noisiness", "How vocal they are", 2),
+            RankFacetEntity("cuddliness", "Cuddliness", "How much they enjoy being held", 3),
+            RankFacetEntity("playfulness", "Playfulness", "How active and playful they are", 4)
+        )
+        defaults.forEach { db.kittenDao().insertRankFacet(it) }
     }
 
     private suspend fun seedDefaults() {
