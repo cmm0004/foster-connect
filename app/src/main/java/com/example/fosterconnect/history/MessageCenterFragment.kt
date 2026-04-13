@@ -46,12 +46,10 @@ class MessageCenterFragment : Fragment() {
                         binding.recyclerMessages.visibility = View.VISIBLE
                         binding.recyclerMessages.adapter = MessageAdapter(messages) { message ->
                             KittenRepository.markMessageRead(message.id)
-                            if (message.kittenId != null) {
-                                val bundle = Bundle().apply {
-                                    putString("kittenId", message.kittenId)
-                                }
-                                findNavController().navigate(R.id.action_MessageCenter_to_KittenDetail, bundle)
+                            val bundle = Bundle().apply {
+                                putString("fosterCaseId", message.fosterCaseId)
                             }
+                            findNavController().navigate(R.id.action_MessageCenter_to_KittenDetail, bundle)
                         }
                     }
                 }

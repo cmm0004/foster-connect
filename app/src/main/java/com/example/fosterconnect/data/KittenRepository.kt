@@ -1,40 +1,57 @@
 package com.example.fosterconnect.data
 
 import android.content.Context
-import com.example.fosterconnect.data.db.AdministeredTreatmentEntity
+import com.example.fosterconnect.data.db.AnimalEntity
+import com.example.fosterconnect.data.db.AnimalSpecies
 import com.example.fosterconnect.data.db.AppDatabase
-import com.example.fosterconnect.data.db.FacetAverage
-import com.example.fosterconnect.data.db.KittenEntity
-import com.example.fosterconnect.data.db.KittenRankScoreEntity
-import com.example.fosterconnect.data.db.KittenWithDetails
-import com.example.fosterconnect.data.db.MedicationEntity
-import com.example.fosterconnect.data.db.MessageEntity
-import com.example.fosterconnect.data.db.RankFacetEntity
-import com.example.fosterconnect.data.db.WeightEntryEntity
+import com.example.fosterconnect.data.db.CaseMedicationEntity
+import com.example.fosterconnect.data.db.CaseMessageEntity
+import com.example.fosterconnect.data.db.CaseTreatmentEntity
+import com.example.fosterconnect.data.db.CaseWeightEntity
+import com.example.fosterconnect.data.db.CompletedFosterRecordEntity
+import com.example.fosterconnect.data.db.CompletedFosterRecordWithAnimal
+import com.example.fosterconnect.data.db.FosterCaseEntity
+import com.example.fosterconnect.data.db.FosterCaseStatus
+import com.example.fosterconnect.data.db.FosterCaseWithDetails
+import com.example.fosterconnect.data.db.RankFacetEntityV2
+import com.example.fosterconnect.data.db.RankingRecordEntity
 import com.example.fosterconnect.foster.AdministeredTreatment
 import com.example.fosterconnect.foster.Breed
 import com.example.fosterconnect.foster.CoatColor
-import com.example.fosterconnect.foster.Kitten
+import com.example.fosterconnect.foster.CompletedFoster
+import com.example.fosterconnect.foster.FosterCaseAnimal
 import com.example.fosterconnect.foster.RankFacet
 import com.example.fosterconnect.foster.Sex
 import com.example.fosterconnect.history.Message
 import com.example.fosterconnect.history.WeightEntry
 import com.example.fosterconnect.medication.Medication
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 
 object KittenRepository {
 
     private lateinit var db: AppDatabase
+    private lateinit var appContext: Context
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private val _kittensFlow = MutableStateFlow<List<Kitten>>(emptyList())
-    val kittensFlow: StateFlow<List<Kitten>> = _kittensFlow.asStateFlow()
+    private val _fosterCasesFlow = MutableStateFlow<List<FosterCaseAnimal>>(emptyList())
+    val fosterCasesFlow: StateFlow<List<FosterCaseAnimal>> = _fosterCasesFlow.asStateFlow()
+
+    private val _activeFostersFlow = MutableStateFlow<List<FosterCaseAnimal>>(emptyList())
+    val activeFostersFlow: StateFlow<List<FosterCaseAnimal>> = _activeFostersFlow.asStateFlow()
+
+    private val _completedFostersFlow = MutableStateFlow<List<CompletedFoster>>(emptyList())
+    val completedFostersFlow: StateFlow<List<CompletedFoster>> = _completedFostersFlow.asStateFlow()
 
     private val _messagesFlow = MutableStateFlow<List<Message>>(emptyList())
     val messagesFlow: StateFlow<List<Message>> = _messagesFlow.asStateFlow()
@@ -48,75 +65,112 @@ object KittenRepository {
     private val _facetAveragesFlow = MutableStateFlow<Map<String, Double>>(emptyMap())
     val facetAveragesFlow: StateFlow<Map<String, Double>> = _facetAveragesFlow.asStateFlow()
 
-    val kittens: List<Kitten> get() = _kittensFlow.value
-    val messages: List<Message> get() = _messagesFlow.value
-    val facets: List<RankFacet> get() = _facetsFlow.value
+    private val _rankingRecordsFlow = MutableStateFlow<List<RankingRecordEntity>>(emptyList())
 
     fun init(context: Context) {
         if (::db.isInitialized) return
-        db = AppDatabase.getInstance(context)
+        appContext = context.applicationContext
+        db = AppDatabase.getInstance(appContext)
 
         scope.launch {
-            if (db.kittenDao().count() == 0) {
+            if (db.animalDao().countAnimals() == 0) {
                 seedDefaults()
+                seedHistoricalFosters()
             }
-            if (db.kittenDao().rankFacetCount() == 0) {
+            if (db.rankingDao().rankFacetCount() == 0) {
                 seedRankFacets()
             }
         }
+
         scope.launch {
-            db.kittenDao().observeAllWithDetails().collect { list ->
-                _kittensFlow.value = list.map { it.toDomain() }
-                _scoresFlow.value = list.associate { details ->
-                    details.kitten.id to details.rankScores.associate { it.facetId to it.score }
+            combine(
+                db.animalDao().observeAnimals(),
+                db.fosterCaseDao().observeAllCasesWithDetails()
+            ) { animals, cases ->
+                val animalById = animals.associateBy { it.id }
+                cases.mapNotNull { details ->
+                    val animal = animalById[details.fosterCase.animalId] ?: return@mapNotNull null
+                    details.toDomain(animal)
                 }
+            }.collect { cases ->
+                _fosterCasesFlow.value = cases
+                _activeFostersFlow.value = cases.filter { !it.isCompleted }
             }
         }
+
         scope.launch {
-            db.messageDao().observeAll().collect { list ->
-                _messagesFlow.value = list.map { it.toDomain() }
+            db.fosterCaseDao().observeCompletedRecords().collect { records ->
+                _completedFostersFlow.value = records.map { it.toDomain() }
             }
         }
+
         scope.launch {
-            db.kittenDao().observeRankFacets().collect { list ->
-                _facetsFlow.value = list.map { RankFacet(it.id, it.displayName, it.description) }
+            db.fosterCaseDao().observeAllMessages().collect { messages ->
+                _messagesFlow.value = messages.map { it.toDomain() }
             }
         }
+
         scope.launch {
-            db.kittenDao().observeFacetAverages().collect { list ->
-                _facetAveragesFlow.value = list.associate { it.facetId to it.averageScore }
+            db.rankingDao().observeRankFacets().collect { facets ->
+                _facetsFlow.value = facets.map { RankFacet(it.id, it.displayName, it.description) }
+            }
+        }
+
+        scope.launch {
+            db.rankingDao().observeAllRankingRecords().collect { records ->
+                _rankingRecordsFlow.value = records.map { it.rankingRecord }
+                _scoresFlow.value = records
+                    .groupBy { it.rankingRecord.fosterCaseId ?: "__ignore__" }
+                    .filterKeys { it != "__ignore__" }
+                    .mapValues { (_, grouped) ->
+                        grouped.maxByOrNull { it.rankingRecord.rankedAtMillis }
+                            ?.scores
+                            ?.associate { it.facetId to it.score }
+                            .orEmpty()
+                    }
+            }
+        }
+
+        scope.launch {
+            db.rankingDao().observeFacetAverages().collect { averages ->
+                _facetAveragesFlow.value = averages.associate { it.facetId to it.averageScore }
             }
         }
     }
 
-    fun saveRankScores(kittenId: String, scores: Map<String, Int>) {
+    fun getFosterCase(caseId: String): FosterCaseAnimal? =
+        _fosterCasesFlow.value.find { it.fosterCaseId == caseId }
+
+    fun getCompletedFoster(caseId: String): CompletedFoster? =
+        _completedFostersFlow.value.find { it.fosterCaseId == caseId }
+
+    fun getScoresForCase(caseId: String): Map<String, Int> =
+        _scoresFlow.value[caseId].orEmpty()
+
+    fun addMessage(message: Message) {
         scope.launch {
-            db.kittenDao().insertRankScores(
-                scores.map { (facetId, score) ->
-                    KittenRankScoreEntity(kittenId = kittenId, facetId = facetId, score = score)
-                }
+            db.fosterCaseDao().insertMessage(
+                CaseMessageEntity(
+                    id = message.id,
+                    fosterCaseId = message.fosterCaseId,
+                    title = message.title,
+                    content = message.content,
+                    timestamp = message.timestamp,
+                    isRead = message.isRead
+                )
             )
         }
     }
 
-    fun getScoresFor(kittenId: String): Map<String, Int> =
-        _scoresFlow.value[kittenId].orEmpty()
-
-    fun getKitten(id: String): Kitten? = _kittensFlow.value.find { it.id == id }
-
-    fun addMessage(message: Message) {
-        scope.launch { db.messageDao().insert(message.toEntity()) }
-    }
-
     fun markMessageRead(messageId: String) {
-        scope.launch { db.messageDao().markRead(messageId) }
+        scope.launch { db.fosterCaseDao().markMessageRead(messageId) }
     }
 
-    fun addWeight(kittenId: String, entry: WeightEntry) {
+    fun addWeight(fosterCaseId: String, entry: WeightEntry) {
         scope.launch {
-            db.kittenDao().insertWeightEntry(
-                WeightEntryEntity(
-                    kittenId = kittenId,
+            db.fosterCaseDao().insertWeight(
+                CaseWeightEntity(
+                    fosterCaseId = fosterCaseId,
                     dateMillis = entry.dateMillis,
                     weightGrams = entry.weightGrams
                 )
@@ -124,111 +178,340 @@ object KittenRepository {
         }
     }
 
-    fun setWeightDeclineWarned(kittenId: String, warned: Boolean) {
-        scope.launch { db.kittenDao().updateWeightDeclineWarned(kittenId, warned) }
-    }
-
-    fun addMedication(kittenId: String, medication: Medication) {
-        scope.launch { db.kittenDao().insertMedication(medication.toEntity(kittenId)) }
-    }
-
-    fun stopMedication(kittenId: String, medicationId: String) {
+    fun setWeightDeclineWarned(fosterCaseId: String, warned: Boolean) {
         scope.launch {
-            db.kittenDao().stopMedication(medicationId, System.currentTimeMillis())
+            db.fosterCaseDao().updateWeightDeclineWarned(
+                caseId = fosterCaseId,
+                warned = warned,
+                updatedAtMillis = System.currentTimeMillis()
+            )
         }
     }
 
-    fun setBirthday(kittenId: String, birthdayMillis: Long) {
-        scope.launch { db.kittenDao().updateBirthday(kittenId, birthdayMillis) }
-    }
-
-    fun setExternalId(kittenId: String, externalId: String) {
-        scope.launch { db.kittenDao().updateExternalId(kittenId, externalId) }
-    }
-
-    fun markTreatmentAdministered(kittenId: String, treatment: AdministeredTreatment) {
+    fun addMedication(fosterCaseId: String, medication: Medication) {
         scope.launch {
-            db.kittenDao().insertAdministeredTreatment(
-                AdministeredTreatmentEntity(
-                    kittenId = kittenId,
-                    treatmentType = treatment.treatmentType,
-                    scheduledDateMillis = treatment.scheduledDateMillis,
-                    administeredDateMillis = treatment.administeredDateMillis
+            db.fosterCaseDao().insertMedication(
+                CaseMedicationEntity(
+                    id = medication.id,
+                    fosterCaseId = fosterCaseId,
+                    name = medication.name,
+                    strength = medication.strength,
+                    instructions = medication.instructions,
+                    startDateMillis = medication.startDateMillis,
+                    endDateMillis = medication.endDateMillis,
+                    isActive = medication.isActive
                 )
             )
         }
     }
 
-    fun markAdopted(kittenId: String) {
+    fun stopMedication(medicationId: String) {
         scope.launch {
-            db.kittenDao().markAdopted(kittenId, System.currentTimeMillis())
+            db.fosterCaseDao().stopMedication(medicationId, System.currentTimeMillis())
+        }
+    }
+
+    fun setBirthday(animalId: String, birthdayMillis: Long) {
+        scope.launch {
+            db.animalDao().updateBirthday(animalId, birthdayMillis, System.currentTimeMillis())
+        }
+    }
+
+    fun setExternalId(animalId: String, externalId: String) {
+        scope.launch {
+            db.animalDao().updateExternalId(animalId, externalId, System.currentTimeMillis())
+        }
+    }
+
+    fun markTreatmentAdministered(fosterCaseId: String, treatment: AdministeredTreatment) {
+        scope.launch {
+            db.fosterCaseDao().insertTreatment(
+                CaseTreatmentEntity(
+                    fosterCaseId = fosterCaseId,
+                    treatmentType = treatment.treatmentType,
+                    scheduledDateMillis = treatment.scheduledDateMillis,
+                    administeredDateMillis = treatment.administeredDateMillis,
+                    notes = null
+                )
+            )
+        }
+    }
+
+    fun createFosterCase(
+        externalId: String,
+        name: String,
+        breed: Breed,
+        color: CoatColor,
+        sex: Sex,
+        isAlteredAtIntake: Boolean,
+        intakeDateMillis: Long,
+        estimatedBirthdayMillis: Long?,
+        initialWeightGrams: Float?,
+        initialWeightDateMillis: Long?
+    ) {
+        scope.launch {
+            val now = System.currentTimeMillis()
+            val animalId = UUID.randomUUID().toString()
+            val caseId = UUID.randomUUID().toString()
+            db.animalDao().insertAnimal(
+                AnimalEntity(
+                    id = animalId,
+                    externalId = externalId.ifBlank { null },
+                    name = name,
+                    species = AnimalSpecies.CAT.name,
+                    breed = breed.name,
+                    color = color.name,
+                    sex = sex.name,
+                    estimatedBirthdayMillis = estimatedBirthdayMillis,
+                    createdAtMillis = now,
+                    updatedAtMillis = now
+                )
+            )
+            db.fosterCaseDao().insertCase(
+                FosterCaseEntity(
+                    id = caseId,
+                    animalId = animalId,
+                    status = FosterCaseStatus.ACTIVE.name,
+                    intakeDateMillis = intakeDateMillis,
+                    outDateMillis = null,
+                    isAlteredAtIntake = isAlteredAtIntake,
+                    weightDeclineWarned = false,
+                    notes = null,
+                    createdAtMillis = now,
+                    updatedAtMillis = now
+                )
+            )
+            if (initialWeightGrams != null) {
+                db.fosterCaseDao().insertWeight(
+                    CaseWeightEntity(
+                        fosterCaseId = caseId,
+                        dateMillis = initialWeightDateMillis ?: intakeDateMillis,
+                        weightGrams = initialWeightGrams
+                    )
+                )
+            }
+        }
+    }
+
+    fun markCaseCompleted(fosterCaseId: String) {
+        scope.launch {
+            val details = db.fosterCaseDao().getCaseWithDetails(fosterCaseId) ?: return@launch
+            val animal = db.animalDao().getAnimal(details.fosterCase.animalId) ?: return@launch
+            val completedAt = System.currentTimeMillis()
+            val finalWeight = details.weights.maxByOrNull { it.dateMillis }?.weightGrams
+            val firstWeight = details.weights.minByOrNull { it.dateMillis }?.weightGrams
+            val medicalSummary = details.medications
+                .sortedBy { it.startDateMillis }
+                .joinToString(", ") { it.name }
+                .takeIf { it.isNotBlank() }
+            val treatmentSummary = details.treatments
+                .groupBy { it.treatmentType }
+                .entries
+                .sortedBy { it.key }
+                .joinToString(", ") { (type, entries) -> "$type x${entries.size}" }
+                .takeIf { it.isNotBlank() }
+            db.fosterCaseDao().closeCase(
+                caseId = fosterCaseId,
+                status = FosterCaseStatus.COMPLETED.name,
+                outDateMillis = completedAt,
+                updatedAtMillis = completedAt
+            )
+            db.fosterCaseDao().insertCompletedRecord(
+                CompletedFosterRecordEntity(
+                    id = "completed-$fosterCaseId",
+                    animalId = animal.id,
+                    fosterCaseId = fosterCaseId,
+                    intakeDateMillis = details.fosterCase.intakeDateMillis,
+                    outDateMillis = completedAt,
+                    daysFostered = ((completedAt - details.fosterCase.intakeDateMillis) / MILLIS_PER_DAY).toInt()
+                        .coerceAtLeast(0),
+                    finalWeightGrams = finalWeight,
+                    weightChangeGrams = if (firstWeight != null && finalWeight != null) {
+                        finalWeight - firstWeight
+                    } else {
+                        null
+                    },
+                    medicalSummary = medicalSummary,
+                    behaviorSummary = null,
+                    placementSummary = treatmentSummary,
+                    createdAtMillis = completedAt
+                )
+            )
+        }
+    }
+
+    fun saveRankScores(animalId: String, fosterCaseId: String?, scores: Map<String, Int>) {
+        scope.launch {
+            val now = System.currentTimeMillis()
+            val nextVersion = _rankingRecordsFlow.value
+                .filter { it.animalId == animalId && it.fosterCaseId == fosterCaseId }
+                .maxOfOrNull { it.rankVersion }
+                ?.plus(1)
+                ?: 1
+            val rankingRecordId = UUID.randomUUID().toString()
+            db.rankingDao().insertRankingRecord(
+                RankingRecordEntity(
+                    id = rankingRecordId,
+                    animalId = animalId,
+                    fosterCaseId = fosterCaseId,
+                    rankedAtMillis = now,
+                    rankVersion = nextVersion,
+                    notes = null
+                )
+            )
+            db.rankingDao().insertRankingScores(
+                scores.map { (facetId, score) ->
+                    com.example.fosterconnect.data.db.RankingScoreEntity(
+                        rankingRecordId = rankingRecordId,
+                        facetId = facetId,
+                        score = score
+                    )
+                }
+            )
         }
     }
 
     private suspend fun seedRankFacets() {
         val defaults = listOf(
-            RankFacetEntity("prey_drive", "Prey Drive", "How driven they are to chase and hunt", 0),
-            RankFacetEntity("cleanliness", "Cleanliness", "How tidy they keep themselves", 1),
-            RankFacetEntity("noisiness", "Noisiness", "How vocal they are", 2),
-            RankFacetEntity("cuddliness", "Cuddliness", "How much they enjoy being held", 3),
-            RankFacetEntity("playfulness", "Playfulness", "How active and playful they are", 4)
+            RankFacetEntityV2("prey_drive", "Prey Drive", "How driven they are to chase and hunt", 0),
+            RankFacetEntityV2("cleanliness", "Cleanliness", "How tidy they keep themselves", 1),
+            RankFacetEntityV2("noisiness", "Noisiness", "How vocal they are", 2),
+            RankFacetEntityV2("cuddliness", "Cuddliness", "How much they enjoy being held", 3),
+            RankFacetEntityV2("playfulness", "Playfulness", "How active and playful they are", 4)
         )
-        defaults.forEach { db.kittenDao().insertRankFacet(it) }
+        defaults.forEach { db.rankingDao().insertRankFacet(it) }
     }
 
     private suspend fun seedDefaults() {
         val now = System.currentTimeMillis()
-        val twoWeeksAgo = now - 14L * 24 * 60 * 60 * 1000
-        val threeWeeksAgo = now - 21L * 24 * 60 * 60 * 1000
-        db.kittenDao().insertKitten(
-            KittenEntity(
-                id = java.util.UUID.randomUUID().toString(),
-                externalId = "F-2023-001",
-                name = "Luna",
-                breed = Breed.DOMESTIC_SHORT_HAIR.name,
-                color = CoatColor.GRAY_TABBY.name,
-                sex = Sex.FEMALE.name,
-                isAltered = false,
-                intakeDateMillis = now,
-                estimatedBirthdayMillis = threeWeeksAgo,
-                weightDeclineWarned = false,
-                isAdopted = false,
-                adoptionDateMillis = null
-            )
+        val threeWeeksAgo = now - 21L * MILLIS_PER_DAY
+        val twoWeeksAgo = now - 14L * MILLIS_PER_DAY
+        val lunaAnimal = AnimalEntity(
+            id = UUID.randomUUID().toString(),
+            externalId = "F-2023-001",
+            name = "Luna",
+            species = AnimalSpecies.CAT.name,
+            breed = Breed.DOMESTIC_SHORT_HAIR.name,
+            color = CoatColor.GRAY_TABBY.name,
+            sex = Sex.FEMALE.name,
+            estimatedBirthdayMillis = threeWeeksAgo,
+            createdAtMillis = now,
+            updatedAtMillis = now
         )
-        db.kittenDao().insertKitten(
-            KittenEntity(
-                id = java.util.UUID.randomUUID().toString(),
-                externalId = "F-2023-002",
-                name = "Mochi",
-                breed = Breed.SIAMESE.name,
-                color = CoatColor.WHITE.name,
-                sex = Sex.MALE.name,
-                isAltered = false,
-                intakeDateMillis = now,
-                estimatedBirthdayMillis = twoWeeksAgo,
-                weightDeclineWarned = false,
-                isAdopted = false,
-                adoptionDateMillis = null
-            )
+        val mochiAnimal = AnimalEntity(
+            id = UUID.randomUUID().toString(),
+            externalId = "F-2023-002",
+            name = "Mochi",
+            species = AnimalSpecies.CAT.name,
+            breed = Breed.SIAMESE.name,
+            color = CoatColor.WHITE.name,
+            sex = Sex.MALE.name,
+            estimatedBirthdayMillis = twoWeeksAgo,
+            createdAtMillis = now,
+            updatedAtMillis = now
         )
+        db.animalDao().insertAnimal(lunaAnimal)
+        db.animalDao().insertAnimal(mochiAnimal)
+        seedActiveCase(lunaAnimal.id, now - 10L * MILLIS_PER_DAY, false)
+        seedActiveCase(mochiAnimal.id, now - 7L * MILLIS_PER_DAY, false)
     }
 
-    private fun KittenWithDetails.toDomain(): Kitten = Kitten(
-        id = kitten.id,
-        externalId = kitten.externalId,
-        name = kitten.name,
-        breed = Breed.valueOf(kitten.breed),
-        color = CoatColor.valueOf(kitten.color),
-        sex = Sex.valueOf(kitten.sex),
-        isAltered = kitten.isAltered,
-        intakeDateMillis = kitten.intakeDateMillis,
-        estimatedBirthdayMillis = kitten.estimatedBirthdayMillis,
-        weightEntries = weightEntries
-            .sortedBy { it.dateMillis }
-            .map { WeightEntry(it.dateMillis, it.weightGrams) }
-            .toMutableList(),
-        medications = medications.map {
+    private suspend fun seedActiveCase(animalId: String, intakeDateMillis: Long, isAlteredAtIntake: Boolean) {
+        val caseId = UUID.randomUUID().toString()
+        db.fosterCaseDao().insertCase(
+            FosterCaseEntity(
+                id = caseId,
+                animalId = animalId,
+                status = FosterCaseStatus.ACTIVE.name,
+                intakeDateMillis = intakeDateMillis,
+                outDateMillis = null,
+                isAlteredAtIntake = isAlteredAtIntake,
+                weightDeclineWarned = false,
+                notes = null,
+                createdAtMillis = intakeDateMillis,
+                updatedAtMillis = intakeDateMillis
+            )
+        )
+        db.fosterCaseDao().insertWeight(CaseWeightEntity(fosterCaseId = caseId, dateMillis = intakeDateMillis, weightGrams = 320f))
+        db.fosterCaseDao().insertWeight(CaseWeightEntity(fosterCaseId = caseId, dateMillis = intakeDateMillis + MILLIS_PER_DAY * 2, weightGrams = 360f))
+        db.fosterCaseDao().insertWeight(CaseWeightEntity(fosterCaseId = caseId, dateMillis = intakeDateMillis + MILLIS_PER_DAY * 4, weightGrams = 395f))
+    }
+
+    private suspend fun seedHistoricalFosters() {
+        val json = appContext.assets.open("historicalfosters.json").bufferedReader().use { it.readText() }
+        val records = JSONArray(json)
+        val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+
+        for (index in 0 until records.length()) {
+            val record = records.getJSONObject(index)
+            val externalId = record.optString("anumber").trim()
+            val name = record.optString("name").trim()
+            val outDate = record.optString("out_date").trim()
+            if (externalId.isEmpty() || name.isEmpty() || outDate.isEmpty()) continue
+
+            val completedAt = runCatching { dateFormat.parse(outDate)?.time }.getOrNull() ?: continue
+            val animalId = "animal-$externalId"
+            val caseId = "case-$externalId"
+            db.animalDao().insertAnimal(
+                AnimalEntity(
+                    id = animalId,
+                    externalId = externalId,
+                    name = name,
+                    species = AnimalSpecies.CAT.name,
+                    breed = Breed.DOMESTIC_SHORT_HAIR.name,
+                    color = CoatColor.BLACK.name,
+                    sex = Sex.FEMALE.name,
+                    estimatedBirthdayMillis = null,
+                    createdAtMillis = completedAt,
+                    updatedAtMillis = completedAt
+                )
+            )
+            db.fosterCaseDao().insertCase(
+                FosterCaseEntity(
+                    id = caseId,
+                    animalId = animalId,
+                    status = FosterCaseStatus.COMPLETED.name,
+                    intakeDateMillis = completedAt - 14L * MILLIS_PER_DAY,
+                    outDateMillis = completedAt,
+                    isAlteredAtIntake = true,
+                    weightDeclineWarned = false,
+                    notes = null,
+                    createdAtMillis = completedAt - 14L * MILLIS_PER_DAY,
+                    updatedAtMillis = completedAt
+                )
+            )
+            db.fosterCaseDao().insertCompletedRecord(
+                CompletedFosterRecordEntity(
+                    id = "completed-$caseId",
+                    animalId = animalId,
+                    fosterCaseId = caseId,
+                    intakeDateMillis = completedAt - 14L * MILLIS_PER_DAY,
+                    outDateMillis = completedAt,
+                    daysFostered = 14,
+                    finalWeightGrams = null,
+                    weightChangeGrams = null,
+                    medicalSummary = null,
+                    behaviorSummary = null,
+                    placementSummary = null,
+                    createdAtMillis = completedAt
+                )
+            )
+        }
+    }
+
+    private fun FosterCaseWithDetails.toDomain(animal: AnimalEntity): FosterCaseAnimal = FosterCaseAnimal(
+        animalId = animal.id,
+        fosterCaseId = fosterCase.id,
+        externalId = animal.externalId.orEmpty(),
+        name = animal.name,
+        breed = safeBreed(animal.breed),
+        color = safeColor(animal.color),
+        sex = safeSex(animal.sex),
+        isAlteredAtIntake = fosterCase.isAlteredAtIntake,
+        intakeDateMillis = fosterCase.intakeDateMillis,
+        estimatedBirthdayMillis = animal.estimatedBirthdayMillis,
+        weightEntries = weights.sortedBy { it.dateMillis }.map { WeightEntry(it.dateMillis, it.weightGrams) },
+        medications = medications.sortedByDescending { it.startDateMillis }.map {
             Medication(
                 id = it.id,
                 name = it.name,
@@ -237,44 +520,52 @@ object KittenRepository {
                 startDateMillis = it.startDateMillis,
                 endDateMillis = it.endDateMillis
             )
-        }.toMutableList(),
-        administeredTreatments = administeredTreatments.map {
+        },
+        administeredTreatments = treatments.map {
             AdministeredTreatment(
                 treatmentType = it.treatmentType,
                 scheduledDateMillis = it.scheduledDateMillis,
                 administeredDateMillis = it.administeredDateMillis
             )
-        }.toMutableList(),
-        weightDeclineWarned = kitten.weightDeclineWarned,
-        isAdopted = kitten.isAdopted,
-        adoptionDateMillis = kitten.adoptionDateMillis
+        },
+        messages = messages.map { it.toDomain() },
+        weightDeclineWarned = fosterCase.weightDeclineWarned,
+        outDateMillis = fosterCase.outDateMillis,
+        isCompleted = fosterCase.status == FosterCaseStatus.COMPLETED.name
     )
 
-    private fun MessageEntity.toDomain(): Message = Message(
+    private fun CompletedFosterRecordWithAnimal.toDomain(): CompletedFoster = CompletedFoster(
+        completedRecordId = completedRecord.id,
+        animalId = animal.id,
+        fosterCaseId = completedRecord.fosterCaseId,
+        externalId = animal.externalId.orEmpty(),
+        name = animal.name,
+        breed = safeBreed(animal.breed),
+        color = safeColor(animal.color),
+        sex = safeSex(animal.sex),
+        estimatedBirthdayMillis = animal.estimatedBirthdayMillis,
+        intakeDateMillis = completedRecord.intakeDateMillis,
+        outDateMillis = completedRecord.outDateMillis,
+        daysFostered = completedRecord.daysFostered,
+        finalWeightGrams = completedRecord.finalWeightGrams,
+        weightChangeGrams = completedRecord.weightChangeGrams,
+        medicalSummary = completedRecord.medicalSummary,
+        behaviorSummary = completedRecord.behaviorSummary,
+        placementSummary = completedRecord.placementSummary
+    )
+
+    private fun CaseMessageEntity.toDomain(): Message = Message(
         id = id,
+        fosterCaseId = fosterCaseId,
         title = title,
         content = content,
         timestamp = timestamp,
-        kittenId = kittenId,
         isRead = isRead
     )
 
-    private fun Message.toEntity(): MessageEntity = MessageEntity(
-        id = id,
-        title = title,
-        content = content,
-        timestamp = timestamp,
-        kittenId = kittenId,
-        isRead = isRead
-    )
+    private fun safeBreed(raw: String): Breed = runCatching { Breed.valueOf(raw) }.getOrDefault(Breed.DOMESTIC_SHORT_HAIR)
+    private fun safeColor(raw: String): CoatColor = runCatching { CoatColor.valueOf(raw) }.getOrDefault(CoatColor.BLACK)
+    private fun safeSex(raw: String): Sex = runCatching { Sex.valueOf(raw) }.getOrDefault(Sex.FEMALE)
 
-    private fun Medication.toEntity(kittenId: String): MedicationEntity = MedicationEntity(
-        id = id,
-        kittenId = kittenId,
-        name = name,
-        strength = strength,
-        instructions = instructions,
-        startDateMillis = startDateMillis,
-        endDateMillis = endDateMillis
-    )
+    private const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
 }

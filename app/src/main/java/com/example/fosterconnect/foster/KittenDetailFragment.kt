@@ -4,11 +4,9 @@ import android.app.DatePickerDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
-import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.util.Log
@@ -24,6 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import com.example.fosterconnect.R
@@ -36,7 +35,6 @@ import com.example.fosterconnect.history.WeightTrend
 import com.example.fosterconnect.medication.FosterTreatmentSchedule
 import com.example.fosterconnect.medication.Medication
 import com.example.fosterconnect.medication.ScheduledDose
-import com.example.fosterconnect.medication.StandardTreatment
 import com.example.fosterconnect.medication.scan.MedicationLabelParser
 import com.example.fosterconnect.medication.scan.MedicationLabelScanner
 import com.example.fosterconnect.medication.scan.ParsedMedication
@@ -54,7 +52,7 @@ class KittenDetailFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
-    private lateinit var kittenId: String
+    private lateinit var fosterCaseId: String
 
     // ML Kit label scanning
     private val labelScanner = MedicationLabelScanner()
@@ -80,12 +78,12 @@ class KittenDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        kittenId = requireArguments().getString("kittenId")!!
+        fosterCaseId = requireArguments().getString("fosterCaseId")!!
         refreshUI()
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                KittenRepository.kittensFlow.collect {
+                KittenRepository.fosterCasesFlow.collect {
                     if (_binding != null) refreshUI()
                 }
             }
@@ -104,8 +102,8 @@ class KittenDetailFragment : Fragment() {
         }
 
         binding.buttonEmailOffice.setOnClickListener {
-            val kitten = KittenRepository.getKitten(kittenId) ?: return@setOnClickListener
-            copyVetRequestToClipboard(kitten)
+            val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return@setOnClickListener
+            copyVetRequestToClipboard(fosterCase)
         }
 
         binding.buttonMarkAdopted.setOnClickListener {
@@ -115,15 +113,26 @@ class KittenDetailFragment : Fragment() {
         binding.buttonSeeHistory.setOnClickListener {
             showTreatmentHistoryDialog()
         }
+
+        binding.buttonEditRankings.setOnClickListener {
+            val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return@setOnClickListener
+            findNavController().navigate(
+                R.id.KittenRankingFragment,
+                bundleOf(
+                    "animalId" to fosterCase.animalId,
+                    "fosterCaseId" to fosterCase.fosterCaseId
+                )
+            )
+        }
     }
 
     private fun showMarkAdoptedDialog() {
-        val kitten = KittenRepository.getKitten(kittenId) ?: return
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Confirm Adoption")
-            .setMessage("Are you sure you want to mark ${kitten.name} as adopted? They will be moved to the Previous Fosters list.")
+            .setTitle(R.string.foster_completed_title)
+            .setMessage(getString(R.string.foster_completed_message, fosterCase.name))
             .setPositiveButton("Confirm") { _, _ ->
-                KittenRepository.markAdopted(kittenId)
+                KittenRepository.markCaseCompleted(fosterCaseId)
                 findNavController().popBackStack()
             }
             .setNegativeButton("Cancel", null)
@@ -131,26 +140,28 @@ class KittenDetailFragment : Fragment() {
     }
 
     private fun refreshUI() {
-        val kitten = KittenRepository.getKitten(kittenId) ?: return
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
 
-        if (kitten.isAdopted) {
+        if (fosterCase.isCompleted) {
             binding.buttonAddWeight.visibility = View.GONE
             binding.buttonAddMedication.visibility = View.GONE
             binding.buttonMarkAdopted.visibility = View.GONE
             binding.buttonSetBirthday.visibility = View.GONE
-            binding.textIntakeDate.text = "Adopted on ${dateFormat.format(Date(kitten.adoptionDateMillis ?: 0))}"
+            binding.textIntakeDate.text = getString(
+                R.string.returned_to_shelter_format,
+                dateFormat.format(Date(fosterCase.outDateMillis ?: 0L))
+            )
         } else {
             binding.buttonAddWeight.visibility = View.VISIBLE
             binding.buttonAddMedication.visibility = View.VISIBLE
             binding.buttonMarkAdopted.visibility = View.VISIBLE
             binding.buttonSetBirthday.visibility = View.VISIBLE
-            binding.textIntakeDate.text = "In care since ${dateFormat.format(Date(kitten.intakeDateMillis))}"
+            binding.textIntakeDate.text = "In care since ${dateFormat.format(Date(fosterCase.intakeDateMillis))}"
         }
 
-        // Birthday and age
-        val birthday = kitten.estimatedBirthdayMillis
+        val birthday = fosterCase.estimatedBirthdayMillis
         if (birthday != null) {
-            val ageWeeks = kitten.ageInWeeks ?: 0
+            val ageWeeks = fosterCase.ageInWeeks ?: 0
             binding.textBirthdayAge.text = getString(
                 R.string.birthday_age_format,
                 dateFormat.format(Date(birthday)),
@@ -163,19 +174,19 @@ class KittenDetailFragment : Fragment() {
             binding.buttonSetBirthday.text = getString(R.string.set_birthday_button)
         }
 
-        val alteredStatus = if (kitten.isAltered) {
-            if (kitten.sex == Sex.MALE) "Neutered" else "Spayed"
+        val alteredStatus = if (fosterCase.isAlteredAtIntake) {
+            if (fosterCase.sex == Sex.MALE) "Neutered" else "Spayed"
         } else {
             "Not yet altered"
         }
 
-        binding.textKittenName.text = kitten.name
-        binding.textExternalId.text = kitten.externalId
-        binding.textExternalId.visibility = if (kitten.externalId.isNotEmpty()) View.VISIBLE else View.GONE
-        binding.textKittenBreed.text = "${kitten.breed.display} · ${kitten.color.display}"
-        binding.textKittenSex.text = "${kitten.sex.display} · $alteredStatus"
+        binding.textKittenName.text = fosterCase.name
+        binding.textExternalId.text = fosterCase.externalId
+        binding.textExternalId.visibility = if (fosterCase.externalId.isNotEmpty()) View.VISIBLE else View.GONE
+        binding.textKittenBreed.text = "${fosterCase.breed.display} · ${fosterCase.color.display}"
+        binding.textKittenSex.text = "${fosterCase.sex.display} · $alteredStatus"
 
-        val latest = kitten.weightEntries.lastOrNull()
+        val latest = fosterCase.weightEntries.lastOrNull()
         binding.textCurrentWeight.text = if (latest != null) {
             "%.0f g".format(latest.weightGrams)
         } else {
@@ -184,7 +195,7 @@ class KittenDetailFragment : Fragment() {
 
         // Weight history
         binding.layoutWeightHistory.removeAllViews()
-        kitten.weightEntries.asReversed().forEach { entry ->
+        fosterCase.weightEntries.asReversed().forEach { entry ->
             val row = TextView(requireContext()).apply {
                 text = "${dateFormat.format(Date(entry.dateMillis))}  —  ${"%.0f g".format(entry.weightGrams)}"
                 setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
@@ -196,7 +207,7 @@ class KittenDetailFragment : Fragment() {
         // Medications (only active ones — stopped meds go to history)
         val currentWeightGrams = latest?.weightGrams
         binding.layoutMedications.removeAllViews()
-        val activeMeds = kitten.medications.filter { it.isActive }.sortedByDescending { it.startDateMillis }
+        val activeMeds = fosterCase.medications.filter { it.isActive }.sortedByDescending { it.startDateMillis }
         if (activeMeds.isEmpty()) {
             val empty = TextView(requireContext()).apply {
                 text = getString(R.string.no_medications)
@@ -211,17 +222,17 @@ class KittenDetailFragment : Fragment() {
         }
 
         // Treatment schedule
-        renderTreatmentSchedule(kitten, currentWeightGrams)
+        renderTreatmentSchedule(fosterCase, currentWeightGrams)
     }
 
-    private fun renderTreatmentSchedule(kitten: Kitten, currentWeightGrams: Float?) {
+    private fun renderTreatmentSchedule(fosterCase: FosterCaseAnimal, currentWeightGrams: Float?) {
         binding.layoutTreatmentSchedule.removeAllViews()
 
         val schedule = FosterTreatmentSchedule.generateSchedule(
-            kitten.intakeDateMillis,
-            kitten.estimatedBirthdayMillis,
+            fosterCase.intakeDateMillis,
+            fosterCase.estimatedBirthdayMillis,
             currentWeightGrams,
-            kitten.administeredTreatments
+            fosterCase.administeredTreatments
         )
 
         if (schedule.isEmpty()) {
@@ -234,7 +245,7 @@ class KittenDetailFragment : Fragment() {
             return
         }
 
-        if (kitten.estimatedBirthdayMillis == null) {
+        if (fosterCase.estimatedBirthdayMillis == null) {
             val hint = TextView(requireContext()).apply {
                 text = getString(R.string.set_birthday_for_schedule)
                 setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall)
@@ -265,21 +276,21 @@ class KittenDetailFragment : Fragment() {
     }
 
     private fun showTreatmentHistoryDialog() {
-        val kitten = KittenRepository.getKitten(kittenId) ?: return
-        val currentWeightGrams = kitten.weightEntries.lastOrNull()?.weightGrams
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
+        val currentWeightGrams = fosterCase.weightEntries.lastOrNull()?.weightGrams
         val dp = resources.displayMetrics.density
 
         val schedule = FosterTreatmentSchedule.generateSchedule(
-            kitten.intakeDateMillis,
-            kitten.estimatedBirthdayMillis,
+            fosterCase.intakeDateMillis,
+            fosterCase.estimatedBirthdayMillis,
             currentWeightGrams,
-            kitten.administeredTreatments
+            fosterCase.administeredTreatments
         )
 
         val completedDoses = schedule.groupBy { it.doseNumber }
             .toSortedMap()
             .filter { (_, doses) -> doses.all { it.isAdministered } }
-        val stoppedMeds = kitten.medications.filter { !it.isActive }
+        val stoppedMeds = fosterCase.medications.filter { !it.isActive }
 
         if (completedDoses.isEmpty() && stoppedMeds.isEmpty()) {
             MaterialAlertDialogBuilder(requireContext())
@@ -508,7 +519,7 @@ class KittenDetailFragment : Fragment() {
                     ).apply { marginStart = (8 * dp).toInt() }
                     setOnClickListener {
                         KittenRepository.markTreatmentAdministered(
-                            kittenId,
+                            fosterCaseId,
                             AdministeredTreatment(
                                 treatmentType = dose.treatment.name,
                                 scheduledDateMillis = dose.scheduledDateMillis,
@@ -534,9 +545,13 @@ class KittenDetailFragment : Fragment() {
     }
 
     private fun showTreatmentCompleteAlert(doseNumber: Int, doses: List<ScheduledDose>) {
-        val kitten = KittenRepository.getKitten(kittenId) ?: return
-        val latestWeight = kitten.weightEntries.lastOrNull()
-        val identifier = if (kitten.externalId.isNotEmpty()) "${kitten.name} (${kitten.externalId})" else kitten.name
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
+        val latestWeight = fosterCase.weightEntries.lastOrNull()
+        val identifier = if (fosterCase.externalId.isNotEmpty()) {
+            "${fosterCase.name} (${fosterCase.externalId})"
+        } else {
+            fosterCase.name
+        }
         val doseDate = dateFormat.format(Date(doses.first().scheduledDateMillis))
 
         val body = buildString {
@@ -558,7 +573,7 @@ class KittenDetailFragment : Fragment() {
                 title = "Treatment Complete — Dose $doseNumber",
                 content = "All treatments for $identifier dose $doseNumber ($doseDate) have been administered. Tap to copy email body.",
                 timestamp = System.currentTimeMillis(),
-                kittenId = kitten.id
+                fosterCaseId = fosterCase.fosterCaseId
             )
         )
 
@@ -657,7 +672,7 @@ class KittenDetailFragment : Fragment() {
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
                 setOnClickListener {
-                    KittenRepository.stopMedication(kittenId, med.id)
+                    KittenRepository.stopMedication(med.id)
                     refreshUI()
                 }
             }
@@ -670,10 +685,10 @@ class KittenDetailFragment : Fragment() {
     }
 
     private fun showSetBirthdayDialog() {
-        val kitten = KittenRepository.getKitten(kittenId) ?: return
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
         val cal = Calendar.getInstance()
-        if (kitten.estimatedBirthdayMillis != null) {
-            cal.timeInMillis = kitten.estimatedBirthdayMillis
+        if (fosterCase.estimatedBirthdayMillis != null) {
+            cal.timeInMillis = fosterCase.estimatedBirthdayMillis
         }
 
         DatePickerDialog(
@@ -683,7 +698,7 @@ class KittenDetailFragment : Fragment() {
                     set(year, month, day, 0, 0, 0)
                     set(Calendar.MILLISECOND, 0)
                 }
-                KittenRepository.setBirthday(kittenId, selected.timeInMillis)
+                KittenRepository.setBirthday(fosterCase.animalId, selected.timeInMillis)
                 refreshUI()
             },
             cal.get(Calendar.YEAR),
@@ -706,7 +721,7 @@ class KittenDetailFragment : Fragment() {
                 val grams = input.text.toString().toFloatOrNull()
                 if (grams != null && grams > 0f) {
                     KittenRepository.addWeight(
-                        kittenId,
+                        fosterCaseId,
                         WeightEntry(System.currentTimeMillis(), grams)
                     )
                     refreshUI()
@@ -787,7 +802,7 @@ class KittenDetailFragment : Fragment() {
                     startDateMillis = startDateMillis
                 )
 
-                KittenRepository.addMedication(kittenId, medication)
+                KittenRepository.addMedication(fosterCaseId, medication)
                 refreshUI()
             }
             .setNegativeButton(R.string.cancel, null)
@@ -843,17 +858,18 @@ class KittenDetailFragment : Fragment() {
         parsed.strength?.let { dialogStrengthInput?.setText(it) }
         parsed.instructions?.let { dialogInstructionsInput?.setText(it) }
         parsed.animalId?.let { animalId ->
-            KittenRepository.setExternalId(kittenId, animalId)
+            val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
+            KittenRepository.setExternalId(fosterCase.animalId, animalId)
             refreshUI()
         }
     }
 
     private fun checkWeightTrend() {
-        val kitten = KittenRepository.getKitten(kittenId) ?: return
-        when (WeightAlertManager.evaluate(kitten)) {
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
+        when (WeightAlertManager.evaluate(fosterCase)) {
             WeightTrend.NORMAL -> {
-                if (kitten.weightDeclineWarned) {
-                    KittenRepository.setWeightDeclineWarned(kittenId, false)
+                if (fosterCase.weightDeclineWarned) {
+                    KittenRepository.setWeightDeclineWarned(fosterCaseId, false)
                 }
             }
             WeightTrend.DECLINING -> showDeclineAlert()
@@ -862,20 +878,20 @@ class KittenDetailFragment : Fragment() {
     }
 
     private fun showDeclineAlert() {
-        val kitten = KittenRepository.getKitten(kittenId) ?: return
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
         
         KittenRepository.addMessage(
             com.example.fosterconnect.history.Message(
                 title = getString(R.string.weight_alert_title),
-                content = getString(R.string.weight_alert_message, kitten.name),
+                content = getString(R.string.weight_alert_message, fosterCase.name),
                 timestamp = System.currentTimeMillis(),
-                kittenId = kitten.id
+                fosterCaseId = fosterCaseId
             )
         )
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.weight_alert_title)
-            .setMessage(getString(R.string.weight_alert_message, kitten.name))
+            .setMessage(getString(R.string.weight_alert_message, fosterCase.name))
             .setPositiveButton(R.string.alert_check_symptoms) { _, _ ->
                 showSymptomQuestions()
             }
@@ -907,58 +923,58 @@ class KittenDetailFragment : Fragment() {
     }
 
     private fun showFeedingSuggestion() {
-        KittenRepository.setWeightDeclineWarned(kittenId, true)
-        val kitten = KittenRepository.getKitten(kittenId) ?: return
+        KittenRepository.setWeightDeclineWarned(fosterCaseId, true)
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
 
         KittenRepository.addMessage(
             com.example.fosterconnect.history.Message(
                 title = getString(R.string.feeding_suggestion_title),
-                content = getString(R.string.feeding_suggestion_message, kitten.name, kitten.name),
+                content = getString(R.string.feeding_suggestion_message, fosterCase.name, fosterCase.name),
                 timestamp = System.currentTimeMillis(),
-                kittenId = kitten.id
+                fosterCaseId = fosterCaseId
             )
         )
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.feeding_suggestion_title)
-            .setMessage(getString(R.string.feeding_suggestion_message, kitten.name, kitten.name))
+            .setMessage(getString(R.string.feeding_suggestion_message, fosterCase.name, fosterCase.name))
             .setPositiveButton(R.string.ok, null)
             .show()
     }
 
     private fun showEscalationAlert() {
-        val kitten = KittenRepository.getKitten(kittenId) ?: return
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
 
         KittenRepository.addMessage(
             com.example.fosterconnect.history.Message(
                 title = getString(R.string.escalation_title),
-                content = getString(R.string.escalation_message, kitten.name),
+                content = getString(R.string.escalation_message, fosterCase.name),
                 timestamp = System.currentTimeMillis(),
-                kittenId = kitten.id
+                fosterCaseId = fosterCaseId
             )
         )
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.escalation_title)
-            .setMessage(getString(R.string.escalation_message, kitten.name))
+            .setMessage(getString(R.string.escalation_message, fosterCase.name))
             .setPositiveButton(R.string.copy_email_request) { _, _ ->
-                copyVetRequestToClipboard(kitten)
+                copyVetRequestToClipboard(fosterCase)
             }
             .setNegativeButton(R.string.dismiss, null)
             .show()
     }
 
-    private fun copyVetRequestToClipboard(kitten: Kitten) {
-        val latest = kitten.weightEntries.lastOrNull()
-        val recentWeights = kitten.weightEntries.takeLast(5).joinToString("\n") { entry ->
+    private fun copyVetRequestToClipboard(fosterCase: FosterCaseAnimal) {
+        val latest = fosterCase.weightEntries.lastOrNull()
+        val recentWeights = fosterCase.weightEntries.takeLast(5).joinToString("\n") { entry ->
             "${dateFormat.format(Date(entry.dateMillis))}: ${"%.0f".format(entry.weightGrams)} g"
         }
 
-        val subject = "Weight concern & Vet Appointment Request: ${kitten.name}"
+        val subject = "Weight concern & Vet Appointment Request: ${fosterCase.name}"
         val body = buildString {
             appendLine("Subject: $subject")
             appendLine()
-            appendLine("Foster kitten ${kitten.name} has shown declining weight.")
+            appendLine("Foster kitten ${fosterCase.name} has shown declining weight.")
             appendLine("I would like to request a vet appointment for a check-up.")
             appendLine()
             appendLine("Current weight: ${if (latest != null) "${"%.0f".format(latest.weightGrams)} g" else "N/A"}")

@@ -22,7 +22,8 @@ class KittenRankingFragment : Fragment() {
     private var _binding: FragmentKittenRankingBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var kittenId: String
+    private lateinit var animalId: String
+    private var fosterCaseId: String? = null
     private val workingScores = mutableMapOf<String, Int>()
 
     override fun onCreateView(
@@ -36,13 +37,15 @@ class KittenRankingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        kittenId = requireArguments().getString("kittenId")
-            ?: error("kittenId argument required")
+        animalId = requireArguments().getString("animalId")
+            ?: error("animalId argument required")
+        fosterCaseId = requireArguments().getString("fosterCaseId")
 
-        val kitten = KittenRepository.getKitten(kittenId)
-        binding.textKittenName.text = kitten?.name ?: "Kitten"
+        val fosterCase = fosterCaseId?.let { KittenRepository.getFosterCase(it) }
+        val completedFoster = fosterCaseId?.let { KittenRepository.getCompletedFoster(it) }
+        binding.textKittenName.text = fosterCase?.name ?: completedFoster?.name ?: "Animal"
 
-        workingScores.putAll(KittenRepository.getScoresFor(kittenId))
+        fosterCaseId?.let { workingScores.putAll(KittenRepository.getScoresForCase(it)) }
 
         binding.recyclerFacets.layoutManager = LinearLayoutManager(requireContext())
 
@@ -51,7 +54,7 @@ class KittenRankingFragment : Fragment() {
                 KittenRepository.facetsFlow.collect { facets ->
                     val averages = KittenRepository.facetAveragesFlow.value
                     val allScores = KittenRepository.scoresFlow.value
-                    val superlatives = computeSuperlatives(facets, allScores, kittenId)
+                    val superlatives = computeSuperlatives(facets, allScores, fosterCaseId)
                     binding.recyclerFacets.adapter = FacetAdapter(
                         facets = facets,
                         initialScores = workingScores,
@@ -64,7 +67,7 @@ class KittenRankingFragment : Fragment() {
         }
 
         binding.buttonSave.setOnClickListener {
-            KittenRepository.saveRankScores(kittenId, workingScores.toMap())
+            KittenRepository.saveRankScores(animalId, fosterCaseId, workingScores.toMap())
             Toast.makeText(requireContext(), "Rankings saved", Toast.LENGTH_SHORT).show()
             findNavController().popBackStack()
         }
@@ -78,8 +81,9 @@ class KittenRankingFragment : Fragment() {
     private fun computeSuperlatives(
         facets: List<RankFacet>,
         allScores: Map<String, Map<String, Int>>,
-        currentKittenId: String
+        currentFosterCaseId: String?
     ): Map<String, String> {
+        val currentCaseId = currentFosterCaseId ?: return emptyMap()
         val superlativeLabels = mapOf(
             "prey_drive" to "Mightiest Hunter!",
             "cleanliness" to "Cleanest Kitty!",
@@ -89,12 +93,12 @@ class KittenRankingFragment : Fragment() {
         )
         val result = mutableMapOf<String, String>()
         for (facet in facets) {
-            val perKitten = allScores.mapNotNull { (kid, scores) ->
-                scores[facet.id]?.let { kid to it }
+            val perCase = allScores.mapNotNull { (caseId, scores) ->
+                scores[facet.id]?.let { caseId to it }
             }
-            if (perKitten.size < 2) continue
-            val max = perKitten.maxOf { it.second }
-            val currentScore = allScores[currentKittenId]?.get(facet.id) ?: continue
+            if (perCase.size < 2) continue
+            val max = perCase.maxOf { it.second }
+            val currentScore = allScores[currentCaseId]?.get(facet.id) ?: continue
             if (currentScore == max && max > 0) {
                 result[facet.id] = superlativeLabels[facet.id] ?: "Top in ${facet.displayName}!"
             }
@@ -134,7 +138,7 @@ class KittenRankingFragment : Fragment() {
                 val avg = averages[facet.id]
                 if (avg != null) {
                     textAverage.visibility = View.VISIBLE
-                    textAverage.text = "Average across all kittens: %.1f".format(avg)
+                    textAverage.text = "Average across all animals: %.1f".format(avg)
                 } else {
                     textAverage.visibility = View.GONE
                 }

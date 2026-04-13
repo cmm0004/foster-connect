@@ -1,5 +1,6 @@
 package com.example.fosterconnect.foster
 
+import com.example.fosterconnect.history.Message
 import com.example.fosterconnect.history.WeightEntry
 import com.example.fosterconnect.medication.Medication
 
@@ -40,27 +41,56 @@ data class AdministeredTreatment(
     val administeredDateMillis: Long
 )
 
-data class Kitten(
-    val id: String = java.util.UUID.randomUUID().toString(),
+data class FosterCaseAnimal(
+    val animalId: String,
+    val fosterCaseId: String,
     val externalId: String = "",
     val name: String,
     val breed: Breed,
     val color: CoatColor,
     val sex: Sex,
-    val isAltered: Boolean,
+    val isAlteredAtIntake: Boolean,
     val intakeDateMillis: Long,
     val estimatedBirthdayMillis: Long? = null,
-    val weightEntries: MutableList<WeightEntry> = mutableListOf(),
-    val medications: MutableList<Medication> = mutableListOf(),
-    val administeredTreatments: MutableList<AdministeredTreatment> = mutableListOf(),
-    var weightDeclineWarned: Boolean = false,
-    var isAdopted: Boolean = false,
-    var adoptionDateMillis: Long? = null
+    val weightEntries: List<WeightEntry> = emptyList(),
+    val medications: List<Medication> = emptyList(),
+    val administeredTreatments: List<AdministeredTreatment> = emptyList(),
+    val messages: List<Message> = emptyList(),
+    val weightDeclineWarned: Boolean = false,
+    val outDateMillis: Long? = null,
+    val isCompleted: Boolean = false
 ) {
     val ageInWeeks: Int?
         get() {
-            val bday = estimatedBirthdayMillis ?: return null
-            val diffMillis = System.currentTimeMillis() - bday
+            val birthday = estimatedBirthdayMillis ?: return null
+            val diffMillis = System.currentTimeMillis() - birthday
+            return (diffMillis / (7L * 24 * 60 * 60 * 1000)).toInt()
+        }
+}
+
+data class CompletedFoster(
+    val completedRecordId: String,
+    val animalId: String,
+    val fosterCaseId: String,
+    val externalId: String = "",
+    val name: String,
+    val breed: Breed,
+    val color: CoatColor,
+    val sex: Sex,
+    val estimatedBirthdayMillis: Long? = null,
+    val intakeDateMillis: Long,
+    val outDateMillis: Long,
+    val daysFostered: Int,
+    val finalWeightGrams: Float? = null,
+    val weightChangeGrams: Float? = null,
+    val medicalSummary: String? = null,
+    val behaviorSummary: String? = null,
+    val placementSummary: String? = null
+) {
+    val ageInWeeks: Int?
+        get() {
+            val birthday = estimatedBirthdayMillis ?: return null
+            val diffMillis = outDateMillis - birthday
             return (diffMillis / (7L * 24 * 60 * 60 * 1000)).toInt()
         }
 }

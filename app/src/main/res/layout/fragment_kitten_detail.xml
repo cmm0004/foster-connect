@@ -25,6 +25,15 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
+                <ImageView
+                    android:id="@+id/image_profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginBottom="16dp"
+                    android:contentDescription="@string/profile_image_desc"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/default_kitten_profile" />
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
@@ -98,6 +107,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/set_birthday_button"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_edit_rankings"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/edit_rankings_button"
                     android:textSize="12sp" />
 
             </LinearLayout>
@@ -204,7 +221,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Mark as Adopted"
+            android:text="@string/complete_foster_case_button"
             android:textColor="?attr/colorError"
             app:strokeColor="?attr/colorError" />
 

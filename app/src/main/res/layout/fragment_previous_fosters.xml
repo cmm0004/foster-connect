@@ -1,175 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ScrollView
-        android:id="@+id/scroll_charts"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_previous_fosters"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- Stats summary tiles -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="3">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    android:background="?attr/colorSurfaceVariant"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/stat_total_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                        tools:text="12" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Adopted"
-                        android:textAppearance="?attr/textAppearanceLabelSmall" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="3dp"
-                    android:layout_weight="1"
-                    android:background="?attr/colorSurfaceVariant"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/stat_avg_days_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                        tools:text="42" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Avg days fostered"
-                        android:textAppearance="?attr/textAppearanceLabelSmall" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:background="?attr/colorSurfaceVariant"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/stat_avg_gain_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                        tools:text="320g" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Avg weight gain"
-                        android:textAppearance="?attr/textAppearanceLabelSmall" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Foster duration chart -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Days fostered"
-                android:textAppearance="?attr/textAppearanceTitleMedium" />
-
-            <com.example.fosterconnect.foster.HorizontalBarChartView
-                android:id="@+id/chart_duration"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <!-- Weight gain chart -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Weight gained (g)"
-                android:textAppearance="?attr/textAppearanceTitleMedium" />
-
-            <com.example.fosterconnect.foster.HorizontalBarChartView
-                android:id="@+id/chart_weight_gain"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <!-- Average rank score per facet -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Average rank by trait"
-                android:textAppearance="?attr/textAppearanceTitleMedium" />
-
-            <com.example.fosterconnect.foster.HorizontalBarChartView
-                android:id="@+id/chart_facet_avg"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <!-- Breed breakdown -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Breeds fostered"
-                android:textAppearance="?attr/textAppearanceTitleMedium" />
-
-            <com.example.fosterconnect.foster.HorizontalBarChartView
-                android:id="@+id/chart_breeds"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <!-- Quick rank list -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Tap a kitten to view or edit rankings"
-                android:textAppearance="?attr/textAppearanceTitleMedium" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_previous_fosters"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_kitten" />
-        </LinearLayout>
-    </ScrollView>
+        android:padding="16dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_kitten" />
 
     <TextView
         android:id="@+id/text_empty_previous"
@@ -177,7 +18,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:padding="32dp"
-        android:text="Your previous fosters will appear here once they have been adopted."
+        android:text="@string/previous_fosters_empty"
         android:textAlignment="center"
         android:textAppearance="?attr/textAppearanceBodyLarge"
         android:visibility="gone" />

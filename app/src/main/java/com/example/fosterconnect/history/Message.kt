@@ -5,6 +5,6 @@ data class Message(
     val title: String,
     val content: String,
     val timestamp: Long,
-    val kittenId: String? = null,
+    val fosterCaseId: String,
     var isRead: Boolean = false
 )

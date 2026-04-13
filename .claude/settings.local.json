@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(xargs ls:*)",
-      "Bash(./gradlew assembleDebug)"
+      "Bash(./gradlew assembleDebug)",
+      "Bash(./gradlew :app:mergeDebugResources)"
     ]
   }
 }

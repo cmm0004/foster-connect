@@ -1,5 +1,6 @@
 package com.example.fosterconnect.foster
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,9 +12,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.fosterconnect.R
 import com.example.fosterconnect.data.KittenRepository
 import com.example.fosterconnect.databinding.FragmentPreviousFostersBinding
+import com.example.fosterconnect.databinding.ItemPreviousFosterBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -38,122 +44,99 @@ class PreviousFostersFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 combine(
-                    KittenRepository.kittensFlow,
-                    KittenRepository.facetsFlow,
+                    KittenRepository.completedFostersFlow,
                     KittenRepository.scoresFlow
-                ) { kittens, facets, scores -> Triple(kittens, facets, scores) }
-                    .collect { (kittens, facets, scores) ->
-                        val adopted = kittens.filter { it.isAdopted }
-                        if (adopted.isEmpty()) {
-                            binding.scrollCharts.visibility = View.GONE
+                ) { completed, scores -> completed to scores }
+                    .collect { (completed, scores) ->
+                        if (completed.isEmpty()) {
+                            binding.recyclerPreviousFosters.visibility = View.GONE
                             binding.textEmptyPrevious.visibility = View.VISIBLE
                         } else {
-                            binding.scrollCharts.visibility = View.VISIBLE
+                            binding.recyclerPreviousFosters.visibility = View.VISIBLE
                             binding.textEmptyPrevious.visibility = View.GONE
-                            renderCharts(adopted, facets, scores)
-                            renderList(adopted)
+                            val sorted = completed.sortedByDescending { it.outDateMillis }
+                            val items = sorted.map { foster ->
+                                TierRow(foster, Tier.fromScores(scores[foster.fosterCaseId]))
+                            }
+                            binding.recyclerPreviousFosters.adapter = PreviousFosterAdapter(items) { foster ->
+                                findNavController().navigate(
+                                    R.id.action_PreviousFosters_to_KittenRanking,
+                                    bundleOf(
+                                        "animalId" to foster.animalId,
+                                        "fosterCaseId" to foster.fosterCaseId
+                                    )
+                                )
+                            }
                         }
                     }
             }
         }
     }
 
-    private fun renderCharts(
-        adopted: List<Kitten>,
-        facets: List<RankFacet>,
-        scores: Map<String, Map<String, Int>>
-    ) {
-        // Summary stats
-        binding.statTotalValue.text = adopted.size.toString()
-
-        val durations = adopted.map { it.daysFostered() }
-        val avgDays = if (durations.isNotEmpty()) durations.average().toInt() else 0
-        binding.statAvgDaysValue.text = avgDays.toString()
-
-        val gains = adopted.mapNotNull { it.weightGainGrams() }
-        val avgGain = if (gains.isNotEmpty()) gains.average().toInt() else 0
-        binding.statAvgGainValue.text = "${avgGain}g"
-
-        // Foster duration chart
-        binding.chartDuration.setData(
-            adopted
-                .sortedByDescending { it.daysFostered() }
-                .map { kitten ->
-                    val days = kitten.daysFostered()
-                    HorizontalBarChartView.Bar(
-                        label = kitten.name,
-                        value = days.toFloat(),
-                        valueLabel = "$days d"
-                    )
-                }
-        )
-
-        // Weight gain chart
-        val gainBars = adopted.mapNotNull { kitten ->
-            kitten.weightGainGrams()?.let { gain ->
-                HorizontalBarChartView.Bar(
-                    label = kitten.name,
-                    value = gain.toFloat(),
-                    valueLabel = "${gain}g"
-                )
-            }
-        }.sortedByDescending { it.value }
-        binding.chartWeightGain.setData(gainBars)
-
-        // Facet averages (only over adopted kittens that have scores)
-        val facetBars = facets.mapNotNull { facet ->
-            val values = adopted.mapNotNull { scores[it.id]?.get(facet.id) }
-            if (values.isEmpty()) return@mapNotNull null
-            val avg = values.average().toFloat()
-            HorizontalBarChartView.Bar(
-                label = facet.displayName,
-                value = avg,
-                valueLabel = "%.1f".format(avg)
-            )
-        }
-        binding.chartFacetAvg.setData(facetBars, maxValueOverride = 5f)
-
-        // Breed counts
-        val breedCounts = adopted
-            .groupingBy { it.breed.display }
-            .eachCount()
-            .toList()
-            .sortedByDescending { it.second }
-        binding.chartBreeds.setData(
-            breedCounts.map { (label, count) ->
-                HorizontalBarChartView.Bar(
-                    label = label,
-                    value = count.toFloat(),
-                    valueLabel = count.toString()
-                )
-            }
-        )
-    }
-
-    private fun renderList(adopted: List<Kitten>) {
-        binding.recyclerPreviousFosters.adapter = KittenAdapter(adopted) { kitten ->
-            findNavController().navigate(
-                R.id.action_PreviousFosters_to_KittenRanking,
-                bundleOf("kittenId" to kitten.id)
-            )
-        }
-    }
-
-    private fun Kitten.daysFostered(): Int {
-        val end = adoptionDateMillis ?: System.currentTimeMillis()
-        val diff = end - intakeDateMillis
-        return (diff / (24L * 60 * 60 * 1000)).toInt().coerceAtLeast(0)
-    }
-
-    private fun Kitten.weightGainGrams(): Int? {
-        if (weightEntries.size < 2) return null
-        val first = weightEntries.first().weightGrams
-        val last = weightEntries.last().weightGrams
-        return (last - first).toInt()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private data class TierRow(val foster: CompletedFoster, val tier: Tier)
+
+    private enum class Tier(
+        val label: String,
+        val backgroundRes: Int,
+        val textColor: Int
+    ) {
+        S("S", R.drawable.tier_s_bg, Color.BLACK),
+        A("A", R.drawable.tier_a_bg, Color.BLACK),
+        B("B", R.drawable.tier_b_bg, Color.WHITE),
+        C("C", R.drawable.tier_c_bg, Color.WHITE),
+        D("D", R.drawable.tier_d_bg, Color.WHITE),
+        F("F", R.drawable.tier_f_bg, Color.WHITE),
+        NONE("—", R.drawable.tier_none_bg, Color.WHITE);
+
+        companion object {
+            fun fromScores(scores: Map<String, Int>?): Tier {
+                if (scores.isNullOrEmpty()) return NONE
+                val avg = scores.values.average()
+                return when {
+                    avg >= 4.5 -> S
+                    avg >= 3.8 -> A
+                    avg >= 3.0 -> B
+                    avg >= 2.2 -> C
+                    avg >= 1.5 -> D
+                    else -> F
+                }
+            }
+        }
+    }
+
+    private class PreviousFosterAdapter(
+        private val rows: List<TierRow>,
+        private val onClick: (CompletedFoster) -> Unit
+    ) : RecyclerView.Adapter<PreviousFosterAdapter.ViewHolder>() {
+
+        class ViewHolder(val binding: ItemPreviousFosterBinding) : RecyclerView.ViewHolder(binding.root)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val binding = ItemPreviousFosterBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            return ViewHolder(binding)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val (foster, tier) = rows[position]
+            holder.binding.tierCard.setBackgroundResource(tier.backgroundRes)
+            holder.binding.textName.text = foster.name
+            holder.binding.textName.setTextColor(tier.textColor)
+            holder.binding.textOutDate.text = "Adopted ${dateFormat.format(Date(foster.outDateMillis))}"
+            holder.binding.textOutDate.setTextColor(tier.textColor)
+            holder.binding.textTier.text = tier.label
+            holder.binding.textTier.setTextColor(tier.textColor)
+            holder.binding.tierCard.setOnClickListener { onClick(foster) }
+        }
+
+        override fun getItemCount() = rows.size
+
+        companion object {
+            private val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
+        }
     }
 }

@@ -23,7 +23,7 @@
         tools:layout="@layout/fragment_kitten_detail">
 
         <argument
-            android:name="kittenId"
+            android:name="fosterCaseId"
             app:argType="string" />
     </fragment>
 
@@ -56,7 +56,11 @@
         android:label="Rank Kitten"
         tools:layout="@layout/fragment_kitten_ranking">
         <argument
-            android:name="kittenId"
+            android:name="animalId"
+            app:argType="string" />
+
+        <argument
+            android:name="fosterCaseId"
             app:argType="string" />
     </fragment>
 

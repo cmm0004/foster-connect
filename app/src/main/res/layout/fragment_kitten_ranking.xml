@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:paddingHorizontal="16dp"
         android:paddingBottom="8dp"
-        android:text="Rate this kitten on each trait (1 = low, 5 = high)."
+        android:text="Rate this animal on each trait (1 = low, 5 = high)."
         android:textAppearance="?attr/textAppearanceBodyMedium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
