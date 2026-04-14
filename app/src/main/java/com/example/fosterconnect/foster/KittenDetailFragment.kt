@@ -28,7 +28,6 @@ import kotlinx.coroutines.launch
 import com.example.fosterconnect.R
 import com.example.fosterconnect.data.KittenRepository
 import com.example.fosterconnect.databinding.FragmentKittenDetailBinding
-import com.example.fosterconnect.foster.AdministeredTreatment
 import com.example.fosterconnect.history.WeightAlertManager
 import com.example.fosterconnect.history.WeightEntry
 import com.example.fosterconnect.history.WeightTrend
@@ -72,6 +71,7 @@ class KittenDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentKittenDetailBinding.inflate(inflater, container, false)
+        //KittenWalkAnimation.applyTo(binding.imageProfile)
         return binding.root
     }
 
@@ -141,6 +141,8 @@ class KittenDetailFragment : Fragment() {
 
     private fun refreshUI() {
         val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
+
+        binding.imageProfile.setImageResource(fosterCase.color.defaultProfileDrawable())
 
         if (fosterCase.isCompleted) {
             binding.buttonAddWeight.visibility = View.GONE

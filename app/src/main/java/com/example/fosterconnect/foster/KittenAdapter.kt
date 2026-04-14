@@ -21,6 +21,8 @@ class KittenAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val fosterCase = fosterCases[position]
+            // KittenWalkAnimation.applyTo(holder.binding.imageProfile)
+        holder.binding.imageProfile.setImageResource(fosterCase.color.defaultProfileDrawable())
         holder.binding.textName.text = fosterCase.name
         holder.binding.textExternalId.text = fosterCase.externalId
         holder.binding.textExternalId.visibility = if (fosterCase.externalId.isNotEmpty()) View.VISIBLE else View.GONE

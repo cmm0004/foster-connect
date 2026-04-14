@@ -74,7 +74,7 @@ object KittenRepository {
 
         scope.launch {
             if (db.animalDao().countAnimals() == 0) {
-                seedDefaults()
+
                 seedHistoricalFosters()
             }
             if (db.rankingDao().rankFacetCount() == 0) {
@@ -382,60 +382,6 @@ object KittenRepository {
         defaults.forEach { db.rankingDao().insertRankFacet(it) }
     }
 
-    private suspend fun seedDefaults() {
-        val now = System.currentTimeMillis()
-        val threeWeeksAgo = now - 21L * MILLIS_PER_DAY
-        val twoWeeksAgo = now - 14L * MILLIS_PER_DAY
-        val lunaAnimal = AnimalEntity(
-            id = UUID.randomUUID().toString(),
-            externalId = "F-2023-001",
-            name = "Luna",
-            species = AnimalSpecies.CAT.name,
-            breed = Breed.DOMESTIC_SHORT_HAIR.name,
-            color = CoatColor.GRAY_TABBY.name,
-            sex = Sex.FEMALE.name,
-            estimatedBirthdayMillis = threeWeeksAgo,
-            createdAtMillis = now,
-            updatedAtMillis = now
-        )
-        val mochiAnimal = AnimalEntity(
-            id = UUID.randomUUID().toString(),
-            externalId = "F-2023-002",
-            name = "Mochi",
-            species = AnimalSpecies.CAT.name,
-            breed = Breed.SIAMESE.name,
-            color = CoatColor.WHITE.name,
-            sex = Sex.MALE.name,
-            estimatedBirthdayMillis = twoWeeksAgo,
-            createdAtMillis = now,
-            updatedAtMillis = now
-        )
-        db.animalDao().insertAnimal(lunaAnimal)
-        db.animalDao().insertAnimal(mochiAnimal)
-        seedActiveCase(lunaAnimal.id, now - 10L * MILLIS_PER_DAY, false)
-        seedActiveCase(mochiAnimal.id, now - 7L * MILLIS_PER_DAY, false)
-    }
-
-    private suspend fun seedActiveCase(animalId: String, intakeDateMillis: Long, isAlteredAtIntake: Boolean) {
-        val caseId = UUID.randomUUID().toString()
-        db.fosterCaseDao().insertCase(
-            FosterCaseEntity(
-                id = caseId,
-                animalId = animalId,
-                status = FosterCaseStatus.ACTIVE.name,
-                intakeDateMillis = intakeDateMillis,
-                outDateMillis = null,
-                isAlteredAtIntake = isAlteredAtIntake,
-                weightDeclineWarned = false,
-                notes = null,
-                createdAtMillis = intakeDateMillis,
-                updatedAtMillis = intakeDateMillis
-            )
-        )
-        db.fosterCaseDao().insertWeight(CaseWeightEntity(fosterCaseId = caseId, dateMillis = intakeDateMillis, weightGrams = 320f))
-        db.fosterCaseDao().insertWeight(CaseWeightEntity(fosterCaseId = caseId, dateMillis = intakeDateMillis + MILLIS_PER_DAY * 2, weightGrams = 360f))
-        db.fosterCaseDao().insertWeight(CaseWeightEntity(fosterCaseId = caseId, dateMillis = intakeDateMillis + MILLIS_PER_DAY * 4, weightGrams = 395f))
-    }
 
     private suspend fun seedHistoricalFosters() {
         val json = appContext.assets.open("historicalfosters.json").bufferedReader().use { it.readText() }

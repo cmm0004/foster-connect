@@ -1,5 +1,6 @@
 package com.example.fosterconnect.foster
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
@@ -9,6 +10,8 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -40,6 +43,13 @@ class FosterListFragment : Fragment() {
     private val scanner = MedicationLabelScanner()
     private val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
 
+    private val scanAgreementLauncher: ActivityResultLauncher<Void?> =
+        registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+            if (bitmap != null) {
+                scanAgreementBitmap(bitmap)
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -66,7 +76,30 @@ class FosterListFragment : Fragment() {
             }
         }
 
-        binding.buttonNewFoster.setOnClickListener { scanTestAgreement() }
+        binding.buttonNewFoster.setOnClickListener {
+            scanAgreementLauncher.launch(null)
+        }
+        binding.buttonNewFoster.setOnLongClickListener {
+            scanTestAgreement()
+            true
+        }
+    }
+
+    private fun scanAgreementBitmap(bitmap: Bitmap) {
+        scanner.scan(
+            bitmap,
+            onResult = { rawText ->
+                val parsed = FosterAgreementParser.parse(rawText)
+                Log.d(TAG, parsed.summary())
+                if (_binding != null) showReviewDialog(parsed)
+            },
+            onError = { e ->
+                Log.e(TAG, "OCR failed", e)
+                if (_binding != null) {
+                    Toast.makeText(requireContext(), "OCR failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
     }
 
     private fun scanTestAgreement() {
@@ -82,20 +115,7 @@ class FosterListFragment : Fragment() {
             Toast.makeText(ctx, "Could not decode test image", Toast.LENGTH_SHORT).show()
             return
         }
-        scanner.scan(
-            bitmap,
-            onResult = { rawText ->
-                val parsed = FosterAgreementParser.parse(rawText)
-                Log.d(TAG, parsed.summary())
-                if (_binding != null) showReviewDialog(parsed)
-            },
-            onError = { e ->
-                Log.e(TAG, "OCR failed", e)
-                if (_binding != null) {
-                    Toast.makeText(requireContext(), "OCR failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
-        )
+        scanAgreementBitmap(bitmap)
     }
 
     private fun showReviewDialog(parsed: ParsedFosterAgreement) {

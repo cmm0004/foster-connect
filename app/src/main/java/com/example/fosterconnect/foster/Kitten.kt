@@ -1,8 +1,24 @@
 package com.example.fosterconnect.foster
 
+import androidx.annotation.DrawableRes
+import com.example.fosterconnect.R
 import com.example.fosterconnect.history.Message
 import com.example.fosterconnect.history.WeightEntry
 import com.example.fosterconnect.medication.Medication
+
+@DrawableRes
+fun CoatColor.defaultProfileDrawable(): Int = when (this) {
+    CoatColor.BLACK -> R.drawable.black
+    CoatColor.WHITE -> R.drawable.white
+    CoatColor.GRAY_TABBY -> R.drawable.greytabby
+    CoatColor.DILUTED -> R.drawable.dilutedtabby
+    CoatColor.CALICO -> R.drawable.calico
+    CoatColor.TORTOISESHELL -> R.drawable.tortoiseshell
+    CoatColor.TUXEDO -> R.drawable.tuxedo
+    CoatColor.FLAMEPOINT -> R.drawable.chocolateflamepoint
+    CoatColor.ORANGE,
+    CoatColor.ORANGE_TABBY -> R.drawable.default_kitten_profile
+}
 
 enum class Sex(val display: String) {
     MALE("Male"),
@@ -13,26 +29,19 @@ enum class Breed(val display: String) {
     DOMESTIC_SHORT_HAIR("Domestic Short Hair"),
     DOMESTIC_MEDIUM_HAIR("Domestic Medium Hair"),
     DOMESTIC_LONG_HAIR("Domestic Long Hair"),
-    SIAMESE("Siamese"),
-    MAINE_COON("Maine Coon"),
-    PERSIAN("Persian"),
-    TABBY("Tabby"),
-    CALICO("Calico"),
-    TUXEDO("Tuxedo")
 }
 
 enum class CoatColor(val display: String) {
     BLACK("Black"),
     WHITE("White"),
     ORANGE("Orange"),
-    GRAY("Gray"),
-    BROWN("Brown"),
+    GRAY_TABBY("Gray Tabby"),
+    DILUTED("Diluted"),
     CALICO("Calico"),
     TORTOISESHELL("Tortoiseshell"),
-    GRAY_TABBY("Gray Tabby"),
     ORANGE_TABBY("Orange Tabby"),
-    BROWN_TABBY("Brown Tabby"),
-    TUXEDO("Tuxedo")
+    TUXEDO("Tuxedo"),
+    FLAMEPOINT("Flamepoint")
 }
 
 data class AdministeredTreatment(
