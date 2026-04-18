@@ -9,81 +9,6 @@
     tools:context=".KittenDetailFragment">
 
     <!-- Chart header bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/clinical_surface"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="10dp">
-
-        <TextView
-            android:id="@+id/button_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="monospace"
-            android:paddingEnd="10dp"
-            android:text="\u2190"
-            android:textColor="@color/clinical_ink"
-            android:textSize="14sp" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="monospace"
-                android:letterSpacing="0.05"
-                android:text="@string/patient_chart_label"
-                android:textColor="@color/clinical_ink_muted"
-                android:textSize="10sp" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="bottom"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/text_header_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAllCaps="true"
-                    android:textColor="@color/clinical_ink"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    tools:text="kitty" />
-
-                <TextView
-                    android:id="@+id/text_header_id"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:fontFamily="monospace"
-                    android:textColor="@color/clinical_ink_muted"
-                    android:textSize="10sp"
-                    tools:text="· #123123" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/text_status_badge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/clinical_crimson_soft"
-            android:fontFamily="monospace"
-            android:paddingHorizontal="9dp"
-            android:paddingVertical="5dp"
-            android:text="@string/action_required"
-            android:textColor="@color/clinical_crimson"
-            android:textSize="10sp"
-            android:textStyle="bold" />
-    </LinearLayout>
 
     <View
         android:layout_width="match_parent"
@@ -227,21 +152,10 @@
                                     android:fontFamily="monospace"
                                     android:paddingHorizontal="7dp"
                                     android:paddingVertical="3dp"
-                                    android:text="14D"
+                                    android:text="Export"
                                     android:textColor="@color/white"
                                     android:textSize="9sp" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="3dp"
-                                    android:background="@color/clinical_surface"
-                                    android:fontFamily="monospace"
-                                    android:paddingHorizontal="7dp"
-                                    android:paddingVertical="3dp"
-                                    android:text="ALL"
-                                    android:textColor="@color/clinical_ink_muted"
-                                    android:textSize="9sp" />
                             </LinearLayout>
                         </LinearLayout>
 
@@ -432,16 +346,6 @@
                         </LinearLayout>
 
                         <!-- Zone explainer -->
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:background="@color/clinical_sage_tint"
-                            android:fontFamily="monospace"
-                            android:padding="8dp"
-                            android:text="@string/zone_explainer"
-                            android:textColor="@color/clinical_ink_soft"
-                            android:textSize="9sp" />
 
                         <!-- Log buttons -->
                         <LinearLayout
@@ -535,15 +439,6 @@
                                     android:textColor="@color/clinical_ink_muted"
                                     android:textSize="10sp" />
 
-                                <TextView
-                                    android:id="@+id/text_treatment_status"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:textColor="@color/clinical_ink"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold"
-                                    tools:text="3 protocols overdue" />
                             </LinearLayout>
 
                             <TextView

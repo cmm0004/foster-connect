@@ -104,10 +104,6 @@ class KittenDetailFragment : Fragment() {
             }
         }
 
-        binding.buttonBack.setOnClickListener {
-            findNavController().popBackStack()
-        }
-
         binding.buttonAddWeight.setOnClickListener {
             showAddWeightDialog()
         }
@@ -168,10 +164,6 @@ class KittenDetailFragment : Fragment() {
             binding.buttonMarkAdopted.visibility = View.VISIBLE
         }
 
-        // Header bar
-        binding.textHeaderName.text = fosterCase.name
-        binding.textHeaderId.text = if (fosterCase.externalId.isNotEmpty()) "· #${fosterCase.externalId}" else ""
-
         // Patient header
         binding.imageProfile.setImageResource(fosterCase.color.defaultProfileDrawable())
         binding.textKittenName.text = fosterCase.name
@@ -207,20 +199,6 @@ class KittenDetailFragment : Fragment() {
 
         // Status badge
         val currentWeightGrams = latest?.weightGrams
-        val schedule = FosterTreatmentSchedule.generateSchedule(
-            fosterCase.intakeDateMillis, fosterCase.estimatedBirthdayMillis,
-            currentWeightGrams, fosterCase.administeredTreatments
-        )
-        val overdueCount = schedule.count { it.isPast && !it.isAdministered }
-        if (overdueCount > 0) {
-            binding.textStatusBadge.text = getString(R.string.action_required)
-            binding.textStatusBadge.setTextColor(ContextCompat.getColor(ctx, R.color.clinical_crimson))
-            binding.textStatusBadge.setBackgroundColor(ContextCompat.getColor(ctx, R.color.clinical_crimson_soft))
-        } else {
-            binding.textStatusBadge.text = getString(R.string.stable)
-            binding.textStatusBadge.setTextColor(ContextCompat.getColor(ctx, R.color.clinical_sage))
-            binding.textStatusBadge.setBackgroundColor(ContextCompat.getColor(ctx, R.color.clinical_sage_tint))
-        }
 
         // Vitals chart
         if (fosterCase.weightEntries.size >= 2) {
@@ -287,11 +265,9 @@ class KittenDetailFragment : Fragment() {
 
         // Update ledger header
         if (overdueCount > 0) {
-            binding.textTreatmentStatus.text = getString(R.string.protocols_overdue_format, overdueCount)
             binding.textTreatmentBadge.text = getString(R.string.overdue).uppercase()
             binding.textTreatmentBadge.setTextColor(ContextCompat.getColor(ctx, R.color.clinical_crimson))
         } else {
-            binding.textTreatmentStatus.text = getString(R.string.all_protocols_administered)
             binding.textTreatmentBadge.text = getString(R.string.complete)
             binding.textTreatmentBadge.setTextColor(ContextCompat.getColor(ctx, R.color.clinical_sage))
         }

@@ -76,7 +76,8 @@ class FosterListFragment : Fragment() {
             if (granted) {
                 launchCameraCapture()
             } else {
-                Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
 
@@ -91,7 +92,8 @@ class FosterListFragment : Fragment() {
             }
             val bitmap = decodeSampled(file, maxDim = 2048)
             if (bitmap == null) {
-                Toast.makeText(requireContext(), "Could not decode photo", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Could not decode photo", Toast.LENGTH_SHORT)
+                    .show()
                 return@registerForActivityResult
             }
             Log.d(TAG, "Captured ${file.length()} bytes, decoded ${bitmap.width}x${bitmap.height}")
@@ -140,8 +142,8 @@ class FosterListFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 KittenRepository.activeFostersFlow.collect { fosters ->
-                    updateKpiStrip(fosters)
-                    binding.textPatientsCount.text = getString(R.string.patients_count_format, fosters.size)
+                    binding.textPatientsCount.text =
+                        getString(R.string.patients_count_format, fosters.size)
 
                     binding.recyclerKittens.adapter = KittenAdapter(
                         fosterCases = fosters,
@@ -165,40 +167,15 @@ class FosterListFragment : Fragment() {
         }
     }
 
-    private fun updateKpiStrip(fosters: List<FosterCaseAnimal>) {
-        val inCare = fosters.size
-        var overdueTotal = 0
-        var upcomingTotal = 0
-        var totalDays = 0L
-
-        fosters.forEach { fc ->
-            val weight = fc.weightEntries.lastOrNull()?.weightGrams
-            val schedule = FosterTreatmentSchedule.generateSchedule(
-                fc.intakeDateMillis, fc.estimatedBirthdayMillis, weight, fc.administeredTreatments
-            )
-            overdueTotal += schedule.count { it.isPast && !it.isAdministered }
-            upcomingTotal += schedule.count { !it.isPast && !it.isAdministered }
-            totalDays += (System.currentTimeMillis() - fc.intakeDateMillis) / (24 * 60 * 60 * 1000)
-        }
-        val avgDays = if (inCare > 0) (totalDays / inCare).toInt() else 0
-
-        fun bindKpi(kpiBinding: ItemKpiCardBinding, value: String, label: String, colorRes: Int) {
-            kpiBinding.textKpiValue.text = value
-            kpiBinding.textKpiLabel.text = label
-            kpiBinding.textKpiValue.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), colorRes))
-        }
-
-        bindKpi(binding.kpiInCare, "$inCare", getString(R.string.kpi_in_care), R.color.clinical_sage)
-        bindKpi(binding.kpiOverdue, "$overdueTotal", getString(R.string.kpi_overdue), R.color.clinical_crimson)
-        bindKpi(binding.kpiUpcoming, "$upcomingTotal", getString(R.string.kpi_upcoming), R.color.clinical_amber)
-        bindKpi(binding.kpiDaysAvg, "$avgDays", getString(R.string.kpi_days_avg), R.color.clinical_ink_soft)
-    }
 
     private fun scanAgreementBitmap(bitmap: Bitmap) {
         scanner.scan(
             bitmap,
             onResult = { rawText ->
-                Log.d(TAG, "---- RAW OCR (${rawText.length} chars, ${rawText.lines().size} lines) ----")
+                Log.d(
+                    TAG,
+                    "---- RAW OCR (${rawText.length} chars, ${rawText.lines().size} lines) ----"
+                )
                 rawText.lines().forEachIndexed { i, line ->
                     Log.d(TAG, "raw[%02d] |%s|".format(i, line))
                 }
@@ -210,27 +187,32 @@ class FosterListFragment : Fragment() {
             onError = { e ->
                 Log.e(TAG, "OCR failed", e)
                 if (_binding != null) {
-                    Toast.makeText(requireContext(), "OCR failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "OCR failed: ${e.message}", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         )
     }
 
     private fun fillDialogFromParsed(parsed: ParsedFosterAgreement) {
-        val unitLabels = AgeUnit.values().map { it.name.lowercase().replaceFirstChar(Char::titlecase) }
+        val unitLabels =
+            AgeUnit.values().map { it.name.lowercase().replaceFirstChar(Char::titlecase) }
         dialogNameInput?.setText(parsed.name.orEmpty())
         dialogIdInput?.setText(parsed.animalExternalId.orEmpty())
         parsed.breed?.let { dialogBreedInput?.setText(it.display, false) }
         parsed.color?.let { dialogColorInput?.setText(it.display, false) }
         parsed.sex?.let { dialogSexInput?.setText(it.display, false) }
-        if (parsed.isAlteredAtIntake != null) dialogAlteredSwitch?.isChecked = parsed.isAlteredAtIntake
+        if (parsed.isAlteredAtIntake != null) dialogAlteredSwitch?.isChecked =
+            parsed.isAlteredAtIntake
         parsed.age?.let {
             dialogAgeValueInput?.setText(it.value.toString())
             dialogAgeUnitInput?.setText(unitLabels[it.unit.ordinal], false)
         }
-        dialogIntakeDateInput?.setText(parsed.intakeDateMillis?.let { dateFormat.format(Date(it)) }.orEmpty())
+        dialogIntakeDateInput?.setText(parsed.intakeDateMillis?.let { dateFormat.format(Date(it)) }
+            .orEmpty())
         parsed.lastWeightGrams?.let { dialogWeightInput?.setText("%.0f".format(it)) }
-        dialogWeightDateInput?.setText(parsed.lastWeightDateMillis?.let { dateFormat.format(Date(it)) }.orEmpty())
+        dialogWeightDateInput?.setText(parsed.lastWeightDateMillis?.let { dateFormat.format(Date(it)) }
+            .orEmpty())
         Toast.makeText(requireContext(), "Agreement scanned", Toast.LENGTH_SHORT).show()
     }
 
@@ -254,7 +236,8 @@ class FosterListFragment : Fragment() {
         val ctx = requireContext()
         val view = layoutInflater.inflate(R.layout.dialog_review_foster_agreement, null)
 
-        val scanButton = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.button_scan_agreement)
+        val scanButton =
+            view.findViewById<com.google.android.material.button.MaterialButton>(R.id.button_scan_agreement)
         val nameInput = view.findViewById<TextInputEditText>(R.id.input_name)
         val litterNameInput = view.findViewById<TextInputEditText>(R.id.input_litter_name)
         val idInput = view.findViewById<TextInputEditText>(R.id.input_external_id)
@@ -285,7 +268,8 @@ class FosterListFragment : Fragment() {
         val breedLabels = Breed.values().map { it.display }
         val colorLabels = CoatColor.values().map { it.display }
         val sexLabels = Sex.values().map { it.display }
-        val unitLabels = AgeUnit.values().map { it.name.lowercase().replaceFirstChar(Char::titlecase) }
+        val unitLabels =
+            AgeUnit.values().map { it.name.lowercase().replaceFirstChar(Char::titlecase) }
 
         breedInput.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_list_item_1, breedLabels))
         colorInput.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_list_item_1, colorLabels))
@@ -304,9 +288,11 @@ class FosterListFragment : Fragment() {
                 ageValueInput.setText(it.value.toString())
                 ageUnitInput.setText(unitLabels[it.unit.ordinal], false)
             }
-            intakeDateInput.setText(parsed.intakeDateMillis?.let { dateFormat.format(Date(it)) }.orEmpty())
+            intakeDateInput.setText(parsed.intakeDateMillis?.let { dateFormat.format(Date(it)) }
+                .orEmpty())
             parsed.lastWeightGrams?.let { weightInput.setText("%.0f".format(it)) }
-            weightDateInput.setText(parsed.lastWeightDateMillis?.let { dateFormat.format(Date(it)) }.orEmpty())
+            weightDateInput.setText(parsed.lastWeightDateMillis?.let { dateFormat.format(Date(it)) }
+                .orEmpty())
         }
 
         scanButton.setOnClickListener {
@@ -328,16 +314,20 @@ class FosterListFragment : Fragment() {
                     .takeIf { it >= 0 }?.let { CoatColor.values()[it] } ?: CoatColor.BLACK
                 val sex = sexLabels.indexOf(sexInput.text?.toString())
                     .takeIf { it >= 0 }?.let { Sex.values()[it] } ?: Sex.FEMALE
-                val intakeMillis = parseDateInput(intakeDateInput.text?.toString()) ?: System.currentTimeMillis()
+                val intakeMillis =
+                    parseDateInput(intakeDateInput.text?.toString()) ?: System.currentTimeMillis()
                 val ageValue = ageValueInput.text?.toString()?.toIntOrNull()
                 val unitIdx = unitLabels.indexOf(ageUnitInput.text?.toString()).takeIf { it >= 0 }
                 val estimatedBirthday = if (ageValue != null && unitIdx != null) {
-                    ParsedAge(ageValue, AgeUnit.values()[unitIdx]).estimatedBirthdayMillis(intakeMillis)
+                    ParsedAge(ageValue, AgeUnit.values()[unitIdx]).estimatedBirthdayMillis(
+                        intakeMillis
+                    )
                 } else null
                 val weightGrams = weightInput.text?.toString()?.toFloatOrNull()
                 val weightDate = parseDateInput(weightDateInput.text?.toString())
 
-                val litterName = litterNameInput.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                val litterName =
+                    litterNameInput.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
                 KittenRepository.createFosterCase(
                     externalId = idInput.text?.toString()?.trim().orEmpty(),
                     name = name,

@@ -91,12 +91,12 @@
     <string name="delete">Delete</string>
 
     <!-- Clinical Dashboard strings -->
-    <string name="clinical_subtitle">EST. CARE · VET PROTOCOL v2.3</string>
+    <string name="clinical_subtitle">Version v0.3</string>
     <string name="patient_chart_label">PATIENT CHART</string>
     <string name="action_required">ACTION REQUIRED</string>
     <string name="stable">STABLE</string>
     <string name="filter_all">ALL</string>
-    <string name="patients_count_format">PATIENTS · %02d</string>
+    <string name="patients_count_format">Fosters · %02d</string>
     <string name="kpi_in_care">IN CARE</string>
     <string name="kpi_overdue">OVERDUE</string>
     <string name="kpi_upcoming">UPCOMING</string>
@@ -113,7 +113,7 @@
     <string name="legend_weight">weight (g)</string>
     <string name="legend_expected">expected band</string>
     <string name="zone_explainer">■ 6–7 loose/diarrhea   ■ 3–5 target   ■ 1–2 constipated</string>
-    <string name="log_weight">+ LOG WEIGHT</string>
+    <string name="log_weight">+ WEIGHT</string>
     <string name="log_stool">+ STOOL</string>
     <string name="log_event">+ EVENT</string>
     <string name="treatment_ledger_label">TREATMENT LEDGER · DOSE 1</string>

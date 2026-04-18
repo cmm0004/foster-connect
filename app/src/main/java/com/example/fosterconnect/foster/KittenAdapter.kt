@@ -59,20 +59,6 @@ class KittenAdapter(
         val overdueCount = schedule.count { it.isPast && !it.isAdministered }
         val hasOverdue = overdueCount > 0
 
-        if (hasOverdue) {
-            holder.binding.textNextTreatment.text = ctx.getString(R.string.today)
-            holder.binding.textNextTreatment.setTextColor(ContextCompat.getColor(ctx, R.color.clinical_crimson))
-        } else {
-            val nextDose = schedule.firstOrNull { !it.isAdministered && !it.isPast }
-            if (nextDose != null) {
-                val daysUntil = ((nextDose.scheduledDateMillis - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)).toInt()
-                holder.binding.textNextTreatment.text = "${daysUntil}d"
-            } else {
-                holder.binding.textNextTreatment.text = "--"
-            }
-            holder.binding.textNextTreatment.setTextColor(ContextCompat.getColor(ctx, R.color.clinical_ink_soft))
-        }
-
         // Status bar color
         holder.binding.viewStatusBar.setBackgroundColor(
             ContextCompat.getColor(ctx, if (hasOverdue) R.color.clinical_crimson else R.color.clinical_sage)
