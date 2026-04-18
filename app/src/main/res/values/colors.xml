@@ -2,6 +2,24 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Clinical Dashboard palette -->
+    <color name="clinical_bg">#FFF5F7F4</color>
+    <color name="clinical_surface">#FFFFFFFF</color>
+    <color name="clinical_ink">#FF0F1814</color>
+    <color name="clinical_ink_soft">#FF3C4B43</color>
+    <color name="clinical_ink_muted">#FF6E7A73</color>
+    <color name="clinical_line">#FFE4E8E2</color>
+    <color name="clinical_line_soft">#FFEEF1EC</color>
+    <color name="clinical_sage">#FF52735A</color>
+    <color name="clinical_sage_soft">#FFDCE6DC</color>
+    <color name="clinical_sage_tint">#FFEAF1E8</color>
+    <color name="clinical_amber">#FFC08A20</color>
+    <color name="clinical_amber_soft">#FFFAE8C8</color>
+    <color name="clinical_crimson">#FFB83A3A</color>
+    <color name="clinical_crimson_soft">#FFF8DADA</color>
+
+    <!-- Trait colors (existing) -->
     <color name="trait_positive">#C8E6C9</color>
     <color name="trait_negative">#FFCDD2</color>
     <color name="trait_neutral">#E0E0E0</color>

@@ -8,11 +8,18 @@
     <string name="weight_history_label">Weight History</string>
     <string name="no_weight_logged">No weight logged yet</string>
     <string name="add_weight_dialog_title">Log Weight</string>
-    <string name="weight_hint">Weight in grams (e.g. 120)</string>
+    <string name="weight_hint_grams">Weight in grams (e.g. 120)</string>
+    <string name="weight_hint_lbs">Weight in lbs (e.g. 0.26)</string>
+    <string name="weight_unit_grams">Grams</string>
+    <string name="weight_unit_lbs">Lbs</string>
+    <string name="weight_error_empty">Enter a weight</string>
+    <string name="weight_error_negative">Weight must be greater than 0</string>
+    <string name="weight_error_too_heavy">Weight cannot exceed 20 lbs (9072 g)</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
 
     <string name="medications_label">Medications</string>
+    <string name="medications_label_upper">MEDICATIONS</string>
     <string name="add_medication_button">Add Medication</string>
     <string name="add_medication_title">Add Medication</string>
     <string name="med_name_hint">Medication name</string>
@@ -31,7 +38,7 @@
     <string name="next">Next</string>
     <string name="ok">OK</string>
     <string name="feeding_suggestion_title">Feeding Suggestion</string>
-    <string name="feeding_suggestion_message">No immediate symptoms observed. Try helping %s eat by offering a different food/treats in food, or hand feeding - %s may still be learning. If weight continues to decline at the next check, please email the foster office.</string>
+    <string name="feeding_suggestion_message" formatted="false">No immediate symptoms observed. Try helping %s eat by offering a different food/treats in food, or hand feeding - %s may still be learning. If weight continues to decline at the next check, please email the foster office.</string>
     <string name="escalation_title">Contact Foster Office</string>
     <string name="escalation_message">%s may need veterinary attention. Please copy the weight history and email it to the foster office so they can schedule a check-up.</string>
     <string name="copy_email_request">Copy Request Body</string>
@@ -82,4 +89,44 @@
     <string name="delete_photo_title">Delete photo?</string>
     <string name="delete_photo_message">This removes the photo from this foster. The original stays in your gallery.</string>
     <string name="delete">Delete</string>
+
+    <!-- Clinical Dashboard strings -->
+    <string name="clinical_subtitle">EST. CARE · VET PROTOCOL v2.3</string>
+    <string name="patient_chart_label">PATIENT CHART</string>
+    <string name="action_required">ACTION REQUIRED</string>
+    <string name="stable">STABLE</string>
+    <string name="filter_all">ALL</string>
+    <string name="patients_count_format">PATIENTS · %02d</string>
+    <string name="kpi_in_care">IN CARE</string>
+    <string name="kpi_overdue">OVERDUE</string>
+    <string name="kpi_upcoming">UPCOMING</string>
+    <string name="kpi_days_avg">DAYS AVG</string>
+    <string name="stat_weight">WEIGHT</string>
+    <string name="stat_age">AGE</string>
+    <string name="stat_next">NEXT</string>
+    <string name="stat_stool_avg">STOOL · AVG</string>
+    <string name="stat_events">EVENTS</string>
+    <string name="in_range">in range</string>
+    <string name="last_14d">last 14d</string>
+    <string name="vitals_label">VITALS · 14 DAYS</string>
+    <string name="vitals_subtitle">Weight · Stool · Events</string>
+    <string name="legend_weight">weight (g)</string>
+    <string name="legend_expected">expected band</string>
+    <string name="zone_explainer">■ 6–7 loose/diarrhea   ■ 3–5 target   ■ 1–2 constipated</string>
+    <string name="log_weight">+ LOG WEIGHT</string>
+    <string name="log_stool">+ STOOL</string>
+    <string name="log_event">+ EVENT</string>
+    <string name="treatment_ledger_label">TREATMENT LEDGER · DOSE 1</string>
+    <string name="protocols_overdue_format">%d protocols overdue</string>
+    <string name="all_protocols_administered">All protocols administered</string>
+    <string name="complete">COMPLETE</string>
+    <string name="col_protocol">PROTOCOL</string>
+    <string name="col_dose">DOSE</string>
+    <string name="col_due">DUE</string>
+    <string name="give">GIVE</string>
+    <string name="done_check">✓ DONE</string>
+    <string name="on_schedule">ON SCHEDULE</string>
+    <string name="overdue_count_format">%d OVERDUE</string>
+    <string name="weight_low">WEIGHT LOW</string>
+    <string name="today">TODAY</string>
 </resources>

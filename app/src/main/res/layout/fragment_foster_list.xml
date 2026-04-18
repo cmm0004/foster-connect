@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/clinical_bg"
     tools:context=".FosterListFragment">
 
     <LinearLayout
@@ -11,21 +12,162 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Top bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/current_fosters_label"
-            android:textAppearance="?attr/textAppearanceTitleMedium" />
+            android:background="@color/clinical_surface"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp">
 
+            <!-- Logo mark -->
+            <TextView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:background="@color/clinical_sage"
+                android:fontFamily="monospace"
+                android:gravity="center"
+                android:text="F"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.05"
+                    android:text="@string/clinical_subtitle"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/text_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:textColor="@color/clinical_ink_muted"
+                android:textSize="10sp"
+                tools:text="04 / 17 / 26" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/clinical_line" />
+
+        <!-- KPI strip -->
+        <LinearLayout
+            android:id="@+id/layout_kpi_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="8dp">
+
+            <include
+                android:id="@+id/kpi_in_care"
+                layout="@layout/item_kpi_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1" />
+
+            <include
+                android:id="@+id/kpi_overdue"
+                layout="@layout/item_kpi_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1" />
+
+            <include
+                android:id="@+id/kpi_upcoming"
+                layout="@layout/item_kpi_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1" />
+
+            <include
+                android:id="@+id/kpi_days_avg"
+                layout="@layout/item_kpi_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <!-- Section header with filter tabs -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:id="@+id/text_patients_count"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.08"
+                android:textColor="@color/clinical_ink_muted"
+                android:textSize="10sp"
+                tools:text="PATIENTS · 01" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/clinical_sage"
+                android:fontFamily="monospace"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:text="@string/filter_all"
+                android:textColor="@color/white"
+                android:textSize="10sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:fontFamily="monospace"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:text="@string/overdue"
+                android:textAllCaps="true"
+                android:textColor="@color/clinical_ink_muted"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- Patient list -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_kittens"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:padding="8dp"
+            android:paddingHorizontal="16dp"
             android:paddingBottom="96dp" />
     </LinearLayout>
 
@@ -37,6 +179,8 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="72dp"
         android:contentDescription="@string/new_foster_button"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        app:backgroundTint="@color/clinical_sage"
+        app:srcCompat="@android:drawable/ic_input_add"
+        app:tint="@color/white" />
 
 </FrameLayout>

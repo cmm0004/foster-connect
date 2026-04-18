@@ -1,15 +1,12 @@
 package com.example.fosterconnect.foster
 
 import android.Manifest
-import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import java.io.File
@@ -31,10 +28,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fosterconnect.R
 import com.example.fosterconnect.data.KittenRepository
 import com.example.fosterconnect.databinding.FragmentFosterListBinding
+import com.example.fosterconnect.databinding.ItemKpiCardBinding
 import com.example.fosterconnect.foster.scan.AgeUnit
 import com.example.fosterconnect.foster.scan.FosterAgreementParser
 import com.example.fosterconnect.foster.scan.ParsedAge
 import com.example.fosterconnect.foster.scan.ParsedFosterAgreement
+import com.example.fosterconnect.medication.FosterTreatmentSchedule
 import com.example.fosterconnect.medication.scan.MedicationLabelScanner
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
@@ -69,66 +68,13 @@ class FosterListFragment : Fragment() {
     private var dialogWeightInput: TextInputEditText? = null
     private var dialogWeightDateInput: TextInputEditText? = null
 
-    private var pendingPhotoUri: Uri? = null
-    private var pendingPhotoCaseId: String? = null
-    private var pendingPermissionCaseId: String? = null
-
-    private val photoCaptureLauncher: ActivityResultLauncher<Uri> =
-        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            val uri = pendingPhotoUri
-            val caseId = pendingPhotoCaseId
-            pendingPhotoUri = null
-            pendingPhotoCaseId = null
-            if (uri == null || caseId == null) return@registerForActivityResult
-            if (success) {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    val added = KittenRepository.addPhoto(caseId, uri.toString())
-                    if (!added) {
-                        requireContext().contentResolver.delete(uri, null, null)
-                        Toast.makeText(requireContext(), R.string.photo_max_reached, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                requireContext().contentResolver.delete(uri, null, null)
-            }
-        }
-
-    private val photoPickerLauncher: ActivityResultLauncher<PickVisualMediaRequest> =
-        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            val caseId = pendingPhotoCaseId
-            pendingPhotoCaseId = null
-            if (uri == null || caseId == null) return@registerForActivityResult
-            try {
-                requireContext().contentResolver.takePersistableUriPermission(
-                    uri,
-                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            } catch (e: SecurityException) {
-                Log.w(TAG, "takePersistableUriPermission failed", e)
-            }
-            viewLifecycleOwner.lifecycleScope.launch {
-                val added = KittenRepository.addPhoto(caseId, uri.toString())
-                if (!added) {
-                    Toast.makeText(requireContext(), R.string.photo_max_reached, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
     private var pendingPermissionScan: Boolean = false
 
     private val cameraPermissionLauncher: ActivityResultLauncher<String> =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            val caseId = pendingPermissionCaseId
-            val isScan = pendingPermissionScan
-            pendingPermissionCaseId = null
             pendingPermissionScan = false
-
             if (granted) {
-                if (caseId != null) {
-                    launchPhotoCapture(caseId)
-                } else if (isScan) {
-                    launchCameraCapture()
-                }
+                launchCameraCapture()
             } else {
                 Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
             }
@@ -187,21 +133,21 @@ class FosterListFragment : Fragment() {
 
         binding.recyclerKittens.layoutManager = LinearLayoutManager(requireContext())
 
+        // Set current date in header
+        val headerDateFormat = SimpleDateFormat("MM / dd / yy", Locale.US)
+        binding.textDate.text = headerDateFormat.format(Date())
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 KittenRepository.activeFostersFlow.collect { fosters ->
+                    updateKpiStrip(fosters)
+                    binding.textPatientsCount.text = getString(R.string.patients_count_format, fosters.size)
+
                     binding.recyclerKittens.adapter = KittenAdapter(
                         fosterCases = fosters,
                         onClick = { fosterCase ->
                             findNavController().navigate(
                                 R.id.action_FosterList_to_KittenDetail,
-                                bundleOf("fosterCaseId" to fosterCase.fosterCaseId)
-                            )
-                        },
-                        onAddPhoto = { fosterCase -> onAddPhotoClicked(fosterCase) },
-                        onViewGallery = { fosterCase ->
-                            findNavController().navigate(
-                                R.id.action_FosterList_to_Gallery,
                                 bundleOf("fosterCaseId" to fosterCase.fosterCaseId)
                             )
                         }
@@ -217,6 +163,35 @@ class FosterListFragment : Fragment() {
             scanTestAgreement()
             true
         }
+    }
+
+    private fun updateKpiStrip(fosters: List<FosterCaseAnimal>) {
+        val inCare = fosters.size
+        var overdueTotal = 0
+        var upcomingTotal = 0
+        var totalDays = 0L
+
+        fosters.forEach { fc ->
+            val weight = fc.weightEntries.lastOrNull()?.weightGrams
+            val schedule = FosterTreatmentSchedule.generateSchedule(
+                fc.intakeDateMillis, fc.estimatedBirthdayMillis, weight, fc.administeredTreatments
+            )
+            overdueTotal += schedule.count { it.isPast && !it.isAdministered }
+            upcomingTotal += schedule.count { !it.isPast && !it.isAdministered }
+            totalDays += (System.currentTimeMillis() - fc.intakeDateMillis) / (24 * 60 * 60 * 1000)
+        }
+        val avgDays = if (inCare > 0) (totalDays / inCare).toInt() else 0
+
+        fun bindKpi(kpiBinding: ItemKpiCardBinding, value: String, label: String, colorRes: Int) {
+            kpiBinding.textKpiValue.text = value
+            kpiBinding.textKpiLabel.text = label
+            kpiBinding.textKpiValue.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), colorRes))
+        }
+
+        bindKpi(binding.kpiInCare, "$inCare", getString(R.string.kpi_in_care), R.color.clinical_sage)
+        bindKpi(binding.kpiOverdue, "$overdueTotal", getString(R.string.kpi_overdue), R.color.clinical_crimson)
+        bindKpi(binding.kpiUpcoming, "$upcomingTotal", getString(R.string.kpi_upcoming), R.color.clinical_amber)
+        bindKpi(binding.kpiDaysAvg, "$avgDays", getString(R.string.kpi_days_avg), R.color.clinical_ink_soft)
     }
 
     private fun scanAgreementBitmap(bitmap: Bitmap) {
@@ -396,32 +371,6 @@ class FosterListFragment : Fragment() {
             .show()
     }
 
-    private fun onAddPhotoClicked(fosterCase: FosterCaseAnimal) {
-        if (fosterCase.photos.size >= KittenRepository.MAX_PHOTOS_PER_CASE) {
-            Toast.makeText(requireContext(), R.string.photo_max_reached, Toast.LENGTH_SHORT).show()
-            return
-        }
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.photo_source_title)
-            .setItems(
-                arrayOf(
-                    getString(R.string.photo_source_camera),
-                    getString(R.string.photo_source_library)
-                )
-            ) { _, which ->
-                when (which) {
-                    0 -> ensureCameraPermissionAndCapture(fosterCase.fosterCaseId)
-                    1 -> {
-                        pendingPhotoCaseId = fosterCase.fosterCaseId
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    }
-                }
-            }
-            .show()
-    }
-
     private fun ensureCameraPermissionAndScan() {
         val granted = ContextCompat.checkSelfPermission(
             requireContext(), Manifest.permission.CAMERA
@@ -432,43 +381,6 @@ class FosterListFragment : Fragment() {
             pendingPermissionScan = true
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
-    }
-
-    private fun ensureCameraPermissionAndCapture(caseId: String) {
-        val granted = ContextCompat.checkSelfPermission(
-            requireContext(), Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
-        if (granted) {
-            launchPhotoCapture(caseId)
-        } else {
-            pendingPermissionCaseId = caseId
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-    }
-
-    private fun launchPhotoCapture(caseId: String) {
-        val uri = createPhotoUri(caseId)
-        if (uri == null) {
-            Toast.makeText(requireContext(), "Could not create photo file", Toast.LENGTH_SHORT).show()
-            return
-        }
-        pendingPhotoUri = uri
-        pendingPhotoCaseId = caseId
-        photoCaptureLauncher.launch(uri)
-    }
-
-    private fun createPhotoUri(caseId: String): Uri? {
-        val values = ContentValues().apply {
-            put(
-                MediaStore.Images.Media.DISPLAY_NAME,
-                "foster_${caseId}_${System.currentTimeMillis()}.jpg"
-            )
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/FosterConnect")
-        }
-        return requireContext().contentResolver.insert(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
-        )
     }
 
     private fun parseDateInput(raw: String?): Long? {

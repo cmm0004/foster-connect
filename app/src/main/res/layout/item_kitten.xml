@@ -4,162 +4,192 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_marginBottom="8dp"
     android:clickable="true"
     android:focusable="true"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    app:cardBackgroundColor="@color/clinical_surface"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/clinical_line"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="12dp">
 
-        <ImageView
-            android:id="@+id/image_profile"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginEnd="16dp"
-            android:contentDescription="@string/profile_image_desc"
-            android:scaleType="centerCrop"
-            android:src="@drawable/default_kitten_profile" />
+        <!-- Avatar + status bar column -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
+            <ImageView
+                android:id="@+id/image_profile"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@color/clinical_sage_tint"
+                android:contentDescription="@string/profile_image_desc"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/default_kitten_profile" />
+
+            <!-- Vertical status bar -->
+            <View
+                android:id="@+id/view_status_bar"
+                android:layout_width="4dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="6dp"
+                android:layout_weight="1"
+                android:background="@color/clinical_sage" />
+        </LinearLayout>
+
+        <!-- Info column -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- Name + ID row -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
+                android:gravity="bottom"
                 android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/text_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textAllCaps="true"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="16sp"
                     android:textStyle="bold"
-                    tools:text="Luna" />
+                    tools:text="kitty" />
 
                 <TextView
-                    android:id="@+id/text_litter_name"
+                    android:id="@+id/text_external_id"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    tools:text="Flower Litter" />
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="10sp"
+                    tools:text="#123123" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/text_external_id"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceLabelMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="F-2023-001" />
-
+            <!-- Breed info -->
             <TextView
                 android:id="@+id/text_breed_color"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                tools:text="Domestic Short Hair · Gray Tabby" />
+                android:layout_marginTop="1dp"
+                android:textColor="@color/clinical_ink_soft"
+                android:textSize="11sp"
+                tools:text="Calico · Female · Intact" />
 
+            <!-- Data stats row -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal">
 
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginEnd="4dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/weight_24px" />
-
-                <TextView
-                    android:id="@+id/text_weight"
+                <!-- Weight stat -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    tools:text="120 g (0.26 lb)" />
+                    android:layout_marginEnd="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:letterSpacing="0.05"
+                        android:text="@string/stat_weight"
+                        android:textColor="@color/clinical_ink_muted"
+                        android:textSize="9sp" />
+
+                    <TextView
+                        android:id="@+id/text_weight"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/clinical_ink"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="400g" />
+                </LinearLayout>
+
+                <!-- Age stat -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:letterSpacing="0.05"
+                        android:text="@string/stat_age"
+                        android:textColor="@color/clinical_ink_muted"
+                        android:textSize="9sp" />
+
+                    <TextView
+                        android:id="@+id/text_age"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/clinical_ink"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="5w" />
+                </LinearLayout>
+
+                <!-- Next treatment stat -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:letterSpacing="0.05"
+                        android:text="@string/stat_next"
+                        android:textColor="@color/clinical_ink_muted"
+                        android:textSize="9sp" />
+
+                    <TextView
+                        android:id="@+id/text_next_treatment"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/clinical_ink_soft"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="5d" />
+                </LinearLayout>
             </LinearLayout>
 
+            <!-- Status chips row -->
             <LinearLayout
+                android:id="@+id/layout_status_chips"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginEnd="4dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_cake" />
-
-                <TextView
-                    android:id="@+id/text_age"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    tools:text="3 weeks old" />
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_add_photo"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:contentDescription="@string/add_photo"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:icon="@android:drawable/ic_menu_camera"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_view_gallery"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="6dp"
-                android:contentDescription="@string/view_gallery"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:icon="@android:drawable/ic_menu_gallery"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp" />
-
-            <TextView
-                android:id="@+id/text_photo_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="0/10" />
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
