@@ -4,7 +4,10 @@ import android.content.Context
 import com.example.fosterconnect.data.db.AnimalEntity
 import com.example.fosterconnect.data.db.AnimalSpecies
 import com.example.fosterconnect.data.db.AppDatabase
+import android.content.ContentResolver
+import android.net.Uri
 import com.example.fosterconnect.data.db.CaseMedicationEntity
+import com.example.fosterconnect.data.db.CasePhotoEntity
 import com.example.fosterconnect.data.db.CaseMessageEntity
 import com.example.fosterconnect.data.db.CaseTreatmentEntity
 import com.example.fosterconnect.data.db.CaseWeightEntity
@@ -13,15 +16,16 @@ import com.example.fosterconnect.data.db.CompletedFosterRecordWithAnimal
 import com.example.fosterconnect.data.db.FosterCaseEntity
 import com.example.fosterconnect.data.db.FosterCaseStatus
 import com.example.fosterconnect.data.db.FosterCaseWithDetails
-import com.example.fosterconnect.data.db.RankFacetEntityV2
-import com.example.fosterconnect.data.db.RankingRecordEntity
+import com.example.fosterconnect.data.db.AssignedTraitEntity
 import com.example.fosterconnect.foster.AdministeredTreatment
 import com.example.fosterconnect.foster.Breed
 import com.example.fosterconnect.foster.CoatColor
 import com.example.fosterconnect.foster.CompletedFoster
 import com.example.fosterconnect.foster.FosterCaseAnimal
-import com.example.fosterconnect.foster.RankFacet
+import com.example.fosterconnect.foster.FosterPhoto
 import com.example.fosterconnect.foster.Sex
+import com.example.fosterconnect.foster.TraitCatalog
+import com.example.fosterconnect.foster.TraitDefinition
 import com.example.fosterconnect.history.Message
 import com.example.fosterconnect.history.WeightEntry
 import com.example.fosterconnect.medication.Medication
@@ -35,8 +39,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.json.JSONArray
+import org.json.JSONObject
 
 object KittenRepository {
 
@@ -56,29 +62,21 @@ object KittenRepository {
     private val _messagesFlow = MutableStateFlow<List<Message>>(emptyList())
     val messagesFlow: StateFlow<List<Message>> = _messagesFlow.asStateFlow()
 
-    private val _facetsFlow = MutableStateFlow<List<RankFacet>>(emptyList())
-    val facetsFlow: StateFlow<List<RankFacet>> = _facetsFlow.asStateFlow()
+    private val _caseTraitScoresFlow = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val caseTraitScoresFlow: StateFlow<Map<String, Int>> = _caseTraitScoresFlow.asStateFlow()
 
-    private val _scoresFlow = MutableStateFlow<Map<String, Map<String, Int>>>(emptyMap())
-    val scoresFlow: StateFlow<Map<String, Map<String, Int>>> = _scoresFlow.asStateFlow()
-
-    private val _facetAveragesFlow = MutableStateFlow<Map<String, Double>>(emptyMap())
-    val facetAveragesFlow: StateFlow<Map<String, Double>> = _facetAveragesFlow.asStateFlow()
-
-    private val _rankingRecordsFlow = MutableStateFlow<List<RankingRecordEntity>>(emptyList())
+    private lateinit var _traitCatalog: TraitCatalog
 
     fun init(context: Context) {
         if (::db.isInitialized) return
         appContext = context.applicationContext
         db = AppDatabase.getInstance(appContext)
 
+        _traitCatalog = parseTraitCatalog(appContext)
+
         scope.launch {
             if (db.animalDao().countAnimals() == 0) {
-
                 seedHistoricalFosters()
-            }
-            if (db.rankingDao().rankFacetCount() == 0) {
-                seedRankFacets()
             }
         }
 
@@ -111,31 +109,41 @@ object KittenRepository {
         }
 
         scope.launch {
-            db.rankingDao().observeRankFacets().collect { facets ->
-                _facetsFlow.value = facets.map { RankFacet(it.id, it.displayName, it.description) }
+            db.traitDao().observeAllCaseScores().collect { scores ->
+                _caseTraitScoresFlow.value = scores.associate { it.fosterCaseId to it.totalScore }
             }
         }
+    }
 
-        scope.launch {
-            db.rankingDao().observeAllRankingRecords().collect { records ->
-                _rankingRecordsFlow.value = records.map { it.rankingRecord }
-                _scoresFlow.value = records
-                    .groupBy { it.rankingRecord.fosterCaseId ?: "__ignore__" }
-                    .filterKeys { it != "__ignore__" }
-                    .mapValues { (_, grouped) ->
-                        grouped.maxByOrNull { it.rankingRecord.rankedAtMillis }
-                            ?.scores
-                            ?.associate { it.facetId to it.score }
-                            .orEmpty()
-                    }
-            }
-        }
+    fun getTraitCatalog(): TraitCatalog = _traitCatalog
 
+    fun observeTraitsForCase(animalId: String, fosterCaseId: String): Flow<List<AssignedTraitEntity>> =
+        db.traitDao().observeTraitsForCase(animalId, fosterCaseId)
+
+    fun addTrait(animalId: String, fosterCaseId: String, trait: TraitDefinition) {
         scope.launch {
-            db.rankingDao().observeFacetAverages().collect { averages ->
-                _facetAveragesFlow.value = averages.associate { it.facetId to it.averageScore }
+            val existing = db.traitDao().getTraitsForCase(fosterCaseId)
+            val conflicts = _traitCatalog.conflictMap[trait.trait].orEmpty()
+            val conflicting = existing.filter { it.traitName in conflicts }.map { it.traitName }
+            if (conflicting.isNotEmpty()) {
+                db.traitDao().removeTraits(animalId, fosterCaseId, conflicting)
             }
+            db.traitDao().insertTrait(
+                AssignedTraitEntity(
+                    animalId = animalId,
+                    fosterCaseId = fosterCaseId,
+                    traitName = trait.trait,
+                    category = trait.category,
+                    valence = trait.valence,
+                    score = trait.score,
+                    assignedAtMillis = System.currentTimeMillis()
+                )
+            )
         }
+    }
+
+    fun removeTrait(animalId: String, fosterCaseId: String, traitName: String) {
+        scope.launch { db.traitDao().removeTrait(animalId, fosterCaseId, traitName) }
     }
 
     fun getFosterCase(caseId: String): FosterCaseAnimal? =
@@ -143,9 +151,6 @@ object KittenRepository {
 
     fun getCompletedFoster(caseId: String): CompletedFoster? =
         _completedFostersFlow.value.find { it.fosterCaseId == caseId }
-
-    fun getScoresForCase(caseId: String): Map<String, Int> =
-        _scoresFlow.value[caseId].orEmpty()
 
     fun addMessage(message: Message) {
         scope.launch {
@@ -195,13 +200,42 @@ object KittenRepository {
                     id = medication.id,
                     fosterCaseId = fosterCaseId,
                     name = medication.name,
-                    strength = medication.strength,
                     instructions = medication.instructions,
                     startDateMillis = medication.startDateMillis,
                     endDateMillis = medication.endDateMillis,
                     isActive = medication.isActive
                 )
             )
+        }
+    }
+
+    suspend fun addPhoto(fosterCaseId: String, uri: String): Boolean {
+        val dao = db.fosterCaseDao()
+        if (dao.photoCountFor(fosterCaseId) >= MAX_PHOTOS_PER_CASE) return false
+        dao.insertPhoto(
+            CasePhotoEntity(
+                id = UUID.randomUUID().toString(),
+                fosterCaseId = fosterCaseId,
+                uri = uri,
+                addedAtMillis = System.currentTimeMillis()
+            )
+        )
+        return true
+    }
+
+    suspend fun deletePhoto(photoId: String) {
+        db.fosterCaseDao().deletePhoto(photoId)
+    }
+
+    suspend fun prunePhotos(fosterCaseId: String, contentResolver: ContentResolver) {
+        val photos = db.fosterCaseDao().photosFor(fosterCaseId)
+        for (photo in photos) {
+            val alive = runCatching {
+                contentResolver.openInputStream(Uri.parse(photo.uri))?.use { true } ?: false
+            }.getOrElse { false }
+            if (!alive) {
+                db.fosterCaseDao().deletePhoto(photo.id)
+            }
         }
     }
 
@@ -223,6 +257,12 @@ object KittenRepository {
         }
     }
 
+    fun setLitterName(animalId: String, litterName: String?) {
+        scope.launch {
+            db.animalDao().updateLitterName(animalId, litterName, System.currentTimeMillis())
+        }
+    }
+
     fun markTreatmentAdministered(fosterCaseId: String, treatment: AdministeredTreatment) {
         scope.launch {
             db.fosterCaseDao().insertTreatment(
@@ -240,6 +280,7 @@ object KittenRepository {
     fun createFosterCase(
         externalId: String,
         name: String,
+        litterName: String? = null,
         breed: Breed,
         color: CoatColor,
         sex: Sex,
@@ -262,6 +303,7 @@ object KittenRepository {
                     breed = breed.name,
                     color = color.name,
                     sex = sex.name,
+                    litterName = litterName,
                     estimatedBirthdayMillis = estimatedBirthdayMillis,
                     createdAtMillis = now,
                     updatedAtMillis = now
@@ -340,48 +382,41 @@ object KittenRepository {
         }
     }
 
-    fun saveRankScores(animalId: String, fosterCaseId: String?, scores: Map<String, Int>) {
-        scope.launch {
-            val now = System.currentTimeMillis()
-            val nextVersion = _rankingRecordsFlow.value
-                .filter { it.animalId == animalId && it.fosterCaseId == fosterCaseId }
-                .maxOfOrNull { it.rankVersion }
-                ?.plus(1)
-                ?: 1
-            val rankingRecordId = UUID.randomUUID().toString()
-            db.rankingDao().insertRankingRecord(
-                RankingRecordEntity(
-                    id = rankingRecordId,
-                    animalId = animalId,
-                    fosterCaseId = fosterCaseId,
-                    rankedAtMillis = now,
-                    rankVersion = nextVersion,
-                    notes = null
-                )
-            )
-            db.rankingDao().insertRankingScores(
-                scores.map { (facetId, score) ->
-                    com.example.fosterconnect.data.db.RankingScoreEntity(
-                        rankingRecordId = rankingRecordId,
-                        facetId = facetId,
-                        score = score
+    private fun parseTraitCatalog(context: Context): TraitCatalog {
+        val json = context.assets.open("traits.json").bufferedReader().use { it.readText() }
+        val root = JSONObject(json)
+        val categories = listOf("physical", "behavioral", "quirks", "vibe")
+        val allTraits = mutableListOf<TraitDefinition>()
+        for (cat in categories) {
+            val arr = root.optJSONArray(cat) ?: continue
+            for (i in 0 until arr.length()) {
+                val obj = arr.optJSONObject(i) ?: continue
+                allTraits.add(
+                    TraitDefinition(
+                        trait = obj.getString("trait"),
+                        category = cat,
+                        valence = obj.getString("valence"),
+                        score = obj.getInt("score")
                     )
-                }
-            )
+                )
+            }
         }
-    }
-
-    private suspend fun seedRankFacets() {
-        val defaults = listOf(
-            RankFacetEntityV2("prey_drive", "Prey Drive", "How driven they are to chase and hunt", 0),
-            RankFacetEntityV2("cleanliness", "Cleanliness", "How tidy they keep themselves", 1),
-            RankFacetEntityV2("noisiness", "Noisiness", "How vocal they are", 2),
-            RankFacetEntityV2("cuddliness", "Cuddliness", "How much they enjoy being held", 3),
-            RankFacetEntityV2("playfulness", "Playfulness", "How active and playful they are", 4)
+        val conflictsArr = root.getJSONArray("conflicts")
+        val conflictMap = mutableMapOf<String, MutableList<String>>()
+        for (i in 0 until conflictsArr.length()) {
+            val obj = conflictsArr.getJSONObject(i)
+            val pair = obj.getJSONArray("pair")
+            val a = pair.getString(0)
+            val b = pair.getString(1)
+            conflictMap.getOrPut(a) { mutableListOf() }.add(b)
+            conflictMap.getOrPut(b) { mutableListOf() }.add(a)
+        }
+        return TraitCatalog(
+            traits = allTraits,
+            traitsByCategory = allTraits.groupBy { it.category },
+            conflictMap = conflictMap
         )
-        defaults.forEach { db.rankingDao().insertRankFacet(it) }
     }
-
 
     private suspend fun seedHistoricalFosters() {
         val json = appContext.assets.open("historicalfosters.json").bufferedReader().use { it.readText() }
@@ -392,6 +427,7 @@ object KittenRepository {
             val record = records.getJSONObject(index)
             val externalId = record.optString("anumber").trim()
             val name = record.optString("name").trim()
+            val litterName = record.optString("litter_name").trim().takeIf { it.isNotEmpty() }
             val outDate = record.optString("out_date").trim()
             if (externalId.isEmpty() || name.isEmpty() || outDate.isEmpty()) continue
 
@@ -407,6 +443,7 @@ object KittenRepository {
                     breed = Breed.DOMESTIC_SHORT_HAIR.name,
                     color = CoatColor.BLACK.name,
                     sex = Sex.FEMALE.name,
+                    litterName = litterName,
                     estimatedBirthdayMillis = null,
                     createdAtMillis = completedAt,
                     updatedAtMillis = completedAt
@@ -450,6 +487,7 @@ object KittenRepository {
         fosterCaseId = fosterCase.id,
         externalId = animal.externalId.orEmpty(),
         name = animal.name,
+        litterName = animal.litterName,
         breed = safeBreed(animal.breed),
         color = safeColor(animal.color),
         sex = safeSex(animal.sex),
@@ -461,11 +499,13 @@ object KittenRepository {
             Medication(
                 id = it.id,
                 name = it.name,
-                strength = it.strength,
                 instructions = it.instructions,
                 startDateMillis = it.startDateMillis,
                 endDateMillis = it.endDateMillis
             )
+        },
+        photos = photos.sortedBy { it.addedAtMillis }.map {
+            FosterPhoto(id = it.id, uri = it.uri, addedAtMillis = it.addedAtMillis)
         },
         administeredTreatments = treatments.map {
             AdministeredTreatment(
@@ -486,6 +526,7 @@ object KittenRepository {
         fosterCaseId = completedRecord.fosterCaseId,
         externalId = animal.externalId.orEmpty(),
         name = animal.name,
+        litterName = animal.litterName,
         breed = safeBreed(animal.breed),
         color = safeColor(animal.color),
         sex = safeSex(animal.sex),
@@ -514,4 +555,5 @@ object KittenRepository {
     private fun safeSex(raw: String): Sex = runCatching { Sex.valueOf(raw) }.getOrDefault(Sex.FEMALE)
 
     private const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
+    const val MAX_PHOTOS_PER_CASE = 10
 }

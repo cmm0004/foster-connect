@@ -11,21 +11,20 @@ import androidx.room.RoomDatabase
         FosterCaseEntity::class,
         CaseWeightEntity::class,
         CaseMedicationEntity::class,
+        CasePhotoEntity::class,
         CaseTreatmentEntity::class,
         CaseMessageEntity::class,
         CompletedFosterRecordEntity::class,
-        RankFacetEntityV2::class,
-        RankingRecordEntity::class,
-        RankingScoreEntity::class
+        AssignedTraitEntity::class
     ],
-    version = 3,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun animalDao(): AnimalDao
     abstract fun fosterCaseDao(): FosterCaseDao
-    abstract fun rankingDao(): RankingDao
+    abstract fun traitDao(): TraitDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

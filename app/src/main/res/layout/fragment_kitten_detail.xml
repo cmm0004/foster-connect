@@ -4,13 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipToPadding="false"
     tools:context=".KittenDetailFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="72dp">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
@@ -24,15 +28,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="20dp">
-
-                <ImageView
-                    android:id="@+id/image_profile"
-                    android:layout_width="match_parent"
-                    android:layout_height="180dp"
-                    android:layout_marginBottom="16dp"
-                    android:contentDescription="@string/profile_image_desc"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/default_kitten_profile" />
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -92,22 +87,29 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="In care since April 7, 2026" />
 
-                <TextView
-                    android:id="@+id/text_birthday_age"
+                <LinearLayout
+                    android:id="@+id/layout_age"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    tools:text="Born ~March 17, 2026 (3 weeks old)" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/button_set_birthday"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/set_birthday_button"
-                    android:textSize="12sp" />
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginEnd="4dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_cake" />
+
+                    <TextView
+                        android:id="@+id/text_birthday_age"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="3 weeks old" />
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_edit_rankings"
@@ -120,13 +122,29 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <TextView
-            android:id="@+id/text_current_weight_label"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/current_weight_label"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/text_current_weight_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/current_weight_label"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_weight_history"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/see_history"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/text_current_weight"
@@ -143,22 +161,6 @@
             android:layout_height="wrap_content"
             android:text="@string/add_weight_button"
             android:layout_marginBottom="24dp" />
-
-        <TextView
-            android:id="@+id/text_history_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="@string/weight_history_label"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurfaceVariant" />
-
-        <LinearLayout
-            android:id="@+id/layout_weight_history"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:orientation="vertical" />
 
         <TextView
             android:id="@+id/text_medications_label"

@@ -6,24 +6,15 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/FosterListFragment"
-            android:icon="@android:drawable/ic_menu_myplaces"
+            android:icon="@drawable/ic_pets_24"
             android:title="@string/menu_current_fosters" />
         <item
             android:id="@+id/MessageCenterFragment"
-            android:icon="@android:drawable/ic_dialog_info"
+            android:icon="@drawable/ic_mail_24"
             android:title="@string/message_center_title" />
         <item
             android:id="@+id/PreviousFostersFragment"
-            android:icon="@android:drawable/ic_menu_recent_history"
+            android:icon="@drawable/ic_history_24"
             android:title="@string/menu_previous_fosters" />
     </group>
-
-    <item android:title="@string/action_settings">
-        <menu>
-            <item
-                android:id="@+id/action_settings"
-                android:icon="@android:drawable/ic_menu_preferences"
-                android:title="@string/action_settings" />
-        </menu>
-    </item>
 </menu>

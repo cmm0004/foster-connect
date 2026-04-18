@@ -2,4 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="trait_positive">#C8E6C9</color>
+    <color name="trait_negative">#FFCDD2</color>
+    <color name="trait_neutral">#E0E0E0</color>
+    <color name="trait_positive_text">#2E7D32</color>
+    <color name="trait_negative_text">#C62828</color>
+    <color name="trait_neutral_text">#424242</color>
 </resources>

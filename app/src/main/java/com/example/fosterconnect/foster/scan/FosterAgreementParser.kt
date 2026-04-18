@@ -1,5 +1,6 @@
 package com.example.fosterconnect.foster.scan
 
+import android.util.Log
 import com.example.fosterconnect.foster.Breed
 import com.example.fosterconnect.foster.CoatColor
 import com.example.fosterconnect.foster.Sex
@@ -73,6 +74,10 @@ data class ParsedFosterAgreement(
 
 object FosterAgreementParser {
 
+    private const val TAG = "FosterParser"
+    var debug: Boolean = true
+    private fun d(msg: String) { if (debug) Log.d(TAG, msg) }
+
     private val animalIdRegex = Regex("""\bA\d{6,}\b""")
     private val phoneRegex = Regex("""\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}""")
     private val fosterParentRegex = Regex("""^([A-Z][A-Za-z'\- ]+?)\s*/\s*P\d{5,}""")
@@ -86,26 +91,35 @@ object FosterAgreementParser {
     private val knownVaccines = listOf("FVRCP", "Pyrantel", "Rabies", "Bordetella", "DAPP", "DHPP", "DA2PP")
 
     fun parse(rawText: String): ParsedFosterAgreement {
+
         val rawLines = rawText.lines()
-        val lines = rawLines.map { it.trim().trimStart('|') }.filter { it.isNotEmpty() }
+        val lines = rawLines.map { it.trim().trimStart('|').trim() }.filter { it.isNotEmpty() }
+
+        d("parse: rawLines=${rawLines.size}, cleanedLines=${lines.size}")
+        lines.forEachIndexed { i, line -> d("line[%02d] |%s|".format(i, line)) }
 
         val animalId = lines.firstNotNullOfOrNull { line ->
             animalIdRegex.find(line)?.value
         }
+        d("animalId -> $animalId")
 
         val name = lines.firstNotNullOfOrNull { line ->
             val match = animalIdRegex.find(line) ?: return@firstNotNullOfOrNull null
             val after = line.substring(match.range.last + 1).trim()
             after.takeIf { it.isNotEmpty() && !it.contains('/') }
         }
+        d("name -> $name")
 
         val breedRaw = lines.firstOrNull { looksLikeBreedLine(it) }
         val breed = breedRaw?.let { matchBreed(it) }
+        d("breedRaw -> '$breedRaw' -> $breed")
 
         val colorRaw = lines.firstOrNull { looksLikeColorLine(it) }
         val color = colorRaw?.let { matchColor(it) }
+        d("colorRaw -> '$colorRaw' -> $color")
 
         val ageMatch = lines.firstNotNullOfOrNull { line -> ageRegex.matchEntire(line) }
+        d("ageMatch -> ${ageMatch?.value}")
         val ageValue = ageMatch?.groupValues?.get(1)?.toIntOrNull()
         val age = ageValue?.let {
             when (ageMatch.groupValues[2].uppercase()) {
@@ -118,6 +132,7 @@ object FosterAgreementParser {
 
         // Shelter convention: N = neutered (male, altered), S = spayed (female, altered), I = intact.
         val alterStatus = lines.firstNotNullOfOrNull { line -> alterStatusRegex.matchEntire(line)?.groupValues?.get(1)?.uppercase() }
+        d("alterStatus -> $alterStatus")
         val isAlteredAtIntake = when (alterStatus) {
             "N", "S" -> true
             "I" -> false
@@ -132,10 +147,13 @@ object FosterAgreementParser {
         val intakeDateMillis = lines.firstNotNullOfOrNull { line ->
             dayOfWeekDateRegex.find(line)?.groupValues?.get(1)?.let(::parseDate)
         }
+        d("intakeDateMillis -> $intakeDateMillis")
 
         val (lastWeightGrams, lastWeightDateMillis) = parseWeight(lines)
+        d("lastWeight -> $lastWeightGrams g @ $lastWeightDateMillis")
 
         val vaccinations = parseVaccinations(lines)
+        d("vaccinations -> ${vaccinations.map { it.name }}")
 
         val fosterParentName = lines.firstNotNullOfOrNull { line ->
             fosterParentRegex.find(line)?.groupValues?.get(1)?.trim()

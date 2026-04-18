@@ -1,20 +1,25 @@
 package com.example.fosterconnect.foster
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.fosterconnect.R
 import com.example.fosterconnect.data.KittenRepository
+import com.example.fosterconnect.data.db.AssignedTraitEntity
 import com.example.fosterconnect.databinding.FragmentKittenRankingBinding
-import com.example.fosterconnect.databinding.ItemRankFacetBinding
+import androidx.core.os.bundleOf
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
 class KittenRankingFragment : Fragment() {
@@ -23,8 +28,7 @@ class KittenRankingFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var animalId: String
-    private var fosterCaseId: String? = null
-    private val workingScores = mutableMapOf<String, Int>()
+    private lateinit var fosterCaseId: String
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,125 +44,157 @@ class KittenRankingFragment : Fragment() {
         animalId = requireArguments().getString("animalId")
             ?: error("animalId argument required")
         fosterCaseId = requireArguments().getString("fosterCaseId")
+            ?: error("fosterCaseId argument required")
 
-        val fosterCase = fosterCaseId?.let { KittenRepository.getFosterCase(it) }
-        val completedFoster = fosterCaseId?.let { KittenRepository.getCompletedFoster(it) }
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId)
+        val completedFoster = KittenRepository.getCompletedFoster(fosterCaseId)
         binding.textKittenName.text = fosterCase?.name ?: completedFoster?.name ?: "Animal"
-
-        fosterCaseId?.let { workingScores.putAll(KittenRepository.getScoresForCase(it)) }
-
-        binding.recyclerFacets.layoutManager = LinearLayoutManager(requireContext())
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                KittenRepository.facetsFlow.collect { facets ->
-                    val averages = KittenRepository.facetAveragesFlow.value
-                    val allScores = KittenRepository.scoresFlow.value
-                    val superlatives = computeSuperlatives(facets, allScores, fosterCaseId)
-                    binding.recyclerFacets.adapter = FacetAdapter(
-                        facets = facets,
-                        initialScores = workingScores,
-                        averages = averages,
-                        superlatives = superlatives,
-                        onScoreChanged = { facetId, score -> workingScores[facetId] = score }
-                    )
+                KittenRepository.observeTraitsForCase(animalId, fosterCaseId).collect { traits ->
+                    rebuildChips(traits)
                 }
             }
         }
 
-        binding.buttonSave.setOnClickListener {
-            KittenRepository.saveRankScores(animalId, fosterCaseId, workingScores.toMap())
-            Toast.makeText(requireContext(), "Rankings saved", Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
+        binding.buttonAddTrait.setOnClickListener { showAddTraitDialog() }
+        binding.buttonViewGallery.setOnClickListener {
+            findNavController().navigate(
+                R.id.action_KittenRanking_to_Gallery,
+                bundleOf("fosterCaseId" to fosterCaseId)
+            )
         }
     }
+
+    private fun rebuildChips(traits: List<AssignedTraitEntity>) {
+        binding.chipGroupAssigned.removeAllViews()
+
+        if (traits.isEmpty()) {
+            binding.textScoreSummary.visibility = View.GONE
+            return
+        }
+
+        binding.textScoreSummary.visibility = View.GONE
+
+        for (trait in traits) {
+            val chip = Chip(requireContext()).apply {
+                text = trait.traitName
+                chipBackgroundColor = ColorStateList.valueOf(valenceColor(trait.valence))
+                setTextColor(valenceTextColor(trait.valence))
+                isCloseIconVisible = true
+                closeIconTint = ColorStateList.valueOf(valenceTextColor(trait.valence))
+                setOnCloseIconClickListener {
+                    KittenRepository.removeTrait(animalId, fosterCaseId, trait.traitName)
+                }
+            }
+            binding.chipGroupAssigned.addView(chip)
+        }
+    }
+
+    private fun showAddTraitDialog() {
+        val catalog = KittenRepository.getTraitCatalog()
+        val ctx = requireContext()
+        val density = resources.displayMetrics.density
+
+        val scroll = android.widget.ScrollView(ctx)
+        val container = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            val pad = (16 * density).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
+
+        val categories = listOf("physical", "behavioral", "quirks", "vibe")
+        val categoryLabels = mapOf(
+            "physical" to "Physical",
+            "behavioral" to "Behavioral",
+            "quirks" to "Quirks",
+            "vibe" to "Vibe"
+        )
+
+        for (category in categories) {
+            val traits = catalog.traitsByCategory[category] ?: continue
+
+            val header = TextView(ctx).apply {
+                text = categoryLabels[category] ?: category
+                setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleMedium)
+                val topPad = if (category == categories.first()) 0 else (16 * density).toInt()
+                setPadding(0, topPad, 0, (8 * density).toInt())
+            }
+            container.addView(header)
+
+            val chipGroup = ChipGroup(ctx).apply {
+                chipSpacingHorizontal = (6 * density).toInt()
+                chipSpacingVertical = (6 * density).toInt()
+            }
+
+            for (trait in traits) {
+                val chip = Chip(ctx).apply {
+                    text = trait.trait
+                    isCheckable = false
+                    chipBackgroundColor = ColorStateList.valueOf(
+                        ContextCompat.getColor(ctx, valenceColorRes(trait.valence))
+                    )
+                    setTextColor(ContextCompat.getColor(ctx, valenceTextColorRes(trait.valence)))
+                    setOnClickListener {
+                        KittenRepository.addTrait(animalId, fosterCaseId, trait)
+                    }
+                }
+                chipGroup.addView(chip)
+            }
+            container.addView(chipGroup)
+        }
+
+        scroll.addView(container)
+
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle("Add Trait")
+            .setView(scroll)
+            .setNegativeButton("Done", null)
+            .show()
+    }
+
+    private fun valenceColorRes(valence: String): Int = when (valence) {
+        "positive" -> R.color.trait_positive
+        "negative" -> R.color.trait_negative
+        else -> R.color.trait_neutral
+    }
+
+    private fun valenceTextColorRes(valence: String): Int = when (valence) {
+        "positive" -> R.color.trait_positive_text
+        "negative" -> R.color.trait_negative_text
+        else -> R.color.trait_neutral_text
+    }
+
+    private fun valenceColor(valence: String): Int =
+        ContextCompat.getColor(requireContext(), valenceColorRes(valence))
+
+    private fun valenceTextColor(valence: String): Int =
+        ContextCompat.getColor(requireContext(), valenceTextColorRes(valence))
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
-    private fun computeSuperlatives(
-        facets: List<RankFacet>,
-        allScores: Map<String, Map<String, Int>>,
-        currentFosterCaseId: String?
-    ): Map<String, String> {
-        val currentCaseId = currentFosterCaseId ?: return emptyMap()
-        val superlativeLabels = mapOf(
-            "prey_drive" to "Mightiest Hunter!",
-            "cleanliness" to "Cleanest Kitty!",
-            "noisiness" to "Most Talkative!",
-            "cuddliness" to "Cuddliest!",
-            "playfulness" to "Most Playful!"
-        )
-        val result = mutableMapOf<String, String>()
-        for (facet in facets) {
-            val perCase = allScores.mapNotNull { (caseId, scores) ->
-                scores[facet.id]?.let { caseId to it }
-            }
-            if (perCase.size < 2) continue
-            val max = perCase.maxOf { it.second }
-            val currentScore = allScores[currentCaseId]?.get(facet.id) ?: continue
-            if (currentScore == max && max > 0) {
-                result[facet.id] = superlativeLabels[facet.id] ?: "Top in ${facet.displayName}!"
-            }
+    companion object {
+        fun tierFromScore(totalScore: Int): String = when {
+            totalScore >= 350 -> "S+"
+            totalScore >= 300 -> "S"
+            totalScore >= 250 -> "S-"
+            totalScore >= 225 -> "A+"
+            totalScore >= 200 -> "A"
+            totalScore >= 175 -> "A-"
+            totalScore >= 150 -> "B+"
+            totalScore >= 100 -> "B"
+            totalScore >= 75 -> "B-"
+            totalScore >= 50 -> "C+"
+            totalScore >= 0 -> "C"
+            totalScore >= -50 -> "C-"
+            totalScore >= -75 -> "D+"
+            totalScore >= -100 -> "D"
+            totalScore >= -150 -> "D-"
+            else -> "F"
         }
-        return result
-    }
-
-    private class FacetAdapter(
-        private val facets: List<RankFacet>,
-        private val initialScores: Map<String, Int>,
-        private val averages: Map<String, Double>,
-        private val superlatives: Map<String, String>,
-        private val onScoreChanged: (String, Int) -> Unit
-    ) : RecyclerView.Adapter<FacetAdapter.ViewHolder>() {
-
-        class ViewHolder(val binding: ItemRankFacetBinding) :
-            RecyclerView.ViewHolder(binding.root)
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val binding = ItemRankFacetBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false
-            )
-            return ViewHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val facet = facets[position]
-            with(holder.binding) {
-                textFacetName.text = facet.displayName
-                if (!facet.description.isNullOrBlank()) {
-                    textFacetDescription.visibility = View.VISIBLE
-                    textFacetDescription.text = facet.description
-                } else {
-                    textFacetDescription.visibility = View.GONE
-                }
-
-                val avg = averages[facet.id]
-                if (avg != null) {
-                    textAverage.visibility = View.VISIBLE
-                    textAverage.text = "Average across all animals: %.1f".format(avg)
-                } else {
-                    textAverage.visibility = View.GONE
-                }
-
-                ratingBar.onRatingBarChangeListener = null
-                ratingBar.rating = (initialScores[facet.id] ?: 0).toFloat()
-                ratingBar.setOnRatingBarChangeListener { _, rating, _ ->
-                    onScoreChanged(facet.id, rating.toInt())
-                }
-
-                val badgeText = superlatives[facet.id]
-                if (badgeText != null) {
-                    textBadge.visibility = View.VISIBLE
-                    textBadge.text = badgeText
-                } else {
-                    textBadge.visibility = View.GONE
-                }
-            }
-        }
-
-        override fun getItemCount() = facets.size
     }
 }

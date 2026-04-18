@@ -1,12 +1,10 @@
 package com.example.fosterconnect.foster
 
-import android.app.DatePickerDialog
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.util.Log
@@ -16,9 +14,12 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -53,25 +54,38 @@ class KittenDetailFragment : Fragment() {
     private val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
     private lateinit var fosterCaseId: String
 
-    // ML Kit label scanning
     private val labelScanner = MedicationLabelScanner()
-    private var dialogNameInput: TextInputEditText? = null
-    private var dialogStrengthInput: TextInputEditText? = null
-    private var dialogInstructionsInput: TextInputEditText? = null
+    private var pendingLabelFile: java.io.File? = null
 
-    private val scanLabelLauncher: ActivityResultLauncher<Void?> =
-        registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
-            if (bitmap != null) {
-                handleScannedBitmap(bitmap)
+    private val scanLabelLauncher: ActivityResultLauncher<Uri> =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            val file = pendingLabelFile
+            pendingLabelFile = null
+            if (!success || file == null || !file.exists() || file.length() == 0L) {
+                Log.d("MedScan", "Scan cancelled or empty capture (success=$success)")
+                showAddMedicationDialogPrefilled(null)
+                return@registerForActivityResult
             }
+            val bitmap = decodeSampledLabel(file, maxDim = 2048)
+            if (bitmap == null) {
+                Toast.makeText(requireContext(), "Could not decode photo", Toast.LENGTH_SHORT).show()
+                showAddMedicationDialogPrefilled(null)
+                return@registerForActivityResult
+            }
+            Log.d("MedScan", "Captured ${file.length()} bytes, decoded ${bitmap.width}x${bitmap.height}")
+            runLabelOcr(bitmap)
         }
+
+    private fun formatWeight(grams: Float): String {
+        val lb = grams / 453.592f
+        return "%.0f g (%.2f lb)".format(grams, lb)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentKittenDetailBinding.inflate(inflater, container, false)
-        //KittenWalkAnimation.applyTo(binding.imageProfile)
         return binding.root
     }
 
@@ -89,21 +103,25 @@ class KittenDetailFragment : Fragment() {
             }
         }
 
-        binding.buttonSetBirthday.setOnClickListener {
-            showSetBirthdayDialog()
-        }
-
         binding.buttonAddWeight.setOnClickListener {
             showAddWeightDialog()
         }
 
+        binding.buttonWeightHistory.setOnClickListener {
+            showWeightHistoryDialog()
+        }
+
         binding.buttonAddMedication.setOnClickListener {
-            showAddMedicationDialog()
+            launchLabelCapture()
+        }
+        binding.buttonAddMedication.setOnLongClickListener {
+            loadTestImageAndScan()
+            true
         }
 
         binding.buttonEmailOffice.setOnClickListener {
             val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return@setOnClickListener
-            copyVetRequestToClipboard(fosterCase)
+            sendVetRequestEmail(fosterCase)
         }
 
         binding.buttonMarkAdopted.setOnClickListener {
@@ -142,13 +160,10 @@ class KittenDetailFragment : Fragment() {
     private fun refreshUI() {
         val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
 
-        binding.imageProfile.setImageResource(fosterCase.color.defaultProfileDrawable())
-
         if (fosterCase.isCompleted) {
             binding.buttonAddWeight.visibility = View.GONE
             binding.buttonAddMedication.visibility = View.GONE
             binding.buttonMarkAdopted.visibility = View.GONE
-            binding.buttonSetBirthday.visibility = View.GONE
             binding.textIntakeDate.text = getString(
                 R.string.returned_to_shelter_format,
                 dateFormat.format(Date(fosterCase.outDateMillis ?: 0L))
@@ -157,23 +172,16 @@ class KittenDetailFragment : Fragment() {
             binding.buttonAddWeight.visibility = View.VISIBLE
             binding.buttonAddMedication.visibility = View.VISIBLE
             binding.buttonMarkAdopted.visibility = View.VISIBLE
-            binding.buttonSetBirthday.visibility = View.VISIBLE
             binding.textIntakeDate.text = "In care since ${dateFormat.format(Date(fosterCase.intakeDateMillis))}"
         }
 
         val birthday = fosterCase.estimatedBirthdayMillis
         if (birthday != null) {
             val ageWeeks = fosterCase.ageInWeeks ?: 0
-            binding.textBirthdayAge.text = getString(
-                R.string.birthday_age_format,
-                dateFormat.format(Date(birthday)),
-                ageWeeks
-            )
-            binding.textBirthdayAge.visibility = View.VISIBLE
-            binding.buttonSetBirthday.text = getString(R.string.edit_birthday_button)
+            binding.textBirthdayAge.text = formatAge(ageWeeks)
+            binding.layoutAge.visibility = View.VISIBLE
         } else {
-            binding.textBirthdayAge.visibility = View.GONE
-            binding.buttonSetBirthday.text = getString(R.string.set_birthday_button)
+            binding.layoutAge.visibility = View.GONE
         }
 
         val alteredStatus = if (fosterCase.isAlteredAtIntake) {
@@ -190,21 +198,12 @@ class KittenDetailFragment : Fragment() {
 
         val latest = fosterCase.weightEntries.lastOrNull()
         binding.textCurrentWeight.text = if (latest != null) {
-            "%.0f g".format(latest.weightGrams)
+            formatWeight(latest.weightGrams)
         } else {
             getString(R.string.no_weight_logged)
         }
 
-        // Weight history
-        binding.layoutWeightHistory.removeAllViews()
-        fosterCase.weightEntries.asReversed().forEach { entry ->
-            val row = TextView(requireContext()).apply {
-                text = "${dateFormat.format(Date(entry.dateMillis))}  —  ${"%.0f g".format(entry.weightGrams)}"
-                setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
-                setPadding(0, 6, 0, 6)
-            }
-            binding.layoutWeightHistory.addView(row)
-        }
+        binding.buttonWeightHistory.visibility = if (fosterCase.weightEntries.size > 1) View.VISIBLE else View.GONE
 
         // Medications (only active ones — stopped meds go to history)
         val currentWeightGrams = latest?.weightGrams
@@ -383,7 +382,7 @@ class KittenDetailFragment : Fragment() {
                 }
 
                 val nameText = TextView(requireContext()).apply {
-                    text = if (med.strength != null) "${med.name}  \u00b7  ${med.strength}" else med.name
+                    text = med.name
                     setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
                 }
                 content.addView(nameText)
@@ -557,8 +556,6 @@ class KittenDetailFragment : Fragment() {
         val doseDate = dateFormat.format(Date(doses.first().scheduledDateMillis))
 
         val body = buildString {
-            appendLine("Subject: Treatment Complete — $identifier — Dose $doseNumber")
-            appendLine()
             appendLine("Foster kitten $identifier has completed treatment dose $doseNumber ($doseDate).")
             appendLine()
             appendLine("Weight at time of treatment: ${if (latestWeight != null) "${"%.0f".format(latestWeight.weightGrams)} g" else "N/A"}")
@@ -583,9 +580,12 @@ class KittenDetailFragment : Fragment() {
             .setTitle(getString(R.string.treatment_complete_title))
             .setMessage(getString(R.string.treatment_complete_message, identifier, doseNumber))
             .setPositiveButton(R.string.copy_email_request) { _, _ ->
-                val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("Treatment Report", body))
-                android.widget.Toast.makeText(requireContext(), "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                val subject = if (fosterCase.externalId.isNotEmpty()) {
+                    "Treatment Complete — ${fosterCase.externalId} — Dose $doseNumber"
+                } else {
+                    "Treatment Complete — ${fosterCase.name} — Dose $doseNumber"
+                }
+                sendEmail(subject, body)
             }
             .setNegativeButton(R.string.dismiss, null)
             .show()
@@ -609,9 +609,8 @@ class KittenDetailFragment : Fragment() {
             setPadding(padPx, padPx, padPx, padPx)
         }
 
-        val title = if (med.strength != null) "${med.name}  ·  ${med.strength}" else med.name
         val nameText = TextView(requireContext()).apply {
-            text = title
+            text = med.name
             setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleMedium)
         }
         content.addView(nameText)
@@ -686,29 +685,6 @@ class KittenDetailFragment : Fragment() {
         return card
     }
 
-    private fun showSetBirthdayDialog() {
-        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
-        val cal = Calendar.getInstance()
-        if (fosterCase.estimatedBirthdayMillis != null) {
-            cal.timeInMillis = fosterCase.estimatedBirthdayMillis
-        }
-
-        DatePickerDialog(
-            requireContext(),
-            { _, year, month, day ->
-                val selected = Calendar.getInstance().apply {
-                    set(year, month, day, 0, 0, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                KittenRepository.setBirthday(fosterCase.animalId, selected.timeInMillis)
-                refreshUI()
-            },
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH),
-            cal.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
-
     private fun showAddWeightDialog() {
         val input = EditText(requireContext()).apply {
             hint = getString(R.string.weight_hint)
@@ -737,86 +713,39 @@ class KittenDetailFragment : Fragment() {
         input.requestFocus()
     }
 
-    private fun showAddMedicationDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_add_medication, null)
-        val scanButton = dialogView.findViewById<MaterialButton>(R.id.button_scan_label)
-        val inputName = dialogView.findViewById<TextInputEditText>(R.id.input_med_name)
-        val inputStrength = dialogView.findViewById<TextInputEditText>(R.id.input_strength)
-        val inputInstructions = dialogView.findViewById<TextInputEditText>(R.id.input_instructions)
-        val startDateButton = dialogView.findViewById<MaterialButton>(R.id.button_start_date)
+    private fun showWeightHistoryDialog() {
+        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
+        if (fosterCase.weightEntries.isEmpty()) return
 
-        var startDateMillis = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
-
-        fun updateStartDateLabel() {
-            startDateButton.text = getString(R.string.start_date_format, dateFormat.format(Date(startDateMillis)))
+        val scrollView = android.widget.ScrollView(requireContext())
+        val layout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 16)
         }
-        updateStartDateLabel()
-        startDateButton.setOnClickListener {
-            val cal = Calendar.getInstance().apply { timeInMillis = startDateMillis }
-            DatePickerDialog(
-                requireContext(),
-                { _, year, month, day ->
-                    val selected = Calendar.getInstance().apply {
-                        set(year, month, day, 0, 0, 0)
-                        set(Calendar.MILLISECOND, 0)
-                    }
-                    startDateMillis = selected.timeInMillis
-                    updateStartDateLabel()
-                },
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH),
-                cal.get(Calendar.DAY_OF_MONTH)
-            ).show()
-        }
-
-        // Store refs so the camera launcher callback can prefill these fields
-        dialogNameInput = inputName
-        dialogStrengthInput = inputStrength
-        dialogInstructionsInput = inputInstructions
-
-        scanButton.setOnClickListener {
-            scanLabelLauncher.launch(null)
-        }
-        scanButton.setOnLongClickListener {
-            loadTestImageAndScan()
-            true
-        }
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.add_medication_title)
-            .setView(dialogView)
-            .setPositiveButton(R.string.save) { _, _ ->
-                val name = inputName?.text?.toString()?.trim().orEmpty()
-                if (name.isEmpty()) return@setPositiveButton
-
-                val strength = inputStrength?.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
-                val instructions = inputInstructions?.text?.toString()?.trim().orEmpty()
-
-                val medication = Medication(
-                    name = name,
-                    strength = strength,
-                    instructions = instructions,
-                    startDateMillis = startDateMillis
-                )
-
-                KittenRepository.addMedication(fosterCaseId, medication)
-                refreshUI()
+        fosterCase.weightEntries.asReversed().forEach { entry ->
+            val row = TextView(requireContext()).apply {
+                text = "${dateFormat.format(Date(entry.dateMillis))}  —  ${formatWeight(entry.weightGrams)}"
+                setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
+                setPadding(0, 12, 0, 12)
             }
-            .setNegativeButton(R.string.cancel, null)
-            .create()
-        dialog.setOnDismissListener {
-            dialogNameInput = null
-            dialogStrengthInput = null
-            dialogInstructionsInput = null
+            layout.addView(row)
         }
-        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
-        dialog.show()
-        inputName?.requestFocus()
+        scrollView.addView(layout)
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.weight_history_label)
+            .setView(scrollView)
+            .setPositiveButton(R.string.dismiss, null)
+            .show()
+    }
+
+    private fun launchLabelCapture() {
+        val ctx = requireContext()
+        val dir = java.io.File(ctx.cacheDir, "scans").apply { mkdirs() }
+        val file = java.io.File(dir, "label_${System.currentTimeMillis()}.jpg")
+        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
+        pendingLabelFile = file
+        scanLabelLauncher.launch(uri)
     }
 
     private fun loadTestImageAndScan() {
@@ -826,44 +755,61 @@ class KittenDetailFragment : Fragment() {
             }
             if (bitmap == null) {
                 Log.e("MedScan", "Failed to decode testimage.jpg")
+                showAddMedicationDialogPrefilled(null)
                 return
             }
-            android.widget.Toast.makeText(requireContext(), "Scanning test image…", android.widget.Toast.LENGTH_SHORT).show()
-            handleScannedBitmap(bitmap)
+            Toast.makeText(requireContext(), "Scanning test image…", Toast.LENGTH_SHORT).show()
+            runLabelOcr(bitmap)
         } catch (e: Exception) {
             Log.e("MedScan", "Failed to load test image", e)
-            android.widget.Toast.makeText(requireContext(), "Test image not found", android.widget.Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Test image not found", Toast.LENGTH_SHORT).show()
+            showAddMedicationDialogPrefilled(null)
         }
     }
 
-    private fun handleScannedBitmap(bitmap: Bitmap) {
+    private fun decodeSampledLabel(file: java.io.File, maxDim: Int): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        var sample = 1
+        while (bounds.outWidth / sample > maxDim || bounds.outHeight / sample > maxDim) sample *= 2
+        val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+        return BitmapFactory.decodeFile(file.absolutePath, opts)
+    }
+
+    private fun runLabelOcr(bitmap: Bitmap) {
         labelScanner.scan(
             bitmap,
             onResult = { rawText ->
                 Log.d("MedScan", "OCR result:\n$rawText")
                 val parsed = MedicationLabelParser.parse(rawText)
-                applyParsedMedicationToDialog(parsed)
+                parsed.animalId?.let { animalId ->
+                    val fosterCase = KittenRepository.getFosterCase(fosterCaseId)
+                    if (fosterCase != null) {
+                        KittenRepository.setExternalId(fosterCase.animalId, animalId)
+                    }
+                }
+                if (_binding != null) showAddMedicationDialogPrefilled(parsed)
             },
             onError = { e ->
                 Log.e("MedScan", "OCR failed", e)
-                android.widget.Toast.makeText(
-                    requireContext(),
-                    "Could not read label",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
+                if (_binding != null) {
+                    Toast.makeText(requireContext(), "Could not read label", Toast.LENGTH_SHORT).show()
+                    showAddMedicationDialogPrefilled(null)
+                }
             }
         )
     }
 
-    private fun applyParsedMedicationToDialog(parsed: ParsedMedication) {
-        parsed.name?.let { dialogNameInput?.setText(it) }
-        parsed.strength?.let { dialogStrengthInput?.setText(it) }
-        parsed.instructions?.let { dialogInstructionsInput?.setText(it) }
-        parsed.animalId?.let { animalId ->
-            val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
-            KittenRepository.setExternalId(fosterCase.animalId, animalId)
+    private fun showAddMedicationDialogPrefilled(parsed: ParsedMedication?) {
+        setFragmentResultListener(AddMedicationDialogFragment.RESULT_KEY) { _, _ ->
             refreshUI()
         }
+        AddMedicationDialogFragment.newInstance(
+            fosterCaseId = fosterCaseId,
+            prefillName = parsed?.name,
+            prefillInstructions = parsed?.instructions,
+        ).show(parentFragmentManager, "add_medication")
     }
 
     private fun checkWeightTrend() {
@@ -960,22 +906,24 @@ class KittenDetailFragment : Fragment() {
             .setTitle(R.string.escalation_title)
             .setMessage(getString(R.string.escalation_message, fosterCase.name))
             .setPositiveButton(R.string.copy_email_request) { _, _ ->
-                copyVetRequestToClipboard(fosterCase)
+                sendVetRequestEmail(fosterCase)
             }
             .setNegativeButton(R.string.dismiss, null)
             .show()
     }
 
-    private fun copyVetRequestToClipboard(fosterCase: FosterCaseAnimal) {
+    private fun sendVetRequestEmail(fosterCase: FosterCaseAnimal) {
         val latest = fosterCase.weightEntries.lastOrNull()
         val recentWeights = fosterCase.weightEntries.takeLast(5).joinToString("\n") { entry ->
             "${dateFormat.format(Date(entry.dateMillis))}: ${"%.0f".format(entry.weightGrams)} g"
         }
 
-        val subject = "Weight concern & Vet Appointment Request: ${fosterCase.name}"
+        val subject = if (fosterCase.externalId.isNotEmpty()) {
+            "Weight concern & Vet Appointment Request: ${fosterCase.externalId}"
+        } else {
+            "Weight concern & Vet Appointment Request: ${fosterCase.name}"
+        }
         val body = buildString {
-            appendLine("Subject: $subject")
-            appendLine()
             appendLine("Foster kitten ${fosterCase.name} has shown declining weight.")
             appendLine("I would like to request a vet appointment for a check-up.")
             appendLine()
@@ -985,15 +933,21 @@ class KittenDetailFragment : Fragment() {
             appendLine(recentWeights)
         }
 
-        val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("Vet Appointment Request", body)
-        clipboard.setPrimaryClip(clip)
+        sendEmail(subject, body)
+    }
 
-        android.widget.Toast.makeText(
-            requireContext(),
-            "Request copied to clipboard",
-            android.widget.Toast.LENGTH_SHORT
-        ).show()
+    private fun sendEmail(subject: String, body: String) {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:")
+            putExtra(Intent.EXTRA_EMAIL, arrayOf("foster@humanecolorado.org"))
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, body)
+        }
+        if (intent.resolveActivity(requireContext().packageManager) != null) {
+            startActivity(intent)
+        } else {
+            startActivity(Intent.createChooser(intent, "Send email"))
+        }
     }
 
     private fun daysSinceStart(startDateMillis: Long): Int {
@@ -1012,6 +966,18 @@ class KittenDetailFragment : Fragment() {
         }
         val diff = nowCal.timeInMillis - startCal.timeInMillis
         return (diff / (24L * 60 * 60 * 1000)).toInt()
+    }
+
+    private fun formatAge(weeks: Int): String = when {
+        weeks < 12 -> "$weeks week${if (weeks != 1) "s" else ""} old"
+        weeks < 52 -> {
+            val months = weeks / 4
+            "$months month${if (months != 1) "s" else ""} old"
+        }
+        else -> {
+            val years = weeks / 52
+            "$years year${if (years != 1) "s" else ""} old"
+        }
     }
 
     override fun onDestroyView() {

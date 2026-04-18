@@ -45,7 +45,7 @@ class PreviousFostersFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 combine(
                     KittenRepository.completedFostersFlow,
-                    KittenRepository.scoresFlow
+                    KittenRepository.caseTraitScoresFlow
                 ) { completed, scores -> completed to scores }
                     .collect { (completed, scores) ->
                         if (completed.isEmpty()) {
@@ -56,7 +56,7 @@ class PreviousFostersFragment : Fragment() {
                             binding.textEmptyPrevious.visibility = View.GONE
                             val sorted = completed.sortedByDescending { it.outDateMillis }
                             val items = sorted.map { foster ->
-                                TierRow(foster, Tier.fromScores(scores[foster.fosterCaseId]))
+                                TierRow(foster, Tier.fromTotalScore(scores[foster.fosterCaseId]))
                             }
                             binding.recyclerPreviousFosters.adapter = PreviousFosterAdapter(items) { foster ->
                                 findNavController().navigate(
@@ -85,24 +85,43 @@ class PreviousFostersFragment : Fragment() {
         val backgroundRes: Int,
         val textColor: Int
     ) {
+        S_PLUS("S+", R.drawable.tier_s_bg, Color.BLACK),
         S("S", R.drawable.tier_s_bg, Color.BLACK),
+        S_MINUS("S-", R.drawable.tier_s_bg, Color.BLACK),
+        A_PLUS("A+", R.drawable.tier_a_bg, Color.BLACK),
         A("A", R.drawable.tier_a_bg, Color.BLACK),
+        A_MINUS("A-", R.drawable.tier_a_bg, Color.BLACK),
+        B_PLUS("B+", R.drawable.tier_b_bg, Color.WHITE),
         B("B", R.drawable.tier_b_bg, Color.WHITE),
+        B_MINUS("B-", R.drawable.tier_b_bg, Color.WHITE),
+        C_PLUS("C+", R.drawable.tier_c_bg, Color.WHITE),
         C("C", R.drawable.tier_c_bg, Color.WHITE),
+        C_MINUS("C-", R.drawable.tier_c_bg, Color.WHITE),
+        D_PLUS("D+", R.drawable.tier_d_bg, Color.WHITE),
         D("D", R.drawable.tier_d_bg, Color.WHITE),
+        D_MINUS("D-", R.drawable.tier_d_bg, Color.WHITE),
         F("F", R.drawable.tier_f_bg, Color.WHITE),
         NONE("—", R.drawable.tier_none_bg, Color.WHITE);
 
         companion object {
-            fun fromScores(scores: Map<String, Int>?): Tier {
-                if (scores.isNullOrEmpty()) return NONE
-                val avg = scores.values.average()
+            fun fromTotalScore(totalScore: Int?): Tier {
+                if (totalScore == null) return NONE
                 return when {
-                    avg >= 4.5 -> S
-                    avg >= 3.8 -> A
-                    avg >= 3.0 -> B
-                    avg >= 2.2 -> C
-                    avg >= 1.5 -> D
+                    totalScore >= 350 -> S_PLUS
+                    totalScore >= 300 -> S
+                    totalScore >= 250 -> S_MINUS
+                    totalScore >= 225 -> A_PLUS
+                    totalScore >= 200 -> A
+                    totalScore >= 175 -> A_MINUS
+                    totalScore >= 150 -> B_PLUS
+                    totalScore >= 100 -> B
+                    totalScore >= 75 -> B_MINUS
+                    totalScore >= 50 -> C_PLUS
+                    totalScore >= 0 -> C
+                    totalScore >= -50 -> C_MINUS
+                    totalScore >= -75 -> D_PLUS
+                    totalScore >= -100 -> D
+                    totalScore >= -150 -> D_MINUS
                     else -> F
                 }
             }
@@ -126,6 +145,10 @@ class PreviousFostersFragment : Fragment() {
             holder.binding.tierCard.setBackgroundResource(tier.backgroundRes)
             holder.binding.textName.text = foster.name
             holder.binding.textName.setTextColor(tier.textColor)
+            val litter = foster.litterName
+            holder.binding.textLitterName.text = litter
+            holder.binding.textLitterName.visibility = if (!litter.isNullOrBlank()) View.VISIBLE else View.GONE
+            holder.binding.textLitterName.setTextColor(tier.textColor)
             holder.binding.textOutDate.text = "Adopted ${dateFormat.format(Date(foster.outDateMillis))}"
             holder.binding.textOutDate.setTextColor(tier.textColor)
             holder.binding.textTier.text = tier.label

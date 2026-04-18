@@ -16,7 +16,6 @@
     <string name="add_medication_button">Add Medication</string>
     <string name="add_medication_title">Add Medication</string>
     <string name="med_name_hint">Medication name</string>
-    <string name="strength_hint">Strength (e.g. 0.3%, 250mg)</string>
     <string name="instructions_hint">Instructions</string>
     <string name="no_medications">No medications</string>
     <string name="active_label">Active</string>
@@ -36,8 +35,8 @@
     <string name="escalation_title">Contact Foster Office</string>
     <string name="escalation_message">%s may need veterinary attention. Please copy the weight history and email it to the foster office so they can schedule a check-up.</string>
     <string name="copy_email_request">Copy Request Body</string>
-    <string name="message_center_title">Alerts</string>
-    <string name="no_alerts_yet">No alerts yet</string>
+    <string name="message_center_title">Messages</string>
+    <string name="no_messages_yet">No messages yet</string>
     <string name="menu_current_fosters">Current Fosters</string>
     <string name="menu_previous_fosters">Previous Fosters</string>
     <string name="previous_fosters_empty">Your previous fosters will appear here once they have been returned to the shelter.</string>
@@ -68,9 +67,19 @@
     <string name="stopped_medications_header">Stopped Medications</string>
     <string name="treatment_complete_title">Treatment Complete</string>
     <string name="treatment_complete_message">All treatments for %1$s dose %2$d have been given. Please email the foster office to report this treatment.</string>
-    <string name="scan_label_button">Scan Label</string>
     <string name="start_date_format">Started: %1$s</string>
     <string name="day_n_format">Day %1$d</string>
     <string name="new_foster_button">New Foster</string>
     <string name="profile_image_desc">Foster profile photo</string>
+    <string name="add_photo">Add photo</string>
+    <string name="view_gallery">View gallery</string>
+    <string name="photo_count_format">%1$d/%2$d</string>
+    <string name="photo_max_reached">Photo limit reached (10)</string>
+    <string name="photo_source_title">Add photo</string>
+    <string name="photo_source_camera">Take photo</string>
+    <string name="photo_source_library">Choose from library</string>
+    <string name="gallery_empty">No photos yet</string>
+    <string name="delete_photo_title">Delete photo?</string>
+    <string name="delete_photo_message">This removes the photo from this foster. The original stays in your gallery.</string>
+    <string name="delete">Delete</string>
 </resources>

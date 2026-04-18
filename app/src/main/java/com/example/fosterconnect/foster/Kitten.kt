@@ -44,6 +44,12 @@ enum class CoatColor(val display: String) {
     FLAMEPOINT("Flamepoint")
 }
 
+data class FosterPhoto(
+    val id: String,
+    val uri: String,
+    val addedAtMillis: Long
+)
+
 data class AdministeredTreatment(
     val treatmentType: String,
     val scheduledDateMillis: Long,
@@ -55,6 +61,7 @@ data class FosterCaseAnimal(
     val fosterCaseId: String,
     val externalId: String = "",
     val name: String,
+    val litterName: String? = null,
     val breed: Breed,
     val color: CoatColor,
     val sex: Sex,
@@ -63,6 +70,7 @@ data class FosterCaseAnimal(
     val estimatedBirthdayMillis: Long? = null,
     val weightEntries: List<WeightEntry> = emptyList(),
     val medications: List<Medication> = emptyList(),
+    val photos: List<FosterPhoto> = emptyList(),
     val administeredTreatments: List<AdministeredTreatment> = emptyList(),
     val messages: List<Message> = emptyList(),
     val weightDeclineWarned: Boolean = false,
@@ -83,6 +91,7 @@ data class CompletedFoster(
     val fosterCaseId: String,
     val externalId: String = "",
     val name: String,
+    val litterName: String? = null,
     val breed: Breed,
     val color: CoatColor,
     val sex: Sex,

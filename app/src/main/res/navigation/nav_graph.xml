@@ -14,6 +14,19 @@
         <action
             android:id="@+id/action_FosterList_to_KittenDetail"
             app:destination="@id/KittenDetailFragment" />
+        <action
+            android:id="@+id/action_FosterList_to_Gallery"
+            app:destination="@id/GalleryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/GalleryFragment"
+        android:name="com.example.fosterconnect.foster.GalleryFragment"
+        android:label="Gallery"
+        tools:layout="@layout/fragment_gallery">
+        <argument
+            android:name="fosterCaseId"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -62,6 +75,10 @@
         <argument
             android:name="fosterCaseId"
             app:argType="string" />
+
+        <action
+            android:id="@+id/action_KittenRanking_to_Gallery"
+            app:destination="@id/GalleryFragment" />
     </fragment>
 
 </navigation>

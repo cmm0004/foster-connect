@@ -35,6 +35,9 @@ interface AnimalDao {
 
     @Query("UPDATE animals SET externalId = :externalId, updatedAtMillis = :updatedAtMillis WHERE id = :animalId")
     suspend fun updateExternalId(animalId: String, externalId: String, updatedAtMillis: Long)
+
+    @Query("UPDATE animals SET litterName = :litterName, updatedAtMillis = :updatedAtMillis WHERE id = :animalId")
+    suspend fun updateLitterName(animalId: String, litterName: String?, updatedAtMillis: Long)
 }
 
 @Dao
@@ -89,6 +92,18 @@ interface FosterCaseDao {
     suspend fun stopMedication(medicationId: String, endDateMillis: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPhoto(photo: CasePhotoEntity)
+
+    @Query("DELETE FROM case_photos WHERE id = :id")
+    suspend fun deletePhoto(id: String)
+
+    @Query("SELECT * FROM case_photos WHERE fosterCaseId = :caseId ORDER BY addedAtMillis")
+    suspend fun photosFor(caseId: String): List<CasePhotoEntity>
+
+    @Query("SELECT COUNT(*) FROM case_photos WHERE fosterCaseId = :caseId")
+    suspend fun photoCountFor(caseId: String): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTreatment(treatment: CaseTreatmentEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -112,41 +127,23 @@ interface FosterCaseDao {
 }
 
 @Dao
-interface RankingDao {
+interface TraitDao {
 
-    @Query("SELECT * FROM rank_facets ORDER BY sortOrder, displayName")
-    fun observeRankFacets(): Flow<List<RankFacetEntityV2>>
+    @Query("SELECT * FROM assigned_traits WHERE animalId = :animalId AND fosterCaseId = :fosterCaseId ORDER BY assignedAtMillis")
+    fun observeTraitsForCase(animalId: String, fosterCaseId: String): Flow<List<AssignedTraitEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRankFacet(facet: RankFacetEntityV2)
+    @Query("SELECT * FROM assigned_traits WHERE fosterCaseId = :fosterCaseId ORDER BY assignedAtMillis")
+    suspend fun getTraitsForCase(fosterCaseId: String): List<AssignedTraitEntity>
 
-    @Query("SELECT COUNT(*) FROM rank_facets")
-    suspend fun rankFacetCount(): Int
+    @Query("SELECT fosterCaseId, SUM(score) as totalScore FROM assigned_traits WHERE fosterCaseId IS NOT NULL GROUP BY fosterCaseId")
+    fun observeAllCaseScores(): Flow<List<CaseTraitScore>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRankingRecord(record: RankingRecordEntity)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertTrait(trait: AssignedTraitEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRankingScores(scores: List<RankingScoreEntity>)
+    @Query("DELETE FROM assigned_traits WHERE animalId = :animalId AND fosterCaseId = :fosterCaseId AND traitName = :traitName")
+    suspend fun removeTrait(animalId: String, fosterCaseId: String, traitName: String)
 
-    @Transaction
-    @Query("SELECT * FROM ranking_records WHERE animalId = :animalId ORDER BY rankedAtMillis DESC")
-    fun observeRankingRecordsForAnimal(animalId: String): Flow<List<RankingRecordWithScores>>
-
-    @Transaction
-    @Query("SELECT * FROM ranking_records ORDER BY rankedAtMillis DESC")
-    fun observeAllRankingRecords(): Flow<List<RankingRecordWithScores>>
-
-    @Query(
-        "SELECT rs.facetId, AVG(CAST(rs.score AS REAL)) AS averageScore " +
-            "FROM ranking_scores rs " +
-            "INNER JOIN ranking_records rr ON rr.id = rs.rankingRecordId " +
-            "GROUP BY rs.facetId"
-    )
-    fun observeFacetAverages(): Flow<List<RankingFacetAverage>>
+    @Query("DELETE FROM assigned_traits WHERE animalId = :animalId AND fosterCaseId = :fosterCaseId AND traitName IN (:traitNames)")
+    suspend fun removeTraits(animalId: String, fosterCaseId: String, traitNames: List<String>)
 }
-
-data class RankingFacetAverage(
-    val facetId: String,
-    val averageScore: Double
-)

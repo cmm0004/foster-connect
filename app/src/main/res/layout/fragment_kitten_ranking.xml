@@ -15,19 +15,18 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/text_subtitle"
+        android:id="@+id/text_score_summary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:paddingHorizontal="16dp"
         android:paddingBottom="8dp"
-        android:text="Rate this animal on each trait (1 = low, 5 = high)."
-        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_kitten_name" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_facets"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_traits"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
@@ -35,14 +34,38 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_subtitle" />
+        app:layout_constraintTop_toBottomOf="@id/text_score_summary">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_assigned"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="8dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="8dp" />
+
+    </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_save"
+        android:id="@+id/button_view_gallery"
+        style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="Save Rankings"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="72dp"
+        android:text="Album"
+        app:icon="@android:drawable/ic_menu_gallery"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_add_trait"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="72dp"
+        android:text="Add Trait"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -30,6 +30,7 @@ data class AnimalEntity(
     val breed: String,
     val color: String,
     val sex: String,
+    val litterName: String?,
     val estimatedBirthdayMillis: Long?,
     val createdAtMillis: Long,
     val updatedAtMillis: Long
@@ -98,11 +99,29 @@ data class CaseMedicationEntity(
     @PrimaryKey val id: String,
     val fosterCaseId: String,
     val name: String,
-    val strength: String?,
     val instructions: String,
     val startDateMillis: Long,
     val endDateMillis: Long?,
     val isActive: Boolean
+)
+
+@Entity(
+    tableName = "case_photos",
+    foreignKeys = [
+        ForeignKey(
+            entity = FosterCaseEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["fosterCaseId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("fosterCaseId")]
+)
+data class CasePhotoEntity(
+    @PrimaryKey val id: String,
+    val fosterCaseId: String,
+    val uri: String,
+    val addedAtMillis: Long
 )
 
 @Entity(
@@ -184,67 +203,30 @@ data class CompletedFosterRecordEntity(
     val createdAtMillis: Long
 )
 
-@Entity(tableName = "rank_facets")
-data class RankFacetEntityV2(
-    @PrimaryKey val id: String,
-    val displayName: String,
-    val description: String? = null,
-    val sortOrder: Int = 0
-)
-
 @Entity(
-    tableName = "ranking_records",
+    tableName = "assigned_traits",
     foreignKeys = [
         ForeignKey(
             entity = AnimalEntity::class,
             parentColumns = ["id"],
             childColumns = ["animalId"],
             onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = FosterCaseEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["fosterCaseId"],
-            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
-        Index("animalId"),
-        Index("fosterCaseId")
+        Index(value = ["animalId", "fosterCaseId"]),
+        Index(value = ["animalId", "fosterCaseId", "traitName"], unique = true)
     ]
 )
-data class RankingRecordEntity(
-    @PrimaryKey val id: String,
+data class AssignedTraitEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val animalId: String,
     val fosterCaseId: String?,
-    val rankedAtMillis: Long,
-    val rankVersion: Int = 1,
-    val notes: String?
-)
-
-@Entity(
-    tableName = "ranking_scores",
-    primaryKeys = ["rankingRecordId", "facetId"],
-    foreignKeys = [
-        ForeignKey(
-            entity = RankingRecordEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["rankingRecordId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = RankFacetEntityV2::class,
-            parentColumns = ["id"],
-            childColumns = ["facetId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    indices = [Index("rankingRecordId"), Index("facetId")]
-)
-data class RankingScoreEntity(
-    val rankingRecordId: String,
-    val facetId: String,
-    val score: Int
+    val traitName: String,
+    val category: String,
+    val valence: String,
+    val score: Int,
+    val assignedAtMillis: Long
 )
 
 data class AnimalWithCases(
@@ -260,6 +242,8 @@ data class FosterCaseWithDetails(
     @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
     val medications: List<CaseMedicationEntity>,
     @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
+    val photos: List<CasePhotoEntity>,
+    @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
     val treatments: List<CaseTreatmentEntity>,
     @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
     val messages: List<CaseMessageEntity>
@@ -271,8 +255,7 @@ data class CompletedFosterRecordWithAnimal(
     val animal: AnimalEntity
 )
 
-data class RankingRecordWithScores(
-    @Embedded val rankingRecord: RankingRecordEntity,
-    @Relation(parentColumn = "id", entityColumn = "rankingRecordId")
-    val scores: List<RankingScoreEntity>
+data class CaseTraitScore(
+    val fosterCaseId: String,
+    val totalScore: Int
 )

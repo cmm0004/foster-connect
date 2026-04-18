@@ -10,6 +10,15 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_scan_agreement"
+            style="@style/Widget.Material3.Button.TonalButton.Icon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="Scan foster agreement"
+            app:icon="@android:drawable/ic_menu_camera" />
+
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
@@ -17,6 +26,18 @@
             android:hint="Name">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Litter name">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_litter_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
