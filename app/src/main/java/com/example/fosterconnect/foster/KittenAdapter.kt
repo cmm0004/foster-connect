@@ -49,11 +49,10 @@ class KittenAdapter(
         holder.binding.textAge.text = if (ageWeeks != null) "${ageWeeks}w" else "--"
 
         // Next treatment stat
-        val currentWeightGrams = latest?.weightGrams
         val schedule = FosterTreatmentSchedule.generateSchedule(
-            fosterCase.intakeDateMillis,
-            fosterCase.estimatedBirthdayMillis,
-            currentWeightGrams,
+            fosterCase.nextVaccineDateMillis,
+            latest?.weightGrams,
+            latest?.dateMillis,
             fosterCase.administeredTreatments
         )
         val overdueCount = schedule.count { it.isPast && !it.isAdministered }
@@ -69,17 +68,17 @@ class KittenAdapter(
         if (hasOverdue) {
             addChip(holder, ctx.getString(R.string.overdue_count_format, overdueCount),
                 R.color.clinical_crimson, R.color.clinical_crimson_soft)
-            // Check if weight is below expected
-            if (latest != null && ageWeeks != null) {
-                val expectedMinGrams = ageWeeks * 100f // rough estimate
-                if (latest.weightGrams < expectedMinGrams) {
-                    addChip(holder, ctx.getString(R.string.weight_low),
-                        R.color.clinical_amber, R.color.clinical_amber_soft)
-                }
-            }
         } else {
             addChip(holder, ctx.getString(R.string.on_schedule),
                 R.color.clinical_sage, R.color.clinical_sage_tint)
+        }
+        // Check if weight is below expected
+        if (latest != null && ageWeeks != null) {
+            val expectedMinGrams = ExpectedWeight.minAt(ageWeeks)
+            if (expectedMinGrams != null && latest.weightGrams < expectedMinGrams) {
+                addChip(holder, ctx.getString(R.string.weight_low),
+                    R.color.clinical_amber, R.color.clinical_amber_soft)
+            }
         }
 
         holder.itemView.setOnClickListener { onClick(fosterCase) }

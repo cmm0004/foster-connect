@@ -441,19 +441,6 @@
 
                             </LinearLayout>
 
-                            <TextView
-                                android:id="@+id/text_treatment_badge"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@color/clinical_surface"
-                                android:fontFamily="monospace"
-                                android:paddingHorizontal="7dp"
-                                android:paddingVertical="3dp"
-                                android:text="@string/overdue"
-                                android:textAllCaps="true"
-                                android:textColor="@color/clinical_crimson"
-                                android:textSize="9sp"
-                                android:textStyle="bold" />
                         </LinearLayout>
 
                         <View

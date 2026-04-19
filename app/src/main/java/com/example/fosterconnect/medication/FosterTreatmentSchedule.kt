@@ -19,8 +19,8 @@ data class ScheduledDose(
 
 object FosterTreatmentSchedule {
 
-    private const val TWO_WEEKS_MS = 14L * 24 * 60 * 60 * 1000
-    private const val EIGHT_WEEKS_MS = 8L * 7 * 24 * 60 * 60 * 1000
+    private const val ONE_DAY_MS = 24L * 60 * 60 * 1000
+    private const val TWO_WEEKS_MS = 14L * ONE_DAY_MS
     private const val GRAMS_PER_LB = 453.592f
 
     // Ponazuril dosing table: (weight in lbs, dose in cc)
@@ -76,23 +76,23 @@ object FosterTreatmentSchedule {
     )
 
     fun generateSchedule(
-        intakeDateMillis: Long,
-        birthdayMillis: Long?,
-        currentWeightGrams: Float?,
+        nextVaccineDateMillis: Long?,
+        latestWeightGrams: Float?,
+        latestWeightDateMillis: Long?,
         administeredTreatments: List<AdministeredTreatment>
     ): List<ScheduledDose> {
+        if (nextVaccineDateMillis == null) return emptyList()
+
         val now = System.currentTimeMillis()
-        val cutoffMillis = if (birthdayMillis != null) birthdayMillis + EIGHT_WEEKS_MS else null
+        val todayStart = now - (now % ONE_DAY_MS)
         val doses = mutableListOf<ScheduledDose>()
 
         var doseNumber = 1
-        var doseDate = intakeDateMillis
-        // Generate up to a reasonable max (e.g., 10 doses) if no birthday cutoff
+        var doseDate = nextVaccineDateMillis
         val maxDoses = 10
 
         while (doseNumber <= maxDoses) {
-            if (cutoffMillis != null && doseDate > cutoffMillis) break
-
+            val isPast = doseDate < now
             for (treatment in StandardTreatment.entries) {
                 val isAdministered = administeredTreatments.any {
                     it.treatmentType == treatment.name && it.scheduledDateMillis == doseDate
@@ -101,9 +101,9 @@ object FosterTreatmentSchedule {
                     ScheduledDose(
                         treatment = treatment,
                         scheduledDateMillis = doseDate,
-                        doseLabel = getDoseLabel(treatment, currentWeightGrams),
+                        doseLabel = getDoseLabel(treatment, isPast, todayStart, latestWeightGrams, latestWeightDateMillis),
                         doseNumber = doseNumber,
-                        isPast = doseDate < now,
+                        isPast = isPast,
                         isAdministered = isAdministered
                     )
                 )
@@ -116,18 +116,28 @@ object FosterTreatmentSchedule {
         return doses
     }
 
-    private fun getDoseLabel(treatment: StandardTreatment, weightGrams: Float?): String {
+    private fun getDoseLabel(
+        treatment: StandardTreatment,
+        isDueOrPast: Boolean,
+        todayStart: Long,
+        weightGrams: Float?,
+        weightDateMillis: Long?
+    ): String {
         return when (treatment) {
-            StandardTreatment.FVRCP -> "Administer vaccine"
-            StandardTreatment.PYRANTEL -> {
-                if (weightGrams == null || weightGrams <= 0f) return "Weigh kitten first"
-                val ml = pyrantelDoseMl(weightGrams)
-                "%.2f ml".format(ml)
-            }
-            StandardTreatment.PONAZURIL -> {
-                if (weightGrams == null || weightGrams <= 0f) return "Weigh kitten first"
-                val cc = ponazurilDoseCc(weightGrams) ?: return "Weight too low for dosing"
-                "%.2f cc".format(cc)
+            StandardTreatment.FVRCP -> "1"
+            StandardTreatment.PYRANTEL, StandardTreatment.PONAZURIL -> {
+                if (!isDueOrPast) return "determined day-of"
+                if (weightGrams == null || weightGrams <= 0f) return "Update weight"
+                val weightIsToday = weightDateMillis != null && weightDateMillis >= todayStart
+                if (!weightIsToday) return "Update weight"
+                when (treatment) {
+                    StandardTreatment.PYRANTEL -> "%.2f ml".format(pyrantelDoseMl(weightGrams))
+                    StandardTreatment.PONAZURIL -> {
+                        val cc = ponazurilDoseCc(weightGrams) ?: return "Weight too low"
+                        "%.2f cc".format(cc)
+                    }
+                    else -> ""
+                }
             }
         }
     }

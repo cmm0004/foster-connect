@@ -12,70 +12,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Top bar -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/clinical_surface"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="12dp">
-
-            <!-- Logo mark -->
-            <TextView
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:background="@color/clinical_sage"
-                android:fontFamily="monospace"
-                android:gravity="center"
-                android:text="F"
-                android:textColor="@color/white"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/app_name"
-                    android:textColor="@color/clinical_ink"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="monospace"
-                    android:letterSpacing="0.05"
-                    android:text="@string/clinical_subtitle"
-                    android:textColor="@color/clinical_ink_muted"
-                    android:textSize="10sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/text_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="monospace"
-                android:textColor="@color/clinical_ink_muted"
-                android:textSize="10sp"
-                tools:text="04 / 17 / 26" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/clinical_line" />
-
-        <!-- KPI strip -->
-
         <!-- Section header with filter tabs -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -96,6 +32,15 @@
                 android:textColor="@color/clinical_ink_muted"
                 android:textSize="10sp"
                 tools:text="PATIENTS · 01" />
+
+            <TextView
+                android:id="@+id/text_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:textColor="@color/clinical_ink_muted"
+                android:textSize="10sp"
+                tools:text="04 / 17 / 26" />
 
         </LinearLayout>
 

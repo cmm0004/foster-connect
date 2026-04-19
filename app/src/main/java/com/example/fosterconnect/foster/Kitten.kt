@@ -71,6 +71,7 @@ data class FosterCaseAnimal(
     val weightEntries: List<WeightEntry> = emptyList(),
     val medications: List<Medication> = emptyList(),
     val photos: List<FosterPhoto> = emptyList(),
+    val nextVaccineDateMillis: Long? = null,
     val administeredTreatments: List<AdministeredTreatment> = emptyList(),
     val messages: List<Message> = emptyList(),
     val weightDeclineWarned: Boolean = false,

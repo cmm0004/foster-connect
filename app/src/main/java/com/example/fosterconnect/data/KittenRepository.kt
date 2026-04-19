@@ -288,7 +288,8 @@ object KittenRepository {
         intakeDateMillis: Long,
         estimatedBirthdayMillis: Long?,
         initialWeightGrams: Float?,
-        initialWeightDateMillis: Long?
+        initialWeightDateMillis: Long?,
+        nextVaccineDateMillis: Long? = null
     ) {
         scope.launch {
             val now = System.currentTimeMillis()
@@ -318,6 +319,7 @@ object KittenRepository {
                     outDateMillis = null,
                     isAlteredAtIntake = isAlteredAtIntake,
                     weightDeclineWarned = false,
+                    nextVaccineDateMillis = nextVaccineDateMillis,
                     notes = null,
                     createdAtMillis = now,
                     updatedAtMillis = now
@@ -494,6 +496,7 @@ object KittenRepository {
         isAlteredAtIntake = fosterCase.isAlteredAtIntake,
         intakeDateMillis = fosterCase.intakeDateMillis,
         estimatedBirthdayMillis = animal.estimatedBirthdayMillis,
+        nextVaccineDateMillis = fosterCase.nextVaccineDateMillis,
         weightEntries = weights.sortedBy { it.dateMillis }.map { WeightEntry(it.dateMillis, it.weightGrams) },
         medications = medications.sortedByDescending { it.startDateMillis }.map {
             Medication(

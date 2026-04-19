@@ -186,7 +186,7 @@ class KittenDetailFragment : Fragment() {
         }
         binding.textWeightTrend.text = if (latest != null) {
             val ageWeeks = fosterCase.ageInWeeks ?: 0
-            val expected = ageWeeks * 100f
+            val expected = ExpectedWeight.avgAt(ageWeeks.toFloat()) ?: (ageWeeks * 100f)
             val diff = latest.weightGrams - expected
             if (diff < 0) "${"%.0f".format(diff)}g exp" else "+${"%.0f".format(diff)}g exp"
         } else {
@@ -201,7 +201,8 @@ class KittenDetailFragment : Fragment() {
         val currentWeightGrams = latest?.weightGrams
 
         // Vitals chart
-        if (fosterCase.weightEntries.size >= 2) {
+        binding.vitalsChart.setBirthdayMillis(fosterCase.estimatedBirthdayMillis)
+        if (fosterCase.weightEntries.isNotEmpty()) {
             binding.vitalsChart.setWeightEntries(fosterCase.weightEntries)
         } else {
             binding.vitalsChart.setPlaceholderData()
@@ -253,24 +254,14 @@ class KittenDetailFragment : Fragment() {
     private fun renderTreatmentSchedule(fosterCase: FosterCaseAnimal, currentWeightGrams: Float?) {
         binding.layoutTreatmentSchedule.removeAllViews()
         val ctx = requireContext()
+        val latestWeightEntry = fosterCase.weightEntries.lastOrNull()
 
         val schedule = FosterTreatmentSchedule.generateSchedule(
-            fosterCase.intakeDateMillis,
-            fosterCase.estimatedBirthdayMillis,
+            fosterCase.nextVaccineDateMillis,
             currentWeightGrams,
+            latestWeightEntry?.dateMillis,
             fosterCase.administeredTreatments
         )
-
-        val overdueCount = schedule.count { it.isPast && !it.isAdministered }
-
-        // Update ledger header
-        if (overdueCount > 0) {
-            binding.textTreatmentBadge.text = getString(R.string.overdue).uppercase()
-            binding.textTreatmentBadge.setTextColor(ContextCompat.getColor(ctx, R.color.clinical_crimson))
-        } else {
-            binding.textTreatmentBadge.text = getString(R.string.complete)
-            binding.textTreatmentBadge.setTextColor(ContextCompat.getColor(ctx, R.color.clinical_sage))
-        }
 
         if (schedule.isEmpty()) {
             val empty = TextView(ctx).apply {
@@ -427,13 +418,13 @@ class KittenDetailFragment : Fragment() {
 
     private fun showTreatmentHistoryDialog() {
         val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
-        val currentWeightGrams = fosterCase.weightEntries.lastOrNull()?.weightGrams
+        val latestWeightEntry = fosterCase.weightEntries.lastOrNull()
         val dp = resources.displayMetrics.density
 
         val schedule = FosterTreatmentSchedule.generateSchedule(
-            fosterCase.intakeDateMillis,
-            fosterCase.estimatedBirthdayMillis,
-            currentWeightGrams,
+            fosterCase.nextVaccineDateMillis,
+            latestWeightEntry?.weightGrams,
+            latestWeightEntry?.dateMillis,
             fosterCase.administeredTreatments
         )
 

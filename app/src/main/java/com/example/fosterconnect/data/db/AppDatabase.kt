@@ -17,7 +17,7 @@ import androidx.room.RoomDatabase
         CompletedFosterRecordEntity::class,
         AssignedTraitEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

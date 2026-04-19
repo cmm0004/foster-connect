@@ -35,12 +35,14 @@ import com.example.fosterconnect.foster.scan.ParsedAge
 import com.example.fosterconnect.foster.scan.ParsedFosterAgreement
 import com.example.fosterconnect.medication.FosterTreatmentSchedule
 import com.example.fosterconnect.medication.scan.MedicationLabelScanner
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 import kotlinx.coroutines.launch
 
 class FosterListFragment : Fragment() {
@@ -49,7 +51,6 @@ class FosterListFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val scanner = MedicationLabelScanner()
-    private val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
 
     private var pendingScanUri: Uri? = null
     private var pendingScanFile: File? = null
@@ -67,6 +68,12 @@ class FosterListFragment : Fragment() {
     private var dialogIntakeDateInput: TextInputEditText? = null
     private var dialogWeightInput: TextInputEditText? = null
     private var dialogWeightDateInput: TextInputEditText? = null
+    private var dialogNextVaccineDateInput: TextInputEditText? = null
+
+    // Millis backing values for date picker fields
+    private var intakeDateMillis: Long? = null
+    private var weightDateMillis: Long? = null
+    private var nextVaccineDateMillis: Long? = null
 
     private var pendingPermissionScan: Boolean = false
 
@@ -208,11 +215,15 @@ class FosterListFragment : Fragment() {
             dialogAgeValueInput?.setText(it.value.toString())
             dialogAgeUnitInput?.setText(unitLabels[it.unit.ordinal], false)
         }
-        dialogIntakeDateInput?.setText(parsed.intakeDateMillis?.let { dateFormat.format(Date(it)) }
-            .orEmpty())
+        parsed.intakeDateMillis?.let {
+            intakeDateMillis = it
+            setDateField(dialogIntakeDateInput, it)
+        }
         parsed.lastWeightGrams?.let { dialogWeightInput?.setText("%.0f".format(it)) }
-        dialogWeightDateInput?.setText(parsed.lastWeightDateMillis?.let { dateFormat.format(Date(it)) }
-            .orEmpty())
+        parsed.lastWeightDateMillis?.let {
+            weightDateMillis = it
+            setDateField(dialogWeightDateInput, it)
+        }
         Toast.makeText(requireContext(), "Agreement scanned", Toast.LENGTH_SHORT).show()
     }
 
@@ -250,6 +261,7 @@ class FosterListFragment : Fragment() {
         val intakeDateInput = view.findViewById<TextInputEditText>(R.id.input_intake_date)
         val weightInput = view.findViewById<TextInputEditText>(R.id.input_weight)
         val weightDateInput = view.findViewById<TextInputEditText>(R.id.input_weight_date)
+        val nextVaccineDateInput = view.findViewById<TextInputEditText>(R.id.input_next_vaccine_date)
 
         // Store references so OCR callback can fill them
         dialogNameInput = nameInput
@@ -264,6 +276,7 @@ class FosterListFragment : Fragment() {
         dialogIntakeDateInput = intakeDateInput
         dialogWeightInput = weightInput
         dialogWeightDateInput = weightDateInput
+        dialogNextVaccineDateInput = nextVaccineDateInput
 
         val breedLabels = Breed.values().map { it.display }
         val colorLabels = CoatColor.values().map { it.display }
@@ -275,6 +288,11 @@ class FosterListFragment : Fragment() {
         colorInput.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_list_item_1, colorLabels))
         sexInput.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_list_item_1, sexLabels))
         ageUnitInput.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_list_item_1, unitLabels))
+
+        // Reset date millis
+        intakeDateMillis = null
+        weightDateMillis = null
+        nextVaccineDateMillis = null
 
         // Pre-fill if parsed data provided
         if (parsed != null) {
@@ -288,11 +306,35 @@ class FosterListFragment : Fragment() {
                 ageValueInput.setText(it.value.toString())
                 ageUnitInput.setText(unitLabels[it.unit.ordinal], false)
             }
-            intakeDateInput.setText(parsed.intakeDateMillis?.let { dateFormat.format(Date(it)) }
-                .orEmpty())
+            parsed.intakeDateMillis?.let {
+                intakeDateMillis = it
+                setDateField(intakeDateInput, it)
+            }
             parsed.lastWeightGrams?.let { weightInput.setText("%.0f".format(it)) }
-            weightDateInput.setText(parsed.lastWeightDateMillis?.let { dateFormat.format(Date(it)) }
-                .orEmpty())
+            parsed.lastWeightDateMillis?.let {
+                weightDateMillis = it
+                setDateField(weightDateInput, it)
+            }
+        }
+
+        // Date picker click listeners
+        intakeDateInput.setOnClickListener {
+            showDatePicker("Intake date", intakeDateMillis) { millis ->
+                intakeDateMillis = millis
+                setDateField(intakeDateInput, millis)
+            }
+        }
+        weightDateInput.setOnClickListener {
+            showDatePicker("Weight date", weightDateMillis) { millis ->
+                weightDateMillis = millis
+                setDateField(weightDateInput, millis)
+            }
+        }
+        nextVaccineDateInput.setOnClickListener {
+            showDatePicker("Next vaccine date", nextVaccineDateMillis) { millis ->
+                nextVaccineDateMillis = millis
+                setDateField(nextVaccineDateInput, millis)
+            }
         }
 
         scanButton.setOnClickListener {
@@ -314,8 +356,7 @@ class FosterListFragment : Fragment() {
                     .takeIf { it >= 0 }?.let { CoatColor.values()[it] } ?: CoatColor.BLACK
                 val sex = sexLabels.indexOf(sexInput.text?.toString())
                     .takeIf { it >= 0 }?.let { Sex.values()[it] } ?: Sex.FEMALE
-                val intakeMillis =
-                    parseDateInput(intakeDateInput.text?.toString()) ?: System.currentTimeMillis()
+                val intakeMillis = intakeDateMillis ?: System.currentTimeMillis()
                 val ageValue = ageValueInput.text?.toString()?.toIntOrNull()
                 val unitIdx = unitLabels.indexOf(ageUnitInput.text?.toString()).takeIf { it >= 0 }
                 val estimatedBirthday = if (ageValue != null && unitIdx != null) {
@@ -324,7 +365,6 @@ class FosterListFragment : Fragment() {
                     )
                 } else null
                 val weightGrams = weightInput.text?.toString()?.toFloatOrNull()
-                val weightDate = parseDateInput(weightDateInput.text?.toString())
 
                 val litterName =
                     litterNameInput.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }
@@ -339,7 +379,8 @@ class FosterListFragment : Fragment() {
                     intakeDateMillis = intakeMillis,
                     estimatedBirthdayMillis = estimatedBirthday,
                     initialWeightGrams = weightGrams,
-                    initialWeightDateMillis = weightDate
+                    initialWeightDateMillis = weightDateMillis,
+                    nextVaccineDateMillis = nextVaccineDateMillis
                 )
                 Toast.makeText(ctx, "Foster case created", Toast.LENGTH_SHORT).show()
             }
@@ -357,6 +398,7 @@ class FosterListFragment : Fragment() {
                 dialogIntakeDateInput = null
                 dialogWeightInput = null
                 dialogWeightDateInput = null
+                dialogNextVaccineDateInput = null
             }
             .show()
     }
@@ -373,9 +415,26 @@ class FosterListFragment : Fragment() {
         }
     }
 
-    private fun parseDateInput(raw: String?): Long? {
-        if (raw.isNullOrBlank()) return null
-        return runCatching { dateFormat.parse(raw)?.time }.getOrNull()
+    private fun showDatePicker(
+        title: String,
+        currentMillis: Long?,
+        onDateSelected: (Long) -> Unit
+    ) {
+        val picker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText(title)
+            .apply { currentMillis?.let { setSelection(it) } }
+            .build()
+        picker.addOnPositiveButtonClickListener { utcMillis -> onDateSelected(utcMillis) }
+        picker.show(parentFragmentManager, title)
+    }
+
+    private fun setDateField(input: TextInputEditText?, millis: Long): String {
+        val utcFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val text = utcFormat.format(Date(millis))
+        input?.setText(text)
+        return text
     }
 
     override fun onDestroyView() {

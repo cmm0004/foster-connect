@@ -10,6 +10,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import com.example.fosterconnect.databinding.ActivityMainBinding
@@ -26,6 +27,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+        val headerView = LayoutInflater.from(this)
+            .inflate(R.layout.toolbar_header, binding.toolbar, false)
+        binding.toolbar.addView(headerView)
 
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
