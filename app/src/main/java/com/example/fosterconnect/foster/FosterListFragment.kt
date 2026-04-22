@@ -155,6 +155,12 @@ class FosterListFragment : Fragment() {
                                 R.id.action_FosterList_to_KittenDetail,
                                 bundleOf("fosterCaseId" to fosterCase.fosterCaseId)
                             )
+                        },
+                        onNameUpdate = { fosterCase, newName ->
+                            KittenRepository.setName(fosterCase.animalId, newName)
+                        },
+                        onCollarColorUpdate = { fosterCase, collarColor ->
+                            KittenRepository.setCollarColor(fosterCase.fosterCaseId, collarColor)
                         }
                     )
                 }

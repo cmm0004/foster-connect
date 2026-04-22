@@ -12,7 +12,7 @@
     "litter_name": "Nosers",
     "out_date": "02/28/2022",
     "sex": "FEMALE",
-    "color": "SPOTTED"
+    "color": "BLACK_SPOTTED"
   },
   {
     "anumber": "A0865180",
@@ -43,7 +43,7 @@
     "litter_name": "The Darkspawn",
     "out_date": "05/03/2022",
     "sex": "MALE",
-    "color": "ORANGE"
+    "color": "ORANGE_TABBY"
   },
   {
     "anumber": "A0869546",
@@ -83,7 +83,7 @@
     "litter_name": "Questing Beasts",
     "out_date": "06/22/2022",
     "sex": "MALE",
-    "color": "SMOKE"
+    "color": "GRAY"
   },
   {
     "anumber": "A0869923",
@@ -107,7 +107,7 @@
     "litter_name": "Sickly",
     "out_date": "08/13/2022",
     "sex": "MALE",
-    "color": "FLAMEPOINT"
+    "color": "ORANGE_FLAMEPOINT"
   },
   {
     "anumber": "A0877114",
@@ -115,7 +115,7 @@
     "litter_name": "Sickly",
     "out_date": "08/13/2022",
     "sex": "MALE",
-    "color": "ORANGE"
+    "color": "DILUTED"
   },
   {
     "anumber": "A0879232",
@@ -131,7 +131,7 @@
     "litter_name": "Hot Sauces",
     "out_date": "09/12/2022",
     "sex": "MALE",
-    "color": "GREY_TABBY"
+    "color": "GRAY_TABBY_TUXEDO"
   },
   {
     "anumber": "A0879234",
@@ -185,7 +185,7 @@
     "litter_name": "Italians",
     "out_date": "05/09/2023",
     "sex": "FEMALE",
-    "color": "TABBY_TUXEDO"
+    "color": "TUXEDO"
   },
   {
     "anumber": "A0893950",
@@ -209,7 +209,7 @@
     "litter_name": "Biscuits and Gravy",
     "out_date": "06/15/2023",
     "sex": "NEUTERED",
-    "color": "DILUTED_TORTOISESHELL"
+    "color": "TORTOISESHELL"
   },
   {
     "anumber": "A0897016",
@@ -225,7 +225,7 @@
     "litter_name": "Spicy Duo",
     "out_date": "07/23/2023",
     "sex": "FEMALE",
-    "color": "GREY_SPOTTED"
+    "color": "GRAY_TUXEDO"
   },
   {
     "anumber": "A0899854",
@@ -233,7 +233,7 @@
     "litter_name": "Spicy Duo",
     "out_date": "07/23/2023",
     "sex": "FEMALE",
-    "color": "GREY_SPOTTED"
+    "color": "GRAY_TABBY_TUXEDO"
   },
   {
     "anumber": "A1292472",
@@ -304,7 +304,7 @@
     "litter_name": "Breakfast",
     "out_date": "01/08/2024",
     "sex": "MALE",
-    "color": "FLAMEPOINT"
+    "color": "GRAY_FLAMEPOINT"
   },
   {
     "anumber": "A1300522",
@@ -367,7 +367,7 @@
     "litter_name": "The Three Sisters",
     "out_date": "06/20/2024",
     "sex": "FEMALE",
-    "color": "GREY_TABBY_TUXEDO"
+    "color": "GRAY_TUXEDO"
   },
   {
     "anumber": "A1309277",
@@ -375,7 +375,7 @@
     "litter_name": "The Three Sisters",
     "out_date": "06/20/2024",
     "sex": "FEMALE",
-    "color": "GREY_TABBY"
+    "color": "BROWN_TABBY"
   },
   {
     "anumber": "A1309278",
@@ -391,7 +391,7 @@
     "litter_name": "Oranges",
     "out_date": "07/22/2024",
     "sex": "MALE",
-    "color": "ORANGE"
+    "color": "ORANGE_TABBY"
   },
   {
     "anumber": "A1309166",
@@ -407,14 +407,14 @@
     "litter_name": "Oranges",
     "out_date": "07/22/2024",
     "sex": "MALE",
-    "color": "ORANGE"
+    "color": "ORANGE_TABBY"
   },
   {
     "anumber": "A1311855",
     "name": "Conedog",
     "out_date": "08/03/2024",
     "sex": "NEUTERED",
-    "color": "GREY"
+    "color": "GRAY"
   },
   {
     "anumber": "A1314226",
@@ -446,7 +446,7 @@
     "litter_name": "Meats",
     "out_date": "10/04/2024",
     "sex": "MALE",
-    "color": "GREY_TABBY"
+    "color": "BROWN_TABBY"
   },
   {
     "anumber": "A1316283",

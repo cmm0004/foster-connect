@@ -27,10 +27,9 @@ fun CoatColor.defaultProfileDrawable(): Int =
         CoatColor.GRAY_FLAMEPOINT -> R.drawable.grey_flamepoint
         CoatColor.ORANGE_FLAMEPOINT -> R.drawable.flamepoint
         CoatColor.BLACK_SPOTTED -> R.drawable.black_white_spotted
-        CoatColor.TAB_TORTIE,
-        CoatColor.BROWN_TABBY,
-        CoatColor.BLOTCHED_TABBY,
-            -> R.drawable.default_kitten_profile
+        CoatColor.TAB_TORTIE -> R.drawable.tab_tortie
+        CoatColor.BROWN_TABBY -> R.drawable.brown_tabby
+        CoatColor.BLOTCHED_TABBY -> R.drawable.blotched_tabby
     }
 
 enum class Sex(val display: String) {
@@ -68,6 +67,22 @@ enum class CoatColor(val display: String) {
     BLOTCHED_TABBY("Blotched Tabby")
 }
 
+enum class CollarColor(val display: String, val colorResId: Int) {
+    RED("Red", R.color.collar_red),
+    BLUE("Blue", R.color.collar_blue),
+    GREEN("Green", R.color.collar_green),
+    YELLOW("Yellow", R.color.collar_yellow),
+    PURPLE("Purple", R.color.collar_purple),
+    BLACK("Black", R.color.collar_black),
+    WHITE("White", R.color.collar_white),
+    ORANGE("Orange", R.color.collar_orange);
+
+    companion object {
+        fun fromName(name: String?): CollarColor? =
+            if (name == null) null else runCatching { valueOf(name) }.getOrNull()
+    }
+}
+
 data class FosterPhoto(
     val id: String,
     val uri: String,
@@ -101,6 +116,7 @@ data class FosterCaseAnimal(
     val nextVaccineDateMillis: Long? = null,
     val administeredTreatments: List<AdministeredTreatment> = emptyList(),
     val messages: List<Message> = emptyList(),
+    val collarColor: CollarColor? = null,
     val weightDeclineWarned: Boolean = false,
     val outDateMillis: Long? = null,
     val isCompleted: Boolean = false

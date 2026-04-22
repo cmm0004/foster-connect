@@ -59,6 +59,7 @@ data class FosterCaseEntity(
     val outDateMillis: Long?,
     val weightDeclineWarned: Boolean,
     val nextVaccineDateMillis: Long? = null,
+    val collarColor: String? = null,
     val notes: String?,
     val createdAtMillis: Long,
     val updatedAtMillis: Long

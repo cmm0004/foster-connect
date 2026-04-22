@@ -38,6 +38,9 @@ interface AnimalDao {
 
     @Query("UPDATE animals SET litterName = :litterName, updatedAtMillis = :updatedAtMillis WHERE id = :animalId")
     suspend fun updateLitterName(animalId: String, litterName: String?, updatedAtMillis: Long)
+
+    @Query("UPDATE animals SET name = :name, updatedAtMillis = :updatedAtMillis WHERE id = :animalId")
+    suspend fun updateName(animalId: String, name: String, updatedAtMillis: Long)
 }
 
 @Dao
@@ -63,6 +66,9 @@ interface FosterCaseDao {
 
     @Update
     suspend fun updateCase(fosterCase: FosterCaseEntity)
+
+    @Query("UPDATE foster_cases SET collarColor = :collarColor, updatedAtMillis = :updatedAtMillis WHERE id = :caseId")
+    suspend fun updateCollarColor(caseId: String, collarColor: String?, updatedAtMillis: Long)
 
     @Query("UPDATE foster_cases SET weightDeclineWarned = :warned, updatedAtMillis = :updatedAtMillis WHERE id = :caseId")
     suspend fun updateWeightDeclineWarned(caseId: String, warned: Boolean, updatedAtMillis: Long)

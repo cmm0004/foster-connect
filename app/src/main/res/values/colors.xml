@@ -20,6 +20,16 @@
     <color name="clinical_crimson">#FFB83A3A</color>
     <color name="clinical_crimson_soft">#FFF8DADA</color>
 
+    <!-- Collar colors -->
+    <color name="collar_red">#FFD32F2F</color>
+    <color name="collar_blue">#FF1976D2</color>
+    <color name="collar_green">#FF388E3C</color>
+    <color name="collar_yellow">#FFFBC02D</color>
+    <color name="collar_purple">#FF7B1FA2</color>
+    <color name="collar_black">#FF212121</color>
+    <color name="collar_white">#FFFFFFFF</color>
+    <color name="collar_orange">#FFF57C00</color>
+
     <!-- Trait colors (existing) -->
     <color name="trait_positive">#C8E6C9</color>
     <color name="trait_negative">#FFCDD2</color>

@@ -22,6 +22,7 @@ import com.example.fosterconnect.data.db.AssignedTraitEntity
 import com.example.fosterconnect.foster.AdministeredTreatment
 import com.example.fosterconnect.foster.Breed
 import com.example.fosterconnect.foster.CoatColor
+import com.example.fosterconnect.foster.CollarColor
 import com.example.fosterconnect.foster.CompletedFoster
 import com.example.fosterconnect.foster.FosterCaseAnimal
 import com.example.fosterconnect.foster.FosterPhoto
@@ -289,6 +290,22 @@ object KittenRepository {
     fun setLitterName(animalId: String, litterName: String?) {
         scope.launch {
             db.animalDao().updateLitterName(animalId, litterName, System.currentTimeMillis())
+        }
+    }
+
+    fun setName(animalId: String, name: String) {
+        scope.launch {
+            db.animalDao().updateName(animalId, name, System.currentTimeMillis())
+        }
+    }
+
+    fun setCollarColor(fosterCaseId: String, collarColor: CollarColor?) {
+        scope.launch {
+            db.fosterCaseDao().updateCollarColor(
+                fosterCaseId,
+                collarColor?.name,
+                System.currentTimeMillis()
+            )
         }
     }
 
@@ -585,6 +602,7 @@ object KittenRepository {
             )
         },
         messages = messages.map { it.toDomain() },
+        collarColor = CollarColor.fromName(fosterCase.collarColor),
         weightDeclineWarned = fosterCase.weightDeclineWarned,
         outDateMillis = fosterCase.outDateMillis,
         isCompleted = fosterCase.status == FosterCaseStatus.COMPLETED.name

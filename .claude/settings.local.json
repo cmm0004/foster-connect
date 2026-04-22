@@ -4,7 +4,8 @@
       "Bash(xargs ls:*)",
       "Bash(./gradlew assembleDebug)",
       "Bash(./gradlew :app:mergeDebugResources)",
-      "Bash(xargs cat *)"
+      "Bash(xargs cat *)",
+      "Bash(grep -E \"\\\\.\\(xml|kt\\)$\")"
     ]
   }
 }
