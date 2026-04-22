@@ -10,6 +10,7 @@
     <color name="clinical_ink_soft">#FF3C4B43</color>
     <color name="clinical_ink_muted">#FF6E7A73</color>
     <color name="clinical_line">#FFE4E8E2</color>
+    <color name="clinical_line_dark">#FFD0D6CE</color>
     <color name="clinical_line_soft">#FFEEF1EC</color>
     <color name="clinical_sage">#FF52735A</color>
     <color name="clinical_sage_soft">#FFDCE6DC</color>

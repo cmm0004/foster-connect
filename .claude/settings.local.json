@@ -3,7 +3,8 @@
     "allow": [
       "Bash(xargs ls:*)",
       "Bash(./gradlew assembleDebug)",
-      "Bash(./gradlew :app:mergeDebugResources)"
+      "Bash(./gradlew :app:mergeDebugResources)",
+      "Bash(xargs cat *)"
     ]
   }
 }

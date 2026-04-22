@@ -10,6 +10,8 @@ import com.example.fosterconnect.data.db.CaseMedicationEntity
 import com.example.fosterconnect.data.db.CasePhotoEntity
 import com.example.fosterconnect.data.db.CaseMessageEntity
 import com.example.fosterconnect.data.db.CaseTreatmentEntity
+import com.example.fosterconnect.data.db.CaseEventEntity
+import com.example.fosterconnect.data.db.CaseStoolEntity
 import com.example.fosterconnect.data.db.CaseWeightEntity
 import com.example.fosterconnect.data.db.CompletedFosterRecordEntity
 import com.example.fosterconnect.data.db.CompletedFosterRecordWithAnimal
@@ -27,6 +29,9 @@ import com.example.fosterconnect.foster.Sex
 import com.example.fosterconnect.foster.TraitCatalog
 import com.example.fosterconnect.foster.TraitDefinition
 import com.example.fosterconnect.history.Message
+import com.example.fosterconnect.history.EventEntry
+import com.example.fosterconnect.history.EventType
+import com.example.fosterconnect.history.StoolEntry
 import com.example.fosterconnect.history.WeightEntry
 import com.example.fosterconnect.medication.Medication
 import java.text.SimpleDateFormat
@@ -183,6 +188,30 @@ object KittenRepository {
         }
     }
 
+    fun addStool(fosterCaseId: String, entry: StoolEntry) {
+        scope.launch {
+            db.fosterCaseDao().insertStool(
+                CaseStoolEntity(
+                    fosterCaseId = fosterCaseId,
+                    dateMillis = entry.dateMillis,
+                    level = entry.level
+                )
+            )
+        }
+    }
+
+    fun addEvent(fosterCaseId: String, entry: EventEntry) {
+        scope.launch {
+            db.fosterCaseDao().insertEvent(
+                CaseEventEntity(
+                    fosterCaseId = fosterCaseId,
+                    dateMillis = entry.dateMillis,
+                    type = entry.type.name
+                )
+            )
+        }
+    }
+
     fun setWeightDeclineWarned(fosterCaseId: String, warned: Boolean) {
         scope.launch {
             db.fosterCaseDao().updateWeightDeclineWarned(
@@ -263,17 +292,36 @@ object KittenRepository {
         }
     }
 
-    fun markTreatmentAdministered(fosterCaseId: String, treatment: AdministeredTreatment) {
+    fun completeTreatmentDose(fosterCaseId: String) {
         scope.launch {
+            db.fosterCaseDao().clearNextVaccineDate(fosterCaseId, System.currentTimeMillis())
+        }
+    }
+
+    suspend fun scheduleNextTreatment(fosterCaseId: String, dateMillis: Long, includePonazuril: Boolean): Boolean {
+        val existing = db.fosterCaseDao().countAdministeredTreatmentsOnDate(fosterCaseId, dateMillis)
+        if (existing > 0) return false
+        db.fosterCaseDao().deleteScheduledTreatments(fosterCaseId, dateMillis)
+        db.fosterCaseDao().updateNextVaccineDate(fosterCaseId, dateMillis, System.currentTimeMillis())
+        val treatments = mutableListOf("FVRCP", "PYRANTEL")
+        if (includePonazuril) treatments.add("PONAZURIL")
+        for (type in treatments) {
             db.fosterCaseDao().insertTreatment(
                 CaseTreatmentEntity(
                     fosterCaseId = fosterCaseId,
-                    treatmentType = treatment.treatmentType,
-                    scheduledDateMillis = treatment.scheduledDateMillis,
-                    administeredDateMillis = treatment.administeredDateMillis,
+                    treatmentType = type,
+                    scheduledDateMillis = dateMillis,
+                    administeredDateMillis = null,
                     notes = null
                 )
             )
+        }
+        return true
+    }
+
+    fun markTreatmentAdministered(treatmentId: Long, doseGiven: String?) {
+        scope.launch {
+            db.fosterCaseDao().markTreatmentAdministered(treatmentId, System.currentTimeMillis(), doseGiven)
         }
     }
 
@@ -284,7 +332,6 @@ object KittenRepository {
         breed: Breed,
         color: CoatColor,
         sex: Sex,
-        isAlteredAtIntake: Boolean,
         intakeDateMillis: Long,
         estimatedBirthdayMillis: Long?,
         initialWeightGrams: Float?,
@@ -317,7 +364,6 @@ object KittenRepository {
                     status = FosterCaseStatus.ACTIVE.name,
                     intakeDateMillis = intakeDateMillis,
                     outDateMillis = null,
-                    isAlteredAtIntake = isAlteredAtIntake,
                     weightDeclineWarned = false,
                     nextVaccineDateMillis = nextVaccineDateMillis,
                     notes = null,
@@ -360,6 +406,8 @@ object KittenRepository {
                 outDateMillis = completedAt,
                 updatedAtMillis = completedAt
             )
+            db.fosterCaseDao().stopAllActiveMedications(fosterCaseId, completedAt)
+            db.fosterCaseDao().deleteAllUnadministeredTreatments(fosterCaseId)
             db.fosterCaseDao().insertCompletedRecord(
                 CompletedFosterRecordEntity(
                     id = "completed-$fosterCaseId",
@@ -381,6 +429,18 @@ object KittenRepository {
                     createdAtMillis = completedAt
                 )
             )
+        }
+    }
+
+    fun reopenCase(fosterCaseId: String) {
+        scope.launch {
+            val now = System.currentTimeMillis()
+            db.fosterCaseDao().reopenCase(
+                caseId = fosterCaseId,
+                status = FosterCaseStatus.ACTIVE.name,
+                updatedAtMillis = now
+            )
+            db.fosterCaseDao().deleteCompletedRecord(fosterCaseId)
         }
     }
 
@@ -434,6 +494,8 @@ object KittenRepository {
             if (externalId.isEmpty() || name.isEmpty() || outDate.isEmpty()) continue
 
             val completedAt = runCatching { dateFormat.parse(outDate)?.time }.getOrNull() ?: continue
+            val sex = record.optString("sex").trim().takeIf { it.isNotEmpty() } ?: Sex.SPAYED.name
+            val color = record.optString("color").trim().takeIf { it.isNotEmpty() } ?: CoatColor.BLACK.name
             val animalId = "animal-$externalId"
             val caseId = "case-$externalId"
             db.animalDao().insertAnimal(
@@ -443,8 +505,8 @@ object KittenRepository {
                     name = name,
                     species = AnimalSpecies.CAT.name,
                     breed = Breed.DOMESTIC_SHORT_HAIR.name,
-                    color = CoatColor.BLACK.name,
-                    sex = Sex.FEMALE.name,
+                    color = color,
+                    sex = sex,
                     litterName = litterName,
                     estimatedBirthdayMillis = null,
                     createdAtMillis = completedAt,
@@ -458,7 +520,6 @@ object KittenRepository {
                     status = FosterCaseStatus.COMPLETED.name,
                     intakeDateMillis = completedAt - 14L * MILLIS_PER_DAY,
                     outDateMillis = completedAt,
-                    isAlteredAtIntake = true,
                     weightDeclineWarned = false,
                     notes = null,
                     createdAtMillis = completedAt - 14L * MILLIS_PER_DAY,
@@ -493,11 +554,15 @@ object KittenRepository {
         breed = safeBreed(animal.breed),
         color = safeColor(animal.color),
         sex = safeSex(animal.sex),
-        isAlteredAtIntake = fosterCase.isAlteredAtIntake,
         intakeDateMillis = fosterCase.intakeDateMillis,
         estimatedBirthdayMillis = animal.estimatedBirthdayMillis,
         nextVaccineDateMillis = fosterCase.nextVaccineDateMillis,
         weightEntries = weights.sortedBy { it.dateMillis }.map { WeightEntry(it.dateMillis, it.weightGrams) },
+        stoolEntries = stools.sortedBy { it.dateMillis }.map { StoolEntry(it.dateMillis, it.level) },
+        eventEntries = events.sortedBy { it.dateMillis }.mapNotNull { e ->
+            val type = runCatching { EventType.valueOf(e.type) }.getOrNull() ?: return@mapNotNull null
+            EventEntry(e.dateMillis, type)
+        },
         medications = medications.sortedByDescending { it.startDateMillis }.map {
             Medication(
                 id = it.id,
@@ -512,9 +577,11 @@ object KittenRepository {
         },
         administeredTreatments = treatments.map {
             AdministeredTreatment(
+                id = it.id,
                 treatmentType = it.treatmentType,
                 scheduledDateMillis = it.scheduledDateMillis,
-                administeredDateMillis = it.administeredDateMillis
+                administeredDateMillis = it.administeredDateMillis,
+                doseGiven = it.doseGiven
             )
         },
         messages = messages.map { it.toDomain() },

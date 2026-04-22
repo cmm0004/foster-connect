@@ -2,519 +2,695 @@
   {
     "anumber": "A0743175",
     "name": "Potato",
-    "out_date": "01/24/2022"
+    "out_date": "01/24/2022",
+    "sex": "SPAYED",
+    "color": "CALICO"
   },
   {
     "anumber": "A0865179",
     "name": "Nose Cat",
     "litter_name": "Nosers",
-    "out_date": "02/28/2022"
+    "out_date": "02/28/2022",
+    "sex": "FEMALE",
+    "color": "SPOTTED"
   },
   {
     "anumber": "A0865180",
     "name": "Furtive Pigmy",
     "litter_name": "Nosers",
-    "out_date": "02/28/2022"
+    "out_date": "02/28/2022",
+    "sex": "FEMALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A0865184",
     "name": "Adventure Cat",
     "litter_name": "Nosers",
-    "out_date": "02/28/2022"
+    "out_date": "02/28/2022",
+    "sex": "FEMALE",
+    "color": "TUXEDO"
   },
   {
     "anumber": "A0850130",
     "name": "Beast Titan",
-    "out_date": "04/09/2022"
+    "out_date": "04/09/2022",
+    "sex": "SPAYED",
+    "color": "ORANGE_TABBY"
   },
   {
     "anumber": "A0869545",
     "name": "Asmodean",
     "litter_name": "The Darkspawn",
-    "out_date": "05/03/2022"
+    "out_date": "05/03/2022",
+    "sex": "MALE",
+    "color": "ORANGE"
   },
   {
     "anumber": "A0869546",
     "name": "Myrddraal",
     "litter_name": "The Darkspawn",
-    "out_date": "05/03/2022"
+    "out_date": "05/03/2022",
+    "sex": "FEMALE",
+    "color": "TORTOISESHELL"
   },
   {
     "anumber": "A0869547",
     "name": "Trolloc",
     "litter_name": "The Darkspawn",
-    "out_date": "05/03/2022"
+    "out_date": "05/03/2022",
+    "sex": "MALE",
+    "color": "GRAY_TABBY"
   },
   {
     "anumber": "A0869544",
     "name": "Draghkar",
     "litter_name": "The Darkspawn",
-    "out_date": "06/01/2022"
+    "out_date": "06/01/2022",
+    "sex": "MALE",
+    "color": "TUXEDO"
   },
   {
     "anumber": "A0869918",
     "name": "Squid",
     "litter_name": "Questing Beasts",
-    "out_date": "06/22/2022"
+    "out_date": "06/22/2022",
+    "sex": "FEMALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A0869919",
     "name": "Donkey Kong",
     "litter_name": "Questing Beasts",
-    "out_date": "06/22/2022"
+    "out_date": "06/22/2022",
+    "sex": "MALE",
+    "color": "SMOKE"
   },
   {
     "anumber": "A0869923",
     "name": "Questing Beast",
     "litter_name": "Questing Beasts",
-    "out_date": "06/22/2022"
+    "out_date": "06/22/2022",
+    "sex": "MALE",
+    "color": "TUXEDO"
   },
   {
     "anumber": "A0877112",
     "name": "Parsnip",
     "litter_name": "Sickly",
-    "out_date": "08/13/2022"
+    "out_date": "08/13/2022",
+    "sex": "FEMALE",
+    "color": "WHITE"
   },
   {
     "anumber": "A0877113",
     "name": "Marshmallow",
     "litter_name": "Sickly",
-    "out_date": "08/13/2022"
+    "out_date": "08/13/2022",
+    "sex": "MALE",
+    "color": "FLAMEPOINT"
   },
   {
     "anumber": "A0877114",
     "name": "Trumpet",
     "litter_name": "Sickly",
-    "out_date": "08/13/2022"
+    "out_date": "08/13/2022",
+    "sex": "MALE",
+    "color": "ORANGE"
   },
   {
     "anumber": "A0879232",
     "name": "Texas Pete",
     "litter_name": "Hot Sauces",
-    "out_date": "09/12/2022"
+    "out_date": "09/12/2022",
+    "sex": "FEMALE",
+    "color": "BROWN_TABBY"
   },
   {
     "anumber": "A0879233",
     "name": "Sriracha",
     "litter_name": "Hot Sauces",
-    "out_date": "09/12/2022"
+    "out_date": "09/12/2022",
+    "sex": "MALE",
+    "color": "GREY_TABBY"
   },
   {
     "anumber": "A0879234",
     "name": "Cholula",
     "litter_name": "Hot Sauces",
-    "out_date": "09/12/2022"
+    "out_date": "09/12/2022",
+    "sex": "FEMALE",
+    "color": "BROWN_TABBY"
   },
   {
     "anumber": "A0881528",
     "name": "Prongles",
-    "out_date": "10/26/2022"
+    "out_date": "10/26/2022",
+    "sex": "FEMALE",
+    "color": "TORTOISESHELL"
   },
   {
     "anumber": "A0885198",
     "name": "Jimmy Dean",
     "litter_name": "Sausages",
-    "out_date": "12/06/2022"
+    "out_date": "12/06/2022",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A0885199",
     "name": "Chorizo",
     "litter_name": "Sausages",
-    "out_date": "12/06/2022"
+    "out_date": "12/06/2022",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A0885200",
     "name": "Bratwurst",
     "litter_name": "Sausages",
-    "out_date": "12/06/2022"
+    "out_date": "12/06/2022",
+    "sex": "FEMALE",
+    "color": "TORTOISESHELL"
   },
   {
     "anumber": "A0887930",
     "name": "Fatdog",
-    "out_date": "03/24/2023"
+    "out_date": "03/24/2023",
+    "sex": "NEUTERED",
+    "color": "BLACK"
   },
   {
     "anumber": "A0893949",
     "name": "Cannoli",
     "litter_name": "Italians",
-    "out_date": "05/09/2023"
+    "out_date": "05/09/2023",
+    "sex": "FEMALE",
+    "color": "TABBY_TUXEDO"
   },
   {
     "anumber": "A0893950",
     "name": "Stromboli",
     "litter_name": "Italians",
-    "out_date": "05/09/2023"
+    "out_date": "05/09/2023",
+    "sex": "MALE",
+    "color": "ORANGE_TABBY"
   },
   {
     "anumber": "A0893951",
     "name": "Lasagna",
     "litter_name": "Italians",
-    "out_date": "05/09/2023"
+    "out_date": "05/09/2023",
+    "sex": "MALE",
+    "color": "ORANGE_TABBY"
   },
   {
     "anumber": "A0897015",
     "name": "Gravy",
     "litter_name": "Biscuits and Gravy",
-    "out_date": "06/15/2023"
+    "out_date": "06/15/2023",
+    "sex": "NEUTERED",
+    "color": "DILUTED_TORTOISESHELL"
   },
   {
     "anumber": "A0897016",
     "name": "Biscuits",
     "litter_name": "Biscuits and Gravy",
-    "out_date": "06/15/2023"
+    "out_date": "06/15/2023",
+    "sex": "FEMALE",
+    "color": "CALICO"
   },
   {
     "anumber": "A0899853",
     "name": "Hissler",
     "litter_name": "Spicy Duo",
-    "out_date": "07/23/2023"
+    "out_date": "07/23/2023",
+    "sex": "FEMALE",
+    "color": "GREY_SPOTTED"
   },
   {
     "anumber": "A0899854",
     "name": "Floofsoulini",
     "litter_name": "Spicy Duo",
-    "out_date": "07/23/2023"
+    "out_date": "07/23/2023",
+    "sex": "FEMALE",
+    "color": "GREY_SPOTTED"
   },
   {
     "anumber": "A1292472",
     "name": "Beefsteak",
     "litter_name": "Tomatoes",
-    "out_date": "08/28/2023"
+    "out_date": "08/28/2023",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1292473",
     "name": "Betterboy",
     "litter_name": "Tomatoes",
-    "out_date": "08/28/2023"
+    "out_date": "08/28/2023",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1292474",
     "name": "Earlygirl",
     "litter_name": "Tomatoes",
-    "out_date": "08/28/2023"
+    "out_date": "08/28/2023",
+    "sex": "FEMALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1295037",
     "name": "Pissdog",
-    "out_date": "10/09/2023"
+    "out_date": "10/09/2023",
+    "sex": "NEUTERED",
+    "color": "TUXEDO"
   },
   {
     "anumber": "A1296831",
     "name": "Chicken McNugget",
     "litter_name": "The Meal Deals",
-    "out_date": "10/27/2023"
+    "out_date": "10/27/2023",
+    "sex": "FEMALE",
+    "color": "CHOC_FLAMEPOINT"
   },
   {
     "anumber": "A1296832",
     "name": "Baconator",
     "litter_name": "The Meal Deals",
-    "out_date": "10/27/2023"
+    "out_date": "10/27/2023",
+    "sex": "FEMALE",
+    "color": "GRAY"
   },
   {
     "anumber": "A1296833",
     "name": "Crunch Wrap Supreme",
     "litter_name": "The Meal Deals",
-    "out_date": "10/27/2023"
+    "out_date": "10/27/2023",
+    "sex": "MALE",
+    "color": "GRAY_FLAMEPOINT"
   },
   {
     "anumber": "A1296834",
     "name": "Whopper",
     "litter_name": "The Meal Deals",
-    "out_date": "10/27/2023"
+    "out_date": "10/27/2023",
+    "sex": "MALE",
+    "color": "GRAY_TABBY"
   },
   {
     "anumber": "A1300520",
     "name": "Pancakes",
     "litter_name": "Breakfast",
-    "out_date": "01/08/2024"
+    "out_date": "01/08/2024",
+    "sex": "MALE",
+    "color": "FLAMEPOINT"
   },
   {
     "anumber": "A1300522",
     "name": "Waffles",
     "litter_name": "Breakfast",
-    "out_date": "01/08/2024"
+    "out_date": "01/08/2024",
+    "sex": "FEMALE",
+    "color": "CHOC_FLAMEPOINT"
   },
   {
     "anumber": "A1302438",
     "name": "Diakon",
     "litter_name": "Puppies",
-    "out_date": "02/12/2024"
+    "out_date": "02/12/2024",
+    "sex": "MALE",
+    "color": "DOG"
   },
   {
     "anumber": "A1302439",
     "name": "Ginger",
     "litter_name": "Puppies",
-    "out_date": "02/12/2024"
+    "out_date": "02/12/2024",
+    "sex": "FEMALE",
+    "color": "DOG"
   },
   {
     "anumber": "A1302443",
     "name": "Wasabi",
     "litter_name": "Puppies",
-    "out_date": "02/16/2024"
+    "out_date": "02/16/2024",
+    "sex": "MALE",
+    "color": "DOG"
   },
   {
     "anumber": "A1305064",
     "name": "Snozler",
-    "out_date": "03/23/2024"
+    "out_date": "03/23/2024",
+    "sex": "SPAYED",
+    "color": "BROWN_TABBY"
   },
   {
     "anumber": "A1306273",
     "name": "Eikther",
     "litter_name": "Valheim",
-    "out_date": "04/27/2024"
+    "out_date": "04/27/2024",
+    "sex": "FEMALE",
+    "color": "GRAY_TUXEDO"
   },
   {
     "anumber": "A1306276",
     "name": "Greyling",
     "litter_name": "Valheim",
-    "out_date": "04/27/2024"
+    "out_date": "04/27/2024",
+    "sex": "FEMALE",
+    "color": "GRAY"
   },
   {
     "anumber": "A1309276",
     "name": "Sweet Corn",
     "litter_name": "The Three Sisters",
-    "out_date": "06/20/2024"
+    "out_date": "06/20/2024",
+    "sex": "FEMALE",
+    "color": "GREY_TABBY_TUXEDO"
   },
   {
     "anumber": "A1309277",
     "name": "Zucchini",
     "litter_name": "The Three Sisters",
-    "out_date": "06/20/2024"
+    "out_date": "06/20/2024",
+    "sex": "FEMALE",
+    "color": "GREY_TABBY"
   },
   {
     "anumber": "A1309278",
     "name": "Green Bean",
     "litter_name": "The Three Sisters",
-    "out_date": "06/20/2024"
+    "out_date": "06/20/2024",
+    "sex": "FEMALE",
+    "color": "TUXEDO"
   },
   {
     "anumber": "A1309164",
     "name": "Big Orange",
     "litter_name": "Oranges",
-    "out_date": "07/22/2024"
+    "out_date": "07/22/2024",
+    "sex": "MALE",
+    "color": "ORANGE"
   },
   {
     "anumber": "A1309166",
     "name": "Chocolate Orange",
     "litter_name": "Oranges",
-    "out_date": "07/22/2024"
+    "out_date": "07/22/2024",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1309168",
     "name": "Little Orange",
     "litter_name": "Oranges",
-    "out_date": "07/22/2024"
+    "out_date": "07/22/2024",
+    "sex": "MALE",
+    "color": "ORANGE"
   },
   {
     "anumber": "A1311855",
     "name": "Conedog",
-    "out_date": "08/03/2024"
+    "out_date": "08/03/2024",
+    "sex": "NEUTERED",
+    "color": "GREY"
   },
   {
     "anumber": "A1314226",
     "name": "Lambchop",
     "litter_name": "Meats",
-    "out_date": "09/19/2024"
+    "out_date": "09/19/2024",
+    "sex": "FEMALE",
+    "color": "BROWN_TABBY"
   },
   {
     "anumber": "A1314229",
     "name": "Hamhock",
     "litter_name": "Meats",
-    "out_date": "09/19/2024"
+    "out_date": "09/19/2024",
+    "sex": "FEMALE",
+    "color": "BLOTCHED_TABBY"
   },
   {
     "anumber": "A1314230",
     "name": "Angus",
     "litter_name": "Meats",
-    "out_date": "09/19/2024"
+    "out_date": "09/19/2024",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1314228",
     "name": "Drumstick",
     "litter_name": "Meats",
-    "out_date": "10/04/2024"
+    "out_date": "10/04/2024",
+    "sex": "MALE",
+    "color": "GREY_TABBY"
   },
   {
     "anumber": "A1316283",
     "name": "Spaghetti",
     "litter_name": "Pasta",
-    "out_date": "10/20/2024"
+    "out_date": "10/20/2024",
+    "sex": "MALE",
+    "color": "DILUTED"
   },
   {
     "anumber": "A1316284",
     "name": "Meatball",
     "litter_name": "Pasta",
-    "out_date": "10/20/2024"
+    "out_date": "10/20/2024",
+    "sex": "MALE",
+    "color": "DILUTED"
   },
   {
     "anumber": "A1316286",
     "name": "Marinara",
     "litter_name": "Pasta",
-    "out_date": "10/20/2024"
+    "out_date": "10/20/2024",
+    "sex": "FEMALE",
+    "color": "DILUTED"
   },
   {
     "anumber": "A1319094",
     "name": "Clam",
     "litter_name": "Shellfish",
-    "out_date": "10/28/2024"
+    "out_date": "10/28/2024",
+    "sex": "SPAYED",
+    "color": "WHITE"
   },
   {
     "anumber": "A1319095",
     "name": "Scallop",
     "litter_name": "Shellfish",
-    "out_date": "10/28/2024"
+    "out_date": "10/28/2024",
+    "sex": "NEUTERED",
+    "color": "FLAMEPOINT"
   },
   {
     "anumber": "A1319093",
     "name": "Oyster",
     "litter_name": "Shellfish",
-    "out_date": "11/25/2024"
+    "out_date": "11/25/2024",
+    "sex": "FEMALE",
+    "color": "GRAY"
   },
   {
     "anumber": "A1321444",
     "name": "Robusta",
     "litter_name": "Coffee Beans",
-    "out_date": "01/12/2025"
+    "out_date": "01/12/2025",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1321442",
     "name": "Arabica",
     "litter_name": "Coffee Beans",
-    "out_date": "01/13/2025"
+    "out_date": "01/13/2025",
+    "sex": "FEMALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1327749",
     "name": "Screamtail",
-    "out_date": "05/09/2025"
+    "out_date": "05/09/2025",
+    "sex": "SPAYED",
+    "color": "GRAY_TABBY"
   },
   {
     "anumber": "A1329406",
     "name": "Naan",
     "litter_name": "Flatbreads",
-    "out_date": "06/15/2025"
+    "out_date": "06/15/2025",
+    "sex": "FEMALE",
+    "color": "GRAY_TABBY"
   },
   {
     "anumber": "A1329407",
     "name": "Roti",
     "litter_name": "Flatbreads",
-    "out_date": "06/15/2025"
+    "out_date": "06/15/2025",
+    "sex": "FEMALE",
+    "color": "GRAY_TUXEDO"
   },
   {
     "anumber": "A1330888",
     "name": "Ketchup",
     "litter_name": "Condiments",
-    "out_date": "07/26/2025"
+    "out_date": "07/26/2025",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1330889",
     "name": "Mustard",
     "litter_name": "Condiments",
-    "out_date": "07/26/2025"
+    "out_date": "07/26/2025",
+    "sex": "FEMALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1330890",
     "name": "Mayonaisse",
     "litter_name": "Condiments",
-    "out_date": "07/26/2025"
+    "out_date": "07/26/2025",
+    "sex": "FEMALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1334570",
     "name": "Margarita",
     "litter_name": "Cocktails",
-    "out_date": "09/07/2025"
+    "out_date": "09/07/2025",
+    "sex": "FEMALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1334573",
     "name": "Martini",
     "litter_name": "Cocktails",
-    "out_date": "09/07/2025"
+    "out_date": "09/07/2025",
+    "sex": "MALE",
+    "color": "TUXEDO"
   },
   {
     "anumber": "A1334571",
     "name": "Mimosa",
     "litter_name": "Cocktails",
-    "out_date": "09/17/2025"
+    "out_date": "09/17/2025",
+    "sex": "FEMALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1334572",
     "name": "Mojito",
     "litter_name": "Cocktails",
-    "out_date": "09/19/2025"
+    "out_date": "09/19/2025",
+    "sex": "FEMALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1338246",
     "name": "Ghost Pepper",
-    "litter_name": "Ultrahots",
-    "out_date": "11/04/2025"
+    "litter_name": "Ayras",
+    "out_date": "11/04/2025",
+    "sex": "FEMALE",
+    "color": "CALICO"
   },
   {
     "anumber": "A1338247",
     "name": "Carolina Reaper",
-    "litter_name": "Ultrahots",
-    "out_date": "11/04/2025"
+    "litter_name": "Ayras",
+    "out_date": "11/04/2025",
+    "sex": "FEMALE",
+    "color": "GREY_TABBY"
   },
   {
     "anumber": "A1338248",
     "name": "Trinidad Scorpion",
-    "litter_name": "Ultrahots",
-    "out_date": "11/04/2025"
+    "litter_name": "Ayras",
+    "out_date": "11/04/2025",
+    "sex": "FEMALE",
+    "color": "TAB_TORTIE"
   },
   {
     "anumber": "A1341233",
     "name": "Jumbo Shrimp",
     "litter_name": "Small Fish",
-    "out_date": "12/11/2025"
+    "out_date": "12/11/2025",
+    "sex": "MALE",
+    "color": "GREY"
   },
   {
     "anumber": "A1341234",
     "name": "Shrimp",
     "litter_name": "Small Fish",
-    "out_date": "12/11/2025"
+    "out_date": "12/11/2025",
+    "sex": "MALE",
+    "color": "GREY"
   },
   {
     "anumber": "A1341235",
     "name": "Sardine",
     "litter_name": "Small Fish",
-    "out_date": "12/11/2025"
+    "out_date": "12/11/2025",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1341236",
     "name": "Anchovy",
     "litter_name": "Small Fish",
-    "out_date": "12/12/2025"
+    "out_date": "12/12/2025",
+    "sex": "MALE",
+    "color": "BLACK"
   },
   {
     "anumber": "A1343474",
     "name": "Cheddar",
     "litter_name": "Duo",
-    "out_date": "01/09/2026"
+    "out_date": "01/09/2026",
+    "sex": "NEUTERED",
+    "color": "ORANGE_TABBY"
   },
   {
     "anumber": "A1343475",
     "name": "Bandit",
     "litter_name": "Duo",
-    "out_date": "01/09/2026"
+    "out_date": "01/09/2026",
+    "sex": "NEUTERED",
+    "color": "GRAY_TABBY"
   },
   {
     "anumber": "A1344624",
     "name": "Joel",
     "litter_name": "Fungus Gnats",
-    "out_date": "03/20/2026"
+    "out_date": "03/20/2026",
+    "sex": "MALE",
+    "color": "GRAY_TABBY"
   },
   {
     "anumber": "A1344625",
     "name": "Ellie",
     "litter_name": "Fungus Gnats",
-    "out_date": "03/20/2026"
+    "out_date": "03/20/2026",
+    "sex": "FEMALE",
+    "color": "TORTOISESHELL"
   },
   {
     "anumber": "A1345294",
     "name": "Squirt",
-    "out_date": "03/26/2026"
+    "out_date": "03/26/2026",
+    "sex": "SPAYED",
+    "color": "DILUTED"
   },
   {
     "anumber": "A1347542",
     "name": "Squiggleworm",
-    "out_date": "04/10/2026"
+    "out_date": "04/10/2026",
+    "sex": "NEUTERED",
+    "color": "WHITE"
   }
 ]

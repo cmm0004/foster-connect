@@ -10,14 +10,16 @@ import androidx.room.RoomDatabase
         AnimalEntity::class,
         FosterCaseEntity::class,
         CaseWeightEntity::class,
+        CaseStoolEntity::class,
         CaseMedicationEntity::class,
         CasePhotoEntity::class,
         CaseTreatmentEntity::class,
+        CaseEventEntity::class,
         CaseMessageEntity::class,
         CompletedFosterRecordEntity::class,
         AssignedTraitEntity::class
     ],
-    version = 8,
+    version = 13,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

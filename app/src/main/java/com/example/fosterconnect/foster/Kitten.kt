@@ -2,27 +2,42 @@ package com.example.fosterconnect.foster
 
 import androidx.annotation.DrawableRes
 import com.example.fosterconnect.R
+import com.example.fosterconnect.history.EventEntry
 import com.example.fosterconnect.history.Message
+import com.example.fosterconnect.history.StoolEntry
 import com.example.fosterconnect.history.WeightEntry
 import com.example.fosterconnect.medication.Medication
 
 @DrawableRes
-fun CoatColor.defaultProfileDrawable(): Int = when (this) {
-    CoatColor.BLACK -> R.drawable.black
-    CoatColor.WHITE -> R.drawable.white
-    CoatColor.GRAY_TABBY -> R.drawable.greytabby
-    CoatColor.DILUTED -> R.drawable.dilutedtabby
-    CoatColor.CALICO -> R.drawable.calico
-    CoatColor.TORTOISESHELL -> R.drawable.tortoiseshell
-    CoatColor.TUXEDO -> R.drawable.tuxedo
-    CoatColor.FLAMEPOINT -> R.drawable.chocolateflamepoint
-    CoatColor.ORANGE,
-    CoatColor.ORANGE_TABBY -> R.drawable.default_kitten_profile
-}
+fun CoatColor.defaultProfileDrawable(): Int =
+    when (this) {
+        CoatColor.BLACK -> R.drawable.black
+        CoatColor.WHITE -> R.drawable.white
+        CoatColor.GRAY_TABBY -> R.drawable.all_grey_tabby
+        CoatColor.DILUTED -> R.drawable.dilutedtabby
+        CoatColor.CALICO -> R.drawable.calico
+        CoatColor.TORTOISESHELL -> R.drawable.tortoiseshell
+        CoatColor.TUXEDO -> R.drawable.tuxedo
+        CoatColor.CHOC_FLAMEPOINT -> R.drawable.chocolateflamepoint
+        CoatColor.ORANGE_TABBY -> R.drawable.default_kitten_profile
+        CoatColor.GRAY -> R.drawable.grey_kitten
+        CoatColor.GRAY_TUXEDO-> R.drawable.grey_with_socks
+        CoatColor.GRAY_TABBY_TUXEDO -> R.drawable.greytabby
+        CoatColor.ORANGE_SPOTTED -> R.drawable.orange_white_spot
+        CoatColor.GRAY_FLAMEPOINT -> R.drawable.grey_flamepoint
+        CoatColor.ORANGE_FLAMEPOINT -> R.drawable.flamepoint
+        CoatColor.BLACK_SPOTTED -> R.drawable.black_white_spotted
+        CoatColor.TAB_TORTIE,
+        CoatColor.BROWN_TABBY,
+        CoatColor.BLOTCHED_TABBY,
+            -> R.drawable.default_kitten_profile
+    }
 
 enum class Sex(val display: String) {
     MALE("Male"),
-    FEMALE("Female")
+    FEMALE("Female"),
+    NEUTERED("Neutered"),
+    SPAYED("Spayed")
 }
 
 enum class Breed(val display: String) {
@@ -34,14 +49,23 @@ enum class Breed(val display: String) {
 enum class CoatColor(val display: String) {
     BLACK("Black"),
     WHITE("White"),
-    ORANGE("Orange"),
+    GRAY("Gray"),
     GRAY_TABBY("Gray Tabby"),
     DILUTED("Diluted"),
     CALICO("Calico"),
     TORTOISESHELL("Tortoiseshell"),
+    TAB_TORTIE("Tab Tortie"),
     ORANGE_TABBY("Orange Tabby"),
+    BROWN_TABBY("Brown Tabby"),
     TUXEDO("Tuxedo"),
-    FLAMEPOINT("Flamepoint")
+    GRAY_TUXEDO("Grey Tuxedo"),
+    GRAY_TABBY_TUXEDO("Grey Tabby Tuxedo"),
+    CHOC_FLAMEPOINT("Chocolate Flamepoint"),
+    GRAY_FLAMEPOINT("Gray Flamepoint"),
+    ORANGE_FLAMEPOINT("Flamepoint"),
+    BLACK_SPOTTED("Black Spotted"),
+    ORANGE_SPOTTED("Orange Spotted"),
+    BLOTCHED_TABBY("Blotched Tabby")
 }
 
 data class FosterPhoto(
@@ -51,9 +75,11 @@ data class FosterPhoto(
 )
 
 data class AdministeredTreatment(
+    val id: Long = 0,
     val treatmentType: String,
     val scheduledDateMillis: Long,
-    val administeredDateMillis: Long
+    val administeredDateMillis: Long? = null,
+    val doseGiven: String? = null
 )
 
 data class FosterCaseAnimal(
@@ -65,10 +91,11 @@ data class FosterCaseAnimal(
     val breed: Breed,
     val color: CoatColor,
     val sex: Sex,
-    val isAlteredAtIntake: Boolean,
     val intakeDateMillis: Long,
     val estimatedBirthdayMillis: Long? = null,
     val weightEntries: List<WeightEntry> = emptyList(),
+    val stoolEntries: List<StoolEntry> = emptyList(),
+    val eventEntries: List<EventEntry> = emptyList(),
     val medications: List<Medication> = emptyList(),
     val photos: List<FosterPhoto> = emptyList(),
     val nextVaccineDateMillis: Long? = null,

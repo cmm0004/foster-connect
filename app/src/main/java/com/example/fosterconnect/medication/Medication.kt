@@ -7,5 +7,5 @@ data class Medication(
     val startDateMillis: Long,
     val endDateMillis: Long? = null
 ) {
-    val isActive: Boolean get() = endDateMillis == null
+    val isActive: Boolean get() = endDateMillis == null || endDateMillis > System.currentTimeMillis()
 }

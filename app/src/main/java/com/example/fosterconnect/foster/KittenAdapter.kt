@@ -32,9 +32,8 @@ class KittenAdapter(
         holder.binding.textExternalId.text = if (fosterCase.externalId.isNotEmpty()) "#${fosterCase.externalId}" else ""
         holder.binding.textExternalId.visibility = if (fosterCase.externalId.isNotEmpty()) View.VISIBLE else View.GONE
 
-        // Breed · Sex · Altered status
-        val alteredStatus = if (fosterCase.isAlteredAtIntake) "Altered" else "Intact"
-        holder.binding.textBreedColor.text = "${fosterCase.color.display} · ${fosterCase.sex.display} · $alteredStatus"
+        val sexLabel = fosterCase.sex.display
+        holder.binding.textBreedColor.text = "${fosterCase.color.display} · $sexLabel"
 
         // Weight stat
         val latest = fosterCase.weightEntries.lastOrNull()
@@ -68,9 +67,6 @@ class KittenAdapter(
         if (hasOverdue) {
             addChip(holder, ctx.getString(R.string.overdue_count_format, overdueCount),
                 R.color.clinical_crimson, R.color.clinical_crimson_soft)
-        } else {
-            addChip(holder, ctx.getString(R.string.on_schedule),
-                R.color.clinical_sage, R.color.clinical_sage_tint)
         }
         // Check if weight is below expected
         if (latest != null && ageWeeks != null) {

@@ -2,15 +2,56 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/clinical_bg"
+    tools:context=".foster.PreviousFostersFragment">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_previous_fosters"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp"
-        android:clipToPadding="false"
-        tools:listitem="@layout/item_kitten" />
+        android:orientation="vertical">
+
+        <!-- Section header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:id="@+id/text_previous_count"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.08"
+                android:textColor="@color/clinical_ink_muted"
+                android:textSize="10sp"
+                tools:text="PREVIOUS · 03" />
+
+            <TextView
+                android:id="@+id/text_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:textColor="@color/clinical_ink_muted"
+                android:textSize="10sp"
+                tools:text="04 / 17 / 26" />
+        </LinearLayout>
+
+        <!-- Previous fosters list -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_previous_fosters"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="96dp"
+            tools:listitem="@layout/item_previous_foster" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/text_empty_previous"

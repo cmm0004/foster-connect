@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Use the same clinical theme for night mode for now -->
-    <style name="Base.Theme.FosterConnect" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.FosterConnect" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/clinical_sage</item>
         <item name="colorPrimaryContainer">@color/clinical_sage_soft</item>
         <item name="colorOnPrimary">@color/white</item>

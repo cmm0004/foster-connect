@@ -67,6 +67,12 @@ interface FosterCaseDao {
     @Query("UPDATE foster_cases SET weightDeclineWarned = :warned, updatedAtMillis = :updatedAtMillis WHERE id = :caseId")
     suspend fun updateWeightDeclineWarned(caseId: String, warned: Boolean, updatedAtMillis: Long)
 
+    @Query("UPDATE foster_cases SET nextVaccineDateMillis = :dateMillis, updatedAtMillis = :updatedAtMillis WHERE id = :caseId")
+    suspend fun updateNextVaccineDate(caseId: String, dateMillis: Long, updatedAtMillis: Long)
+
+    @Query("UPDATE foster_cases SET nextVaccineDateMillis = NULL, updatedAtMillis = :updatedAtMillis WHERE id = :caseId")
+    suspend fun clearNextVaccineDate(caseId: String, updatedAtMillis: Long)
+
     @Query(
         "UPDATE foster_cases " +
             "SET status = :status, outDateMillis = :outDateMillis, updatedAtMillis = :updatedAtMillis " +
@@ -83,6 +89,9 @@ interface FosterCaseDao {
     suspend fun insertWeight(weight: CaseWeightEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertStool(stool: CaseStoolEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMedication(medication: CaseMedicationEntity)
 
     @Query(
@@ -90,6 +99,16 @@ interface FosterCaseDao {
             "SET endDateMillis = :endDateMillis, isActive = 0 WHERE id = :medicationId"
     )
     suspend fun stopMedication(medicationId: String, endDateMillis: Long)
+
+    @Query(
+        "UPDATE case_medications " +
+            "SET endDateMillis = :endDateMillis, isActive = 0 " +
+            "WHERE fosterCaseId = :caseId AND isActive = 1"
+    )
+    suspend fun stopAllActiveMedications(caseId: String, endDateMillis: Long)
+
+    @Query("DELETE FROM case_treatments WHERE fosterCaseId = :caseId AND administeredDateMillis IS NULL")
+    suspend fun deleteAllUnadministeredTreatments(caseId: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPhoto(photo: CasePhotoEntity)
@@ -104,7 +123,19 @@ interface FosterCaseDao {
     suspend fun photoCountFor(caseId: String): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertEvent(event: CaseEventEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTreatment(treatment: CaseTreatmentEntity)
+
+    @Query("SELECT COUNT(*) FROM case_treatments WHERE fosterCaseId = :caseId AND scheduledDateMillis = :scheduledDateMillis AND administeredDateMillis IS NOT NULL")
+    suspend fun countAdministeredTreatmentsOnDate(caseId: String, scheduledDateMillis: Long): Int
+
+    @Query("DELETE FROM case_treatments WHERE fosterCaseId = :caseId AND scheduledDateMillis = :scheduledDateMillis AND administeredDateMillis IS NULL")
+    suspend fun deleteScheduledTreatments(caseId: String, scheduledDateMillis: Long)
+
+    @Query("UPDATE case_treatments SET administeredDateMillis = :administeredDateMillis, doseGiven = :doseGiven WHERE id = :treatmentId")
+    suspend fun markTreatmentAdministered(treatmentId: Long, administeredDateMillis: Long, doseGiven: String?)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMessage(message: CaseMessageEntity)
@@ -120,6 +151,16 @@ interface FosterCaseDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCompletedRecord(record: CompletedFosterRecordEntity)
+
+    @Query("DELETE FROM completed_foster_records WHERE fosterCaseId = :caseId")
+    suspend fun deleteCompletedRecord(caseId: String)
+
+    @Query(
+        "UPDATE foster_cases " +
+            "SET status = :status, outDateMillis = NULL, updatedAtMillis = :updatedAtMillis " +
+            "WHERE id = :caseId"
+    )
+    suspend fun reopenCase(caseId: String, status: String, updatedAtMillis: Long)
 
     @Transaction
     @Query("SELECT * FROM completed_foster_records ORDER BY outDateMillis DESC")

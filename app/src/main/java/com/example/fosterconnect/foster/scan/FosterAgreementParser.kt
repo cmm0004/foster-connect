@@ -40,7 +40,6 @@ data class ParsedFosterAgreement(
     val color: CoatColor? = null,
     val colorRaw: String? = null,
     val sex: Sex? = null,
-    val isAlteredAtIntake: Boolean? = null,
     val age: ParsedAge? = null,
     val intakeDateMillis: Long? = null,
     val lastWeightGrams: Float? = null,
@@ -55,7 +54,6 @@ data class ParsedFosterAgreement(
         appendLine("breed            = $breed (raw='$breedRaw')")
         appendLine("color            = $color (raw='$colorRaw')")
         appendLine("sex              = $sex")
-        appendLine("alteredAtIntake  = $isAlteredAtIntake")
         appendLine("age              = ${age?.display()}")
         appendLine("intakeDate       = ${intakeDateMillis?.let { formatDate(it) }}")
         appendLine("lastWeightGrams  = $lastWeightGrams")
@@ -130,17 +128,12 @@ object FosterAgreementParser {
             }
         }
 
-        // Shelter convention: N = neutered (male, altered), S = spayed (female, altered), I = intact.
+        // Shelter convention: N = neutered, S = spayed, I = intact (sex unknown).
         val alterStatus = lines.firstNotNullOfOrNull { line -> alterStatusRegex.matchEntire(line)?.groupValues?.get(1)?.uppercase() }
         d("alterStatus -> $alterStatus")
-        val isAlteredAtIntake = when (alterStatus) {
-            "N", "S" -> true
-            "I" -> false
-            else -> null
-        }
         val sex = when (alterStatus) {
-            "N" -> Sex.MALE
-            "S" -> Sex.FEMALE
+            "N" -> Sex.NEUTERED
+            "S" -> Sex.SPAYED
             else -> null
         }
 
@@ -170,7 +163,6 @@ object FosterAgreementParser {
             color = color,
             colorRaw = colorRaw,
             sex = sex,
-            isAlteredAtIntake = isAlteredAtIntake,
             age = age,
             intakeDateMillis = intakeDateMillis,
             lastWeightGrams = lastWeightGrams,

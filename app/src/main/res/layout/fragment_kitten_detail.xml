@@ -27,58 +27,79 @@
             android:paddingBottom="72dp">
 
             <!-- Patient header -->
-            <LinearLayout
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/clinical_surface"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/image_profile"
-                    android:layout_width="76dp"
-                    android:layout_height="76dp"
-                    android:background="@color/clinical_sage_tint"
-                    android:contentDescription="@string/profile_image_desc"
-                    android:padding="2dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/default_kitten_profile" />
+                android:background="@color/clinical_surface">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:padding="16dp">
 
-                    <TextView
-                        android:id="@+id/text_kitten_name"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAllCaps="true"
-                        android:textColor="@color/clinical_ink"
-                        android:textSize="24sp"
-                        android:textStyle="bold"
-                        tools:text="kitty" />
+                    <ImageView
+                        android:id="@+id/image_profile"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
+                        android:background="@color/clinical_sage_tint"
+                        android:contentDescription="@string/profile_image_desc"
+                        android:padding="2dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/default_kitten_profile" />
 
-                    <TextView
-                        android:id="@+id/text_kitten_breed"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:textColor="@color/clinical_ink_soft"
-                        android:textSize="12sp"
-                        tools:text="&quot;chungus&quot; · DSH · Calico" />
-
-                    <!-- Info chips row -->
                     <LinearLayout
-                        android:id="@+id/layout_info_chips"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:orientation="horizontal" />
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/text_kitten_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAllCaps="true"
+                            android:textColor="@color/clinical_ink"
+                            android:textSize="24sp"
+                            android:textStyle="bold"
+                            tools:text="kitty" />
+
+                        <TextView
+                            android:id="@+id/text_kitten_breed"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/clinical_ink_soft"
+                            android:textSize="12sp"
+                            tools:text="&quot;chungus&quot; · DSH · Calico" />
+
+                        <!-- Info chips row -->
+                        <LinearLayout
+                            android:id="@+id/layout_info_chips"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_export"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="36dp"
+                    android:text="@string/export_button"
+                    android:textAllCaps="false"
+                    android:textColor="@color/clinical_sage"
+                    android:textSize="12sp" />
+            </FrameLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -107,58 +128,6 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <!-- Chart header row -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:fontFamily="monospace"
-                                    android:letterSpacing="0.08"
-                                    android:text="@string/vitals_label"
-                                    android:textColor="@color/clinical_ink_muted"
-                                    android:textSize="10sp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="@string/vitals_subtitle"
-                                    android:textColor="@color/clinical_ink"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-
-                            <!-- Time range toggles -->
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:background="@color/clinical_sage"
-                                    android:fontFamily="monospace"
-                                    android:paddingHorizontal="7dp"
-                                    android:paddingVertical="3dp"
-                                    android:text="Export"
-                                    android:textColor="@color/white"
-                                    android:textSize="9sp" />
-
-                            </LinearLayout>
-                        </LinearLayout>
-
                         <!-- KPI strip for vitals -->
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -172,6 +141,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
+                                android:gravity="center_horizontal"
                                 android:orientation="vertical">
 
                                 <TextView
@@ -209,7 +179,8 @@
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
+                                android:layout_weight="2"
+                                android:gravity="center_horizontal"
                                 android:orientation="vertical">
 
                                 <TextView
@@ -233,6 +204,7 @@
                                     tools:text="4.6/7" />
 
                                 <TextView
+                                    android:id="@+id/text_stool_status"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
@@ -247,6 +219,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
+                                android:gravity="center_horizontal"
                                 android:orientation="vertical">
 
                                 <TextView
@@ -331,15 +304,36 @@
                                 <View
                                     android:layout_width="14dp"
                                     android:layout_height="2dp"
-                                    android:alpha="0.5"
-                                    android:background="@color/clinical_sage" />
+                                    android:background="@color/clinical_amber" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="5dp"
                                     android:fontFamily="monospace"
-                                    android:text="@string/legend_expected"
+                                    android:text="@string/legend_stool"
+                                    android:textColor="@color/clinical_ink_soft"
+                                    android:textSize="10sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <View
+                                    android:layout_width="7dp"
+                                    android:layout_height="7dp"
+                                    android:background="@drawable/legend_dot_crimson" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="5dp"
+                                    android:fontFamily="monospace"
+                                    android:text="@string/legend_vomiting"
                                     android:textColor="@color/clinical_ink_soft"
                                     android:textSize="10sp" />
                             </LinearLayout>
@@ -385,7 +379,7 @@
                                 android:paddingHorizontal="12dp"
                                 android:text="@string/log_event"
                                 android:textSize="12sp"
-                                app:backgroundTint="@color/clinical_crimson_soft"
+                                app:backgroundTint="@color/clinical_crimson"
                                 app:cornerRadius="5dp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -431,6 +425,7 @@
                                 android:orientation="vertical">
 
                                 <TextView
+                                    android:id="@+id/text_treatment_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:fontFamily="monospace"
@@ -441,15 +436,36 @@
 
                             </LinearLayout>
 
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/button_schedule_treatment"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="28dp"
+                                android:fontFamily="monospace"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:letterSpacing="0.05"
+                                android:minHeight="28dp"
+                                android:paddingHorizontal="12dp"
+                                android:text="@string/schedule"
+                                android:textColor="@color/clinical_sage"
+                                android:textSize="10sp"
+                                android:visibility="gone"
+                                app:cornerRadius="4dp"
+                                app:strokeColor="@color/clinical_sage"
+                                app:strokeWidth="1dp" />
+
                         </LinearLayout>
 
                         <View
+                            android:id="@+id/divider_table_top"
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:background="@color/clinical_line" />
 
                         <!-- Table header -->
                         <LinearLayout
+                            android:id="@+id/layout_table_header"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
@@ -492,6 +508,7 @@
                         </LinearLayout>
 
                         <View
+                            android:id="@+id/divider_table_bottom"
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:background="@color/clinical_line" />
@@ -519,16 +536,20 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="14dp">
+                        android:orientation="vertical">
 
+                        <!-- Medications header -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:background="@color/clinical_sage_tint"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="14dp"
+                            android:paddingVertical="12dp">
 
                             <TextView
+                                android:id="@+id/text_medications_title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
@@ -539,47 +560,58 @@
                                 android:textSize="10sp" />
 
                             <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_see_history"
-                                style="@style/Widget.Material3.Button.TextButton"
+                                android:id="@+id/button_add_medication"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
                                 android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:text="@string/see_history"
+                                android:layout_height="28dp"
+                                android:fontFamily="monospace"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:letterSpacing="0.05"
+                                android:minHeight="28dp"
+                                android:paddingHorizontal="12dp"
+                                android:text="@string/add"
                                 android:textColor="@color/clinical_sage"
-                                android:textSize="10sp" />
+                                android:textSize="10sp"
+                                app:cornerRadius="4dp"
+                                app:strokeColor="@color/clinical_sage"
+                                app:strokeWidth="1dp" />
                         </LinearLayout>
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/button_add_medication"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
+                        <View
                             android:layout_width="match_parent"
-                            android:layout_height="40dp"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/add_medication_button"
-                            android:textColor="@color/clinical_ink_soft"
-                            android:textSize="12sp"
-                            app:cornerRadius="5dp"
-                            app:strokeColor="@color/clinical_line" />
+                            android:layout_height="1dp"
+                            android:background="@color/clinical_line" />
 
+                        <!-- Medication rows container -->
                         <LinearLayout
                             android:id="@+id/layout_medications"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
                             android:orientation="vertical" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Complete foster case button -->
-                <com.google.android.material.button.MaterialButton
+                <!-- Complete foster case button (hold to confirm) -->
+                <com.example.fosterconnect.foster.HoldToConfirmButton
                     android:id="@+id/button_mark_adopted"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@android:color/transparent" />
+
+                <!-- Reopen foster case button (archive mode) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_reopen_case"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="@string/complete_foster_case_button"
-                    android:textColor="@color/clinical_crimson"
+                    android:text="@string/reopen_foster_case"
+                    android:textColor="@color/clinical_sage"
+                    android:visibility="gone"
                     app:cornerRadius="5dp"
-                    app:strokeColor="@color/clinical_crimson" />
+                    app:strokeColor="@color/clinical_sage" />
 
             </LinearLayout>
         </LinearLayout>

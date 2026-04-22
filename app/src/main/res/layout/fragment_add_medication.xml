@@ -34,6 +34,15 @@
             android:paddingTop="16dp"
             android:paddingBottom="16dp">
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_scan_label"
+                style="@style/Widget.Material3.Button.TonalButton.Icon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="@string/scan_label_button"
+                app:icon="@android:drawable/ic_menu_camera" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -49,6 +58,14 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_start_date"
+                style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                app:icon="@android:drawable/ic_menu_my_calendar" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_until_date"
                 style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -57,7 +57,6 @@ data class FosterCaseEntity(
     val status: String,
     val intakeDateMillis: Long,
     val outDateMillis: Long?,
-    val isAlteredAtIntake: Boolean,
     val weightDeclineWarned: Boolean,
     val nextVaccineDateMillis: Long? = null,
     val notes: String?,
@@ -82,6 +81,25 @@ data class CaseWeightEntity(
     val fosterCaseId: String,
     val dateMillis: Long,
     val weightGrams: Float
+)
+
+@Entity(
+    tableName = "case_stools",
+    foreignKeys = [
+        ForeignKey(
+            entity = FosterCaseEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["fosterCaseId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["fosterCaseId", "dateMillis"])]
+)
+data class CaseStoolEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val fosterCaseId: String,
+    val dateMillis: Long,
+    val level: Int
 )
 
 @Entity(
@@ -142,8 +160,28 @@ data class CaseTreatmentEntity(
     val fosterCaseId: String,
     val treatmentType: String,
     val scheduledDateMillis: Long,
-    val administeredDateMillis: Long,
+    val administeredDateMillis: Long? = null,
+    val doseGiven: String? = null,
     val notes: String?
+)
+
+@Entity(
+    tableName = "case_events",
+    foreignKeys = [
+        ForeignKey(
+            entity = FosterCaseEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["fosterCaseId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["fosterCaseId", "dateMillis"])]
+)
+data class CaseEventEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val fosterCaseId: String,
+    val dateMillis: Long,
+    val type: String
 )
 
 @Entity(
@@ -241,11 +279,15 @@ data class FosterCaseWithDetails(
     @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
     val weights: List<CaseWeightEntity>,
     @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
+    val stools: List<CaseStoolEntity>,
+    @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
     val medications: List<CaseMedicationEntity>,
     @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
     val photos: List<CasePhotoEntity>,
     @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
     val treatments: List<CaseTreatmentEntity>,
+    @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
+    val events: List<CaseEventEntity>,
     @Relation(parentColumn = "id", entityColumn = "fosterCaseId")
     val messages: List<CaseMessageEntity>
 )
@@ -253,7 +295,9 @@ data class FosterCaseWithDetails(
 data class CompletedFosterRecordWithAnimal(
     @Embedded val completedRecord: CompletedFosterRecordEntity,
     @Relation(parentColumn = "animalId", entityColumn = "id")
-    val animal: AnimalEntity
+    val animal: AnimalEntity,
+    @Relation(parentColumn = "fosterCaseId", entityColumn = "id")
+    val fosterCase: FosterCaseEntity
 )
 
 data class CaseTraitScore(

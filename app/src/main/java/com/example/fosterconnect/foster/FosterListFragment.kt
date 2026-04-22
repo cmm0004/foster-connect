@@ -37,7 +37,6 @@ import com.example.fosterconnect.medication.FosterTreatmentSchedule
 import com.example.fosterconnect.medication.scan.MedicationLabelScanner
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -62,18 +61,15 @@ class FosterListFragment : Fragment() {
     private var dialogBreedInput: AutoCompleteTextView? = null
     private var dialogColorInput: AutoCompleteTextView? = null
     private var dialogSexInput: AutoCompleteTextView? = null
-    private var dialogAlteredSwitch: MaterialSwitch? = null
     private var dialogAgeValueInput: TextInputEditText? = null
     private var dialogAgeUnitInput: AutoCompleteTextView? = null
     private var dialogIntakeDateInput: TextInputEditText? = null
     private var dialogWeightInput: TextInputEditText? = null
     private var dialogWeightDateInput: TextInputEditText? = null
-    private var dialogNextVaccineDateInput: TextInputEditText? = null
 
     // Millis backing values for date picker fields
     private var intakeDateMillis: Long? = null
     private var weightDateMillis: Long? = null
-    private var nextVaccineDateMillis: Long? = null
 
     private var pendingPermissionScan: Boolean = false
 
@@ -209,8 +205,6 @@ class FosterListFragment : Fragment() {
         parsed.breed?.let { dialogBreedInput?.setText(it.display, false) }
         parsed.color?.let { dialogColorInput?.setText(it.display, false) }
         parsed.sex?.let { dialogSexInput?.setText(it.display, false) }
-        if (parsed.isAlteredAtIntake != null) dialogAlteredSwitch?.isChecked =
-            parsed.isAlteredAtIntake
         parsed.age?.let {
             dialogAgeValueInput?.setText(it.value.toString())
             dialogAgeUnitInput?.setText(unitLabels[it.unit.ordinal], false)
@@ -255,14 +249,11 @@ class FosterListFragment : Fragment() {
         val breedInput = view.findViewById<AutoCompleteTextView>(R.id.input_breed)
         val colorInput = view.findViewById<AutoCompleteTextView>(R.id.input_color)
         val sexInput = view.findViewById<AutoCompleteTextView>(R.id.input_sex)
-        val alteredSwitch = view.findViewById<MaterialSwitch>(R.id.switch_altered)
         val ageValueInput = view.findViewById<TextInputEditText>(R.id.input_age_value)
         val ageUnitInput = view.findViewById<AutoCompleteTextView>(R.id.input_age_unit)
         val intakeDateInput = view.findViewById<TextInputEditText>(R.id.input_intake_date)
         val weightInput = view.findViewById<TextInputEditText>(R.id.input_weight)
         val weightDateInput = view.findViewById<TextInputEditText>(R.id.input_weight_date)
-        val nextVaccineDateInput = view.findViewById<TextInputEditText>(R.id.input_next_vaccine_date)
-
         // Store references so OCR callback can fill them
         dialogNameInput = nameInput
         dialogLitterNameInput = litterNameInput
@@ -270,13 +261,11 @@ class FosterListFragment : Fragment() {
         dialogBreedInput = breedInput
         dialogColorInput = colorInput
         dialogSexInput = sexInput
-        dialogAlteredSwitch = alteredSwitch
         dialogAgeValueInput = ageValueInput
         dialogAgeUnitInput = ageUnitInput
         dialogIntakeDateInput = intakeDateInput
         dialogWeightInput = weightInput
         dialogWeightDateInput = weightDateInput
-        dialogNextVaccineDateInput = nextVaccineDateInput
 
         val breedLabels = Breed.values().map { it.display }
         val colorLabels = CoatColor.values().map { it.display }
@@ -292,7 +281,6 @@ class FosterListFragment : Fragment() {
         // Reset date millis
         intakeDateMillis = null
         weightDateMillis = null
-        nextVaccineDateMillis = null
 
         // Pre-fill if parsed data provided
         if (parsed != null) {
@@ -301,7 +289,6 @@ class FosterListFragment : Fragment() {
             parsed.breed?.let { breedInput.setText(it.display, false) }
             parsed.color?.let { colorInput.setText(it.display, false) }
             parsed.sex?.let { sexInput.setText(it.display, false) }
-            alteredSwitch.isChecked = parsed.isAlteredAtIntake == true
             parsed.age?.let {
                 ageValueInput.setText(it.value.toString())
                 ageUnitInput.setText(unitLabels[it.unit.ordinal], false)
@@ -328,12 +315,6 @@ class FosterListFragment : Fragment() {
             showDatePicker("Weight date", weightDateMillis) { millis ->
                 weightDateMillis = millis
                 setDateField(weightDateInput, millis)
-            }
-        }
-        nextVaccineDateInput.setOnClickListener {
-            showDatePicker("Next vaccine date", nextVaccineDateMillis) { millis ->
-                nextVaccineDateMillis = millis
-                setDateField(nextVaccineDateInput, millis)
             }
         }
 
@@ -375,12 +356,10 @@ class FosterListFragment : Fragment() {
                     breed = breed,
                     color = color,
                     sex = sex,
-                    isAlteredAtIntake = alteredSwitch.isChecked,
                     intakeDateMillis = intakeMillis,
                     estimatedBirthdayMillis = estimatedBirthday,
                     initialWeightGrams = weightGrams,
                     initialWeightDateMillis = weightDateMillis,
-                    nextVaccineDateMillis = nextVaccineDateMillis
                 )
                 Toast.makeText(ctx, "Foster case created", Toast.LENGTH_SHORT).show()
             }
@@ -392,13 +371,11 @@ class FosterListFragment : Fragment() {
                 dialogBreedInput = null
                 dialogColorInput = null
                 dialogSexInput = null
-                dialogAlteredSwitch = null
                 dialogAgeValueInput = null
                 dialogAgeUnitInput = null
                 dialogIntakeDateInput = null
                 dialogWeightInput = null
                 dialogWeightDateInput = null
-                dialogNextVaccineDateInput = null
             }
             .show()
     }

@@ -9,6 +9,7 @@ enum class StandardTreatment(val displayName: String) {
 }
 
 data class ScheduledDose(
+    val treatmentId: Long,
     val treatment: StandardTreatment,
     val scheduledDateMillis: Long,
     val doseLabel: String,
@@ -75,45 +76,47 @@ object FosterTreatmentSchedule {
         80.0f to 16.0f
     )
 
+    const val TWO_WEEKS = TWO_WEEKS_MS
+
     fun generateSchedule(
         nextVaccineDateMillis: Long?,
         latestWeightGrams: Float?,
         latestWeightDateMillis: Long?,
-        administeredTreatments: List<AdministeredTreatment>
+        treatments: List<AdministeredTreatment>
     ): List<ScheduledDose> {
         if (nextVaccineDateMillis == null) return emptyList()
 
         val now = System.currentTimeMillis()
         val todayStart = now - (now % ONE_DAY_MS)
-        val doses = mutableListOf<ScheduledDose>()
 
-        var doseNumber = 1
-        var doseDate = nextVaccineDateMillis
-        val maxDoses = 10
+        val currentDoseTreatments = treatments.filter { it.scheduledDateMillis == nextVaccineDateMillis }
+        if (currentDoseTreatments.isEmpty()) return emptyList()
 
-        while (doseNumber <= maxDoses) {
-            val isPast = doseDate < now
-            for (treatment in StandardTreatment.entries) {
-                val isAdministered = administeredTreatments.any {
-                    it.treatmentType == treatment.name && it.scheduledDateMillis == doseDate
-                }
-                doses.add(
-                    ScheduledDose(
-                        treatment = treatment,
-                        scheduledDateMillis = doseDate,
-                        doseLabel = getDoseLabel(treatment, isPast, todayStart, latestWeightGrams, latestWeightDateMillis),
-                        doseNumber = doseNumber,
-                        isPast = isPast,
-                        isAdministered = isAdministered
-                    )
-                )
-            }
+        val completedDoseCount = treatments
+            .filter { it.treatmentType == StandardTreatment.FVRCP.name && it.administeredDateMillis != null }
+            .map { it.scheduledDateMillis }
+            .distinct()
+            .count()
+        val doseNumber = completedDoseCount + 1
+        val isPast = nextVaccineDateMillis < todayStart
 
-            doseDate += TWO_WEEKS_MS
-            doseNumber++
+        return currentDoseTreatments.mapNotNull { t ->
+            val treatment = StandardTreatment.entries.firstOrNull { it.name == t.treatmentType } ?: return@mapNotNull null
+            ScheduledDose(
+                treatmentId = t.id,
+                treatment = treatment,
+                scheduledDateMillis = nextVaccineDateMillis,
+                doseLabel = getDoseLabel(treatment, isPast || nextVaccineDateMillis < now, todayStart, latestWeightGrams, latestWeightDateMillis),
+                doseNumber = doseNumber,
+                isPast = isPast,
+                isAdministered = t.administeredDateMillis != null
+            )
         }
+    }
 
-        return doses
+    fun isCurrentDoseComplete(schedule: List<ScheduledDose>): Boolean {
+        if (schedule.isEmpty()) return false
+        return schedule.all { it.isAdministered }
     }
 
     private fun getDoseLabel(
