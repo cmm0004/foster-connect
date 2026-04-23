@@ -59,7 +59,7 @@ class KittenAdapter(
         holder.binding.textName.visibility = View.VISIBLE
         holder.binding.editName.visibility = View.GONE
 
-        holder.binding.imageProfile.setImageResource(fosterCase.color.defaultProfileDrawable())
+        holder.binding.imageProfile.setImageResource(fosterCase.color.defaultProfileDrawable(fosterCase.name))
         holder.binding.textName.text = fosterCase.name
         holder.binding.textExternalId.text = if (fosterCase.externalId.isNotEmpty()) "#${fosterCase.externalId}" else ""
         holder.binding.textExternalId.visibility = if (fosterCase.externalId.isNotEmpty()) View.VISIBLE else View.GONE

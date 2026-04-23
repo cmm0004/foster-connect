@@ -142,7 +142,7 @@ class KittenDetailFragment : Fragment() {
         }
 
         // Patient header
-        binding.imageProfile.setImageResource(fosterCase.color.defaultProfileDrawable())
+        binding.imageProfile.setImageResource(fosterCase.color.defaultProfileDrawable(fosterCase.name))
         binding.textKittenName.text = fosterCase.name
 
         val nickPart = if (fosterCase.litterName != null) "\"${fosterCase.litterName}\" · " else ""
@@ -179,8 +179,18 @@ class KittenDetailFragment : Fragment() {
             val avg = recentStools.map { it.level }.average()
             binding.textStoolAvg.text = "%.1f/7".format(avg)
             val (statusText, statusColor, valueColor) = when {
-                avg >= 7.0 -> Triple(R.string.stool_diarrhea, R.color.clinical_crimson, R.color.clinical_crimson)
-                avg >= 5.0 -> Triple(R.string.stool_loose, R.color.clinical_amber, R.color.clinical_amber)
+                avg >= 7.0 -> Triple(
+                    R.string.stool_diarrhea,
+                    R.color.clinical_crimson,
+                    R.color.clinical_crimson
+                )
+
+                avg >= 5.0 -> Triple(
+                    R.string.stool_loose,
+                    R.color.clinical_amber,
+                    R.color.clinical_amber
+                )
+
                 else -> Triple(R.string.in_range, R.color.clinical_sage, R.color.clinical_sage)
             }
             binding.textStoolStatus.setText(statusText)
@@ -192,8 +202,13 @@ class KittenDetailFragment : Fragment() {
             binding.textStoolStatus.setTextColor(ctx.getColor(R.color.clinical_sage))
             binding.textStoolAvg.setTextColor(ctx.getColor(R.color.clinical_sage))
         }
+        val mostRecentDataMillis = maxOf(
+            fosterCase.weightEntries.maxOfOrNull { it.dateMillis } ?: 0L,
+            fosterCase.stoolEntries.maxOfOrNull { it.dateMillis } ?: 0L,
+            fosterCase.eventEntries.maxOfOrNull { it.dateMillis } ?: 0L
+        )
         val recentEvents = fosterCase.eventEntries.filter {
-            it.dateMillis >= System.currentTimeMillis() - 14L * 24 * 60 * 60 * 1000
+            it.dateMillis >= mostRecentDataMillis - 14L * 24 * 60 * 60 * 1000
         }
         binding.textEventsCount.text = "${recentEvents.size}"
 
@@ -202,13 +217,13 @@ class KittenDetailFragment : Fragment() {
 
         // Vitals chart
         binding.vitalsChart.setBirthdayMillis(fosterCase.estimatedBirthdayMillis)
-        if (fosterCase.weightEntries.isNotEmpty() || fosterCase.stoolEntries.isNotEmpty() || fosterCase.eventEntries.isNotEmpty()) {
-            binding.vitalsChart.setWeightEntries(fosterCase.weightEntries)
-            binding.vitalsChart.setStoolEntries(fosterCase.stoolEntries)
-            binding.vitalsChart.setEventEntries(fosterCase.eventEntries)
-        } else {
-            binding.vitalsChart.setPlaceholderData()
-        }
+        //if (fosterCase.weightEntries.isNotEmpty() || fosterCase.stoolEntries.isNotEmpty() || fosterCase.eventEntries.isNotEmpty()) {
+        binding.vitalsChart.setWeightEntries(fosterCase.weightEntries)
+        binding.vitalsChart.setStoolEntries(fosterCase.stoolEntries)
+        binding.vitalsChart.setEventEntries(fosterCase.eventEntries)
+//        } else {
+//            binding.vitalsChart.setPlaceholderData()
+//        }
 
         binding.layoutMedications.removeAllViews()
         if (fosterCase.isCompleted) {
@@ -227,7 +242,8 @@ class KittenDetailFragment : Fragment() {
             renderTreatmentHistory(fosterCase)
         } else {
             // Active: only show active medications
-            val activeMeds = fosterCase.medications.filter { it.isActive }.sortedByDescending { it.startDateMillis }
+            val activeMeds = fosterCase.medications.filter { it.isActive }
+                .sortedByDescending { it.startDateMillis }
             if (activeMeds.isNotEmpty()) {
                 activeMeds.forEachIndexed { index, med ->
                     if (index > 0) binding.layoutMedications.addView(buildDivider())
@@ -299,7 +315,8 @@ class KittenDetailFragment : Fragment() {
         binding.buttonScheduleTreatment.setOnClickListener {
             val allGiven = FosterTreatmentSchedule.isCurrentDoseComplete(schedule)
             if (!allGiven) {
-                Toast.makeText(requireContext(), R.string.not_all_given_message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.not_all_given_message, Toast.LENGTH_SHORT)
+                    .show()
                 return@setOnClickListener
             }
             MaterialAlertDialogBuilder(requireContext())
@@ -360,7 +377,13 @@ class KittenDetailFragment : Fragment() {
                 setPadding(padPx, padPx, padPx, padPx)
             }
             val titleText = TextView(ctx).apply {
-                text = "\u2713 ${getString(R.string.dose_header_format, doseNum, dateFormat.format(Date(doseDate)))}"
+                text = "\u2713 ${
+                    getString(
+                        R.string.dose_header_format,
+                        doseNum,
+                        dateFormat.format(Date(doseDate))
+                    )
+                }"
                 typeface = Typeface.DEFAULT_BOLD
                 setTextColor(ContextCompat.getColor(ctx, R.color.clinical_ink))
                 textSize = 12f
@@ -466,16 +489,22 @@ class KittenDetailFragment : Fragment() {
             setPadding((24 * dp).toInt(), (16 * dp).toInt(), (24 * dp).toInt(), (8 * dp).toInt())
         }
 
-        val dateBtn = MaterialButton(ctx, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+        val dateBtn = MaterialButton(
+            ctx,
+            null,
+            com.google.android.material.R.attr.materialButtonOutlinedStyle
+        ).apply {
             text = SimpleDateFormat("MMMM d, yyyy", Locale.US).format(Date(selectedDateMillis))
             textSize = 14f
             isAllCaps = false
             setOnClickListener {
                 val c = Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
                 android.app.DatePickerDialog(ctx, { _, y, m, d ->
-                    val picked = Calendar.getInstance().apply { set(y, m, d, 0, 0, 0); set(Calendar.MILLISECOND, 0) }
+                    val picked = Calendar.getInstance()
+                        .apply { set(y, m, d, 0, 0, 0); set(Calendar.MILLISECOND, 0) }
                     selectedDateMillis = picked.timeInMillis
-                    this.text = SimpleDateFormat("MMMM d, yyyy", Locale.US).format(Date(selectedDateMillis))
+                    this.text =
+                        SimpleDateFormat("MMMM d, yyyy", Locale.US).format(Date(selectedDateMillis))
                 }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show()
             }
         }
@@ -495,11 +524,16 @@ class KittenDetailFragment : Fragment() {
             .setView(container)
             .setPositiveButton(R.string.schedule) { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
-                    val success = KittenRepository.scheduleNextTreatment(fosterCaseId, selectedDateMillis, ponazurilChecked)
+                    val success = KittenRepository.scheduleNextTreatment(
+                        fosterCaseId,
+                        selectedDateMillis,
+                        ponazurilChecked
+                    )
                     if (success) {
                         refreshUI()
                     } else {
-                        Toast.makeText(ctx, R.string.duplicate_schedule_error, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(ctx, R.string.duplicate_schedule_error, Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
             }
@@ -520,7 +554,8 @@ class KittenDetailFragment : Fragment() {
         // Protocol column
         val protocolCol = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.3f)
+            layoutParams =
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.3f)
         }
         protocolCol.addView(TextView(ctx).apply {
             text = dose.treatment.displayName
@@ -555,9 +590,15 @@ class KittenDetailFragment : Fragment() {
         val dueCol = TextView(ctx).apply {
             textSize = 10f
             typeface = Typeface.MONOSPACE
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.8f)
+            layoutParams =
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.8f)
             if (dose.isAdministered) {
-                text = "\u2713 ${SimpleDateFormat("MM/dd", Locale.US).format(Date(dose.scheduledDateMillis))}"
+                text = "\u2713 ${
+                    SimpleDateFormat(
+                        "MM/dd",
+                        Locale.US
+                    ).format(Date(dose.scheduledDateMillis))
+                }"
                 setTextColor(ContextCompat.getColor(ctx, R.color.clinical_sage))
             } else if (isDueToday) {
                 text = getString(R.string.col_due)
@@ -581,7 +622,8 @@ class KittenDetailFragment : Fragment() {
                 typeface = Typeface.MONOSPACE
                 setTextColor(ContextCompat.getColor(ctx, R.color.clinical_sage))
                 gravity = android.view.Gravity.CENTER
-                layoutParams = LinearLayout.LayoutParams(actionWidth, LinearLayout.LayoutParams.WRAP_CONTENT)
+                layoutParams =
+                    LinearLayout.LayoutParams(actionWidth, LinearLayout.LayoutParams.WRAP_CONTENT)
             }
             row.addView(doneText)
         } else if (!isActionable) {
@@ -589,7 +631,11 @@ class KittenDetailFragment : Fragment() {
                 layoutParams = LinearLayout.LayoutParams(actionWidth, 0)
             })
         } else {
-            val giveBtn = MaterialButton(ctx, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            val giveBtn = MaterialButton(
+                ctx,
+                null,
+                com.google.android.material.R.attr.materialButtonOutlinedStyle
+            ).apply {
                 text = getString(R.string.give)
                 textSize = 10f
                 typeface = Typeface.MONOSPACE
@@ -674,14 +720,15 @@ class KittenDetailFragment : Fragment() {
             var doseNum = 0
             for ((doseDate, treatments) in completedDoses) {
                 doseNum++
-                val card = com.google.android.material.card.MaterialCardView(requireContext()).apply {
-                    radius = 12f * dp
-                    cardElevation = 1f * dp
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply { bottomMargin = (8 * dp).toInt() }
-                }
+                val card =
+                    com.google.android.material.card.MaterialCardView(requireContext()).apply {
+                        radius = 12f * dp
+                        cardElevation = 1f * dp
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply { bottomMargin = (8 * dp).toInt() }
+                    }
 
                 val content = LinearLayout(requireContext()).apply {
                     orientation = LinearLayout.VERTICAL
@@ -690,7 +737,13 @@ class KittenDetailFragment : Fragment() {
                 }
 
                 val titleText = TextView(requireContext()).apply {
-                    text = "\u2713 ${getString(R.string.dose_header_format, doseNum, dateFormat.format(Date(doseDate)))}"
+                    text = "\u2713 ${
+                        getString(
+                            R.string.dose_header_format,
+                            doseNum,
+                            dateFormat.format(Date(doseDate))
+                        )
+                    }"
                     setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
                 }
                 content.addView(titleText)
@@ -698,7 +751,8 @@ class KittenDetailFragment : Fragment() {
                 for (t in treatments) {
                     val displayName = com.example.fosterconnect.medication.StandardTreatment.entries
                         .firstOrNull { it.name == t.treatmentType }?.displayName ?: t.treatmentType
-                    val label = if (t.doseGiven != null) "$displayName -${t.doseGiven}" else displayName
+                    val label =
+                        if (t.doseGiven != null) "$displayName -${t.doseGiven}" else displayName
                     val row = TextView(requireContext()).apply {
                         text = label
                         setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall)
@@ -722,14 +776,15 @@ class KittenDetailFragment : Fragment() {
             container.addView(header)
 
             for (med in stoppedMeds.sortedByDescending { it.endDateMillis }) {
-                val card = com.google.android.material.card.MaterialCardView(requireContext()).apply {
-                    radius = 12f * dp
-                    cardElevation = 1f * dp
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply { bottomMargin = (8 * dp).toInt() }
-                }
+                val card =
+                    com.google.android.material.card.MaterialCardView(requireContext()).apply {
+                        radius = 12f * dp
+                        cardElevation = 1f * dp
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply { bottomMargin = (8 * dp).toInt() }
+                    }
 
                 val content = LinearLayout(requireContext()).apply {
                     orientation = LinearLayout.VERTICAL
@@ -776,7 +831,8 @@ class KittenDetailFragment : Fragment() {
     }
 
     private fun buildMedicationCard(med: Medication): View {
-        val view = layoutInflater.inflate(R.layout.item_medication_card, binding.layoutMedications, false)
+        val view =
+            layoutInflater.inflate(R.layout.item_medication_card, binding.layoutMedications, false)
 
         view.findViewById<TextView>(R.id.text_med_name).text = med.name
 
@@ -831,7 +887,11 @@ class KittenDetailFragment : Fragment() {
                 appendLine("-".repeat(30))
                 fosterCase.weightEntries.sortedBy { it.dateMillis }.forEach { w ->
                     val lbs = w.weightGrams / 453.592f
-                    appendLine("  ${df.format(Date(w.dateMillis))}  ${w.weightGrams.toInt()}g (%.2f lbs)".format(lbs))
+                    appendLine(
+                        "  ${df.format(Date(w.dateMillis))}  ${w.weightGrams.toInt()}g (%.2f lbs)".format(
+                            lbs
+                        )
+                    )
                 }
                 appendLine()
             }
@@ -901,7 +961,8 @@ class KittenDetailFragment : Fragment() {
             val uri = ctx.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
             if (uri != null) {
                 ctx.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
-                Toast.makeText(ctx, getString(R.string.export_success, fileName), Toast.LENGTH_LONG).show()
+                Toast.makeText(ctx, getString(R.string.export_success, fileName), Toast.LENGTH_LONG)
+                    .show()
             } else {
                 Toast.makeText(ctx, R.string.export_failed, Toast.LENGTH_SHORT).show()
             }
@@ -923,10 +984,11 @@ class KittenDetailFragment : Fragment() {
             setPadding(48, 24, 48, 8)
         }
 
-        val toggleGroup = com.google.android.material.button.MaterialButtonToggleGroup(context).apply {
-            isSingleSelection = true
-            isSelectionRequired = true
-        }
+        val toggleGroup =
+            com.google.android.material.button.MaterialButtonToggleGroup(context).apply {
+                isSingleSelection = true
+                isSelectionRequired = true
+            }
         val btnGrams = com.google.android.material.button.MaterialButton(
             context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle
         ).apply {
@@ -986,9 +1048,11 @@ class KittenDetailFragment : Fragment() {
                 raw == null -> {
                     inputLayout.error = getString(R.string.weight_error_empty)
                 }
+
                 raw <= 0f -> {
                     inputLayout.error = getString(R.string.weight_error_negative)
                 }
+
                 else -> {
                     val grams = if (isLbs) raw * 453.592f else raw
                     if (grams > MAX_WEIGHT_GRAMS) {
@@ -1061,6 +1125,7 @@ class KittenDetailFragment : Fragment() {
                     KittenRepository.setWeightDeclineWarned(fosterCaseId, false)
                 }
             }
+
             WeightTrend.DECLINING -> showDeclineAlert()
             WeightTrend.DECLINING_AFTER_WARNING -> showEscalationAlert()
         }
@@ -1068,7 +1133,7 @@ class KittenDetailFragment : Fragment() {
 
     private fun showDeclineAlert() {
         val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
-        
+
         KittenRepository.addMessage(
             com.example.fosterconnect.history.Message(
                 title = getString(R.string.weight_alert_title),
@@ -1118,7 +1183,11 @@ class KittenDetailFragment : Fragment() {
         KittenRepository.addMessage(
             com.example.fosterconnect.history.Message(
                 title = getString(R.string.feeding_suggestion_title),
-                content = getString(R.string.feeding_suggestion_message, fosterCase.name, fosterCase.name),
+                content = getString(
+                    R.string.feeding_suggestion_message,
+                    fosterCase.name,
+                    fosterCase.name
+                ),
                 timestamp = System.currentTimeMillis(),
                 fosterCaseId = fosterCaseId
             )
@@ -1126,7 +1195,13 @@ class KittenDetailFragment : Fragment() {
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.feeding_suggestion_title)
-            .setMessage(getString(R.string.feeding_suggestion_message, fosterCase.name, fosterCase.name))
+            .setMessage(
+                getString(
+                    R.string.feeding_suggestion_message,
+                    fosterCase.name,
+                    fosterCase.name
+                )
+            )
             .setPositiveButton(R.string.ok, null)
             .show()
     }

@@ -27,9 +27,8 @@ class PreviousFosterAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val foster = fosters[position]
-        val ctx = holder.itemView.context
 
-        holder.binding.imageProfile.setImageResource(foster.color.defaultProfileDrawable())
+        holder.binding.imageProfile.setImageResource(foster.color.defaultProfileDrawable(foster.name))
         holder.binding.textName.text = foster.name
         holder.binding.textExternalId.text = if (foster.externalId.isNotEmpty()) "#${foster.externalId}" else ""
         holder.binding.textExternalId.visibility =
@@ -37,17 +36,6 @@ class PreviousFosterAdapter(
 
         val sexLabel = foster.sex.display
         holder.binding.textBreedColor.text = "${foster.color.display} · $sexLabel"
-
-        holder.binding.textWeight.text = if (foster.finalWeightGrams != null) {
-            "${"%.0f".format(foster.finalWeightGrams)}g"
-        } else {
-            "--"
-        }
-
-        val ageWeeks = foster.ageInWeeks
-        holder.binding.textAge.text = if (ageWeeks != null) "${ageWeeks}w" else "--"
-
-        holder.binding.textDays.text = "${foster.daysFostered}d"
 
         holder.binding.layoutStatusChips.removeAllViews()
         addChip(

@@ -208,8 +208,8 @@
     "name": "Gravy",
     "litter_name": "Biscuits and Gravy",
     "out_date": "06/15/2023",
-    "sex": "NEUTERED",
-    "color": "TORTOISESHELL"
+    "sex": "FEMALE",
+    "color": "DILUTED_TORTOISESHELL"
   },
   {
     "anumber": "A0897016",
@@ -316,7 +316,7 @@
   },
   {
     "anumber": "A1302438",
-    "name": "Diakon",
+    "name": "Daikon",
     "litter_name": "Puppies",
     "out_date": "02/12/2024",
     "sex": "MALE",
@@ -688,9 +688,9 @@
   },
   {
     "anumber": "A1347542",
-    "name": "Squiggleworm",
+    "name": "Meowbert",
     "out_date": "04/10/2026",
     "sex": "NEUTERED",
-    "color": "WHITE"
+    "color": "ORANGE_SPOTTED"
   }
 ]

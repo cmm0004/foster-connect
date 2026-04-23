@@ -7,10 +7,21 @@ import com.example.fosterconnect.history.Message
 import com.example.fosterconnect.history.StoolEntry
 import com.example.fosterconnect.history.WeightEntry
 import com.example.fosterconnect.medication.Medication
+import java.util.Locale
+import java.util.Locale.getDefault
 
 @DrawableRes
-fun CoatColor.defaultProfileDrawable(): Int =
-    when (this) {
+fun CoatColor.defaultProfileDrawable(name: String): Int {
+    if (name.uppercase() == "NOSE CAT") {
+        return R.drawable.nose_cat
+    }
+    if (name.uppercase() == "CONEDOG") {
+        return R.drawable.conedog
+    }
+    if (name.uppercase() in listOf("WASABI", "GINGER", "DAIKON")) {
+        return R.drawable.dog
+    }
+    return when(this) {
         CoatColor.BLACK -> R.drawable.black
         CoatColor.WHITE -> R.drawable.white
         CoatColor.GRAY_TABBY -> R.drawable.all_grey_tabby
@@ -21,7 +32,7 @@ fun CoatColor.defaultProfileDrawable(): Int =
         CoatColor.CHOC_FLAMEPOINT -> R.drawable.chocolateflamepoint
         CoatColor.ORANGE_TABBY -> R.drawable.default_kitten_profile
         CoatColor.GRAY -> R.drawable.grey_kitten
-        CoatColor.GRAY_TUXEDO-> R.drawable.grey_with_socks
+        CoatColor.GRAY_TUXEDO -> R.drawable.grey_with_socks
         CoatColor.GRAY_TABBY_TUXEDO -> R.drawable.greytabby
         CoatColor.ORANGE_SPOTTED -> R.drawable.orange_white_spot
         CoatColor.GRAY_FLAMEPOINT -> R.drawable.grey_flamepoint
@@ -30,7 +41,9 @@ fun CoatColor.defaultProfileDrawable(): Int =
         CoatColor.TAB_TORTIE -> R.drawable.tab_tortie
         CoatColor.BROWN_TABBY -> R.drawable.brown_tabby
         CoatColor.BLOTCHED_TABBY -> R.drawable.blotched_tabby
+        CoatColor.DILUTED_TORTOISESHELL -> R.drawable.dilutedtortoiseshell
     }
+}
 
 enum class Sex(val display: String) {
     MALE("Male"),
@@ -52,7 +65,8 @@ enum class CoatColor(val display: String) {
     GRAY_TABBY("Gray Tabby"),
     DILUTED("Diluted"),
     CALICO("Calico"),
-    TORTOISESHELL("Tortoiseshell"),
+    TORTOISESHELL("Tortie"),
+    DILUTED_TORTOISESHELL("Dil. Tortie"),
     TAB_TORTIE("Tab Tortie"),
     ORANGE_TABBY("Orange Tabby"),
     BROWN_TABBY("Brown Tabby"),
