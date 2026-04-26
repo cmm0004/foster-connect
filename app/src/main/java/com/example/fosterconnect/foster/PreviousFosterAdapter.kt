@@ -15,6 +15,8 @@ import java.util.Locale
 
 class PreviousFosterAdapter(
     private val fosters: List<CompletedFoster>,
+    private val scoresByCase: Map<String, Int> = emptyMap(),
+    private val onRankClick: (CompletedFoster) -> Unit = {},
     private val onClick: (CompletedFoster) -> Unit
 ) : RecyclerView.Adapter<PreviousFosterAdapter.ViewHolder>() {
 
@@ -44,6 +46,20 @@ class PreviousFosterAdapter(
             R.color.clinical_ink_muted,
             R.color.clinical_sage_tint
         )
+
+        val score = scoresByCase[foster.fosterCaseId]
+        val tier = if (score != null) KittenRankingFragment.tierFromScore(score) else null
+        val isSTier = tier != null && tier.startsWith("S")
+        if (isSTier) {
+            holder.binding.textRank.visibility = android.view.View.GONE
+            holder.binding.imageRank.setImageResource(R.drawable.s_tier_calico)
+            holder.binding.imageRank.visibility = android.view.View.VISIBLE
+        } else {
+            holder.binding.imageRank.visibility = android.view.View.GONE
+            holder.binding.textRank.text = tier ?: "--"
+            holder.binding.textRank.visibility = android.view.View.VISIBLE
+        }
+        holder.binding.frameRank.setOnClickListener { onRankClick(foster) }
 
         holder.itemView.setOnClickListener { onClick(foster) }
     }

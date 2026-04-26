@@ -21,6 +21,9 @@ fun CoatColor.defaultProfileDrawable(name: String): Int {
     if (name.uppercase() in listOf("WASABI", "GINGER", "DAIKON")) {
         return R.drawable.dog
     }
+    if (name.uppercase() == "WAFFLES") {
+        return R.drawable.precious_angel
+    }
     return when(this) {
         CoatColor.BLACK -> R.drawable.black
         CoatColor.WHITE -> R.drawable.white

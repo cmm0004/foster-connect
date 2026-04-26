@@ -17,6 +17,7 @@ import com.example.fosterconnect.databinding.FragmentPreviousFostersBinding
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class PreviousFostersFragment : Fragment() {
@@ -42,7 +43,11 @@ class PreviousFostersFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                KittenRepository.completedFostersFlow.collect { completed ->
+                combine(
+                    KittenRepository.completedFostersFlow,
+                    KittenRepository.caseTraitScoresFlow
+                ) { completed, scores -> completed to scores }
+                .collect { (completed, scores) ->
                     if (completed.isEmpty()) {
                         binding.recyclerPreviousFosters.visibility = View.GONE
                         binding.textEmptyPrevious.visibility = View.VISIBLE
@@ -54,12 +59,25 @@ class PreviousFostersFragment : Fragment() {
                         binding.textPreviousCount.text =
                             getString(R.string.previous_count_format, completed.size)
                         val sorted = completed.sortedByDescending { it.outDateMillis }
-                        binding.recyclerPreviousFosters.adapter = PreviousFosterAdapter(sorted) { foster ->
-                            findNavController().navigate(
-                                R.id.action_PreviousFosters_to_KittenDetail,
-                                bundleOf("fosterCaseId" to foster.fosterCaseId)
-                            )
-                        }
+                        binding.recyclerPreviousFosters.adapter = PreviousFosterAdapter(
+                            fosters = sorted,
+                            scoresByCase = scores,
+                            onRankClick = { foster ->
+                                findNavController().navigate(
+                                    R.id.action_PreviousFosters_to_KittenRanking,
+                                    bundleOf(
+                                        "animalId" to foster.animalId,
+                                        "fosterCaseId" to foster.fosterCaseId
+                                    )
+                                )
+                            },
+                            onClick = { foster ->
+                                findNavController().navigate(
+                                    R.id.action_PreviousFosters_to_KittenDetail,
+                                    bundleOf("fosterCaseId" to foster.fosterCaseId)
+                                )
+                            }
+                        )
                     }
                 }
             }
