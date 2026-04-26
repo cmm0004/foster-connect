@@ -5,7 +5,10 @@
       "Bash(./gradlew assembleDebug)",
       "Bash(./gradlew :app:mergeDebugResources)",
       "Bash(xargs cat *)",
-      "Bash(grep -E \"\\\\.\\(xml|kt\\)$\")"
+      "Bash(grep -E \"\\\\.\\(xml|kt\\)$\")",
+      "Read(//private/tmp/foster_design/**)",
+      "Bash(tar xf *)",
+      "Bash(./gradlew :app:assembleDebug)"
     ]
   }
 }

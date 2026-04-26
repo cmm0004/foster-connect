@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="start"
+    android:background="@color/clinical_bg"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <!-- ══ Sage header ══ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/clinical_sage"
+        android:orientation="vertical"
+        android:paddingStart="18dp"
+        android:paddingTop="40dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="16dp">
+
+        <!-- App mark + name -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/drawer_logo_bg"
+                android:fontFamily="monospace"
+                android:gravity="center"
+                android:text="F"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.05"
+                    android:text="@string/drawer_vet_protocol"
+                    android:textColor="#99FFFFFF"
+                    android:textSize="9sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Current session block -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/drawer_session_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="11dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.08"
+                    android:text="@string/drawer_current_litter"
+                    android:textColor="#8CFFFFFF"
+                    android:textSize="8sp" />
+
+                <TextView
+                    android:id="@+id/drawer_session_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="Spring Kittens" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/drawer_overdue_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/badge_crimson"
+                    android:fontFamily="monospace"
+                    android:paddingStart="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/clinical_crimson"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
+                    tools:text="3 OVERDUE" />
+
+                <TextView
+                    android:id="@+id/drawer_in_care_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:background="@drawable/badge_sage_transparent"
+                    android:fontFamily="monospace"
+                    android:paddingStart="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/white"
+                    android:textSize="8sp"
+                    tools:text="4 IN CARE" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ══ Scrollable nav content ══ -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <!-- NAVIGATION section label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.08"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="5dp"
+                android:text="@string/drawer_section_navigation"
+                android:textColor="@color/clinical_ink_muted"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+
+            <!-- Current Fosters nav item -->
+            <LinearLayout
+                android:id="@+id/nav_current_fosters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/nav_item_active_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="9dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp">
+
+                <ImageView
+                    android:id="@+id/nav_current_fosters_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_pets_24"
+                    android:tint="@color/clinical_sage"
+                    tools:ignore="UseAppTint" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/nav_current_fosters_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/menu_current_fosters"
+                        android:textColor="@color/clinical_sage"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/nav_current_fosters_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/clinical_ink_muted"
+                        android:textSize="9sp"
+                        tools:text="4 in care · 3 overdue" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/nav_current_fosters_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/badge_crimson"
+                    android:fontFamily="monospace"
+                    android:paddingStart="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/clinical_crimson"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:text="3"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <!-- Alerts nav item -->
+            <LinearLayout
+                android:id="@+id/nav_alerts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/nav_item_default_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="9dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp">
+
+                <ImageView
+                    android:id="@+id/nav_alerts_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_notifications_24"
+                    android:tint="@color/clinical_ink_muted"
+                    tools:ignore="UseAppTint" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/nav_alerts_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/drawer_alerts"
+                        android:textColor="@color/clinical_ink"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/nav_alerts_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/clinical_ink_muted"
+                        android:textSize="9sp"
+                        tools:text="2 unread" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/nav_alerts_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/badge_amber"
+                    android:fontFamily="monospace"
+                    android:paddingStart="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/clinical_amber"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:text="2"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <!-- Previous Fosters nav item -->
+            <LinearLayout
+                android:id="@+id/nav_previous_fosters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/nav_item_default_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="9dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp">
+
+                <ImageView
+                    android:id="@+id/nav_previous_fosters_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_history_24"
+                    android:tint="@color/clinical_ink_muted"
+                    tools:ignore="UseAppTint" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/nav_previous_fosters_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/menu_previous_fosters"
+                        android:textColor="@color/clinical_ink"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/nav_previous_fosters_sub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/clinical_ink_muted"
+                        android:textSize="9sp"
+                        tools:text="14 archived" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="7dp"
+                android:background="@color/clinical_line" />
+
+            <!-- ACTIONS section label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.08"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="5dp"
+                android:text="@string/drawer_section_actions"
+                android:textColor="@color/clinical_ink_muted"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+
+            <!-- Sync nav item -->
+            <LinearLayout
+                android:id="@+id/nav_sync"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/nav_item_default_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="9dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_sync_24"
+                    android:tint="@color/clinical_ink_muted"
+                    tools:ignore="UseAppTint" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/drawer_action_sync"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Email Foster Office nav item -->
+            <LinearLayout
+                android:id="@+id/nav_email_foster_office"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/nav_item_default_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="9dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_email_24"
+                    android:tint="@color/clinical_ink_muted"
+                    tools:ignore="UseAppTint" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/drawer_action_email_foster_office"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="7dp"
+                android:background="@color/clinical_line" />
+
+            <!-- PREFERENCES section label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.08"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="5dp"
+                android:text="@string/drawer_section_preferences"
+                android:textColor="@color/clinical_ink_muted"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+
+            <!-- Settings nav item -->
+            <LinearLayout
+                android:id="@+id/nav_settings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/nav_item_default_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="9dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_settings_24"
+                    android:tint="@color/clinical_ink_muted"
+                    tools:ignore="UseAppTint" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/action_settings"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Help & Feedback nav item -->
+            <LinearLayout
+                android:id="@+id/nav_help"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/nav_item_default_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="9dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_help_24"
+                    android:tint="@color/clinical_ink_muted"
+                    tools:ignore="UseAppTint" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/drawer_help_feedback"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Build info footer -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="12dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/drawer_footer_bg"
+                android:orientation="vertical"
+                android:padding="11dp">
+
+                <TextView
+                    android:id="@+id/drawer_build_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.04"
+                    android:lineSpacingMultiplier="1.8"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="8sp"
+                    tools:text="BUILD 1.0 · APR 26 2026\nSHELTER CONNECT NETWORK" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

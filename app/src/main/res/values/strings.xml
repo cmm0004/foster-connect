@@ -162,4 +162,22 @@
     <string name="weight_low">WEIGHT LOW</string>
     <string name="today">TODAY</string>
     <string name="collar_color_title">Collar Color</string>
+
+    <!-- Drawer strings -->
+    <string name="drawer_vet_protocol">VET PROTOCOL v1.0</string>
+    <string name="drawer_current_litter">CURRENT LITTER</string>
+    <string name="drawer_litter_placeholder">No Active Litter</string>
+    <string name="drawer_section_navigation">NAVIGATION</string>
+    <string name="drawer_section_actions">ACTIONS</string>
+    <string name="drawer_action_sync">Sync</string>
+    <string name="drawer_action_email_foster_office">Email Foster Office</string>
+    <string name="drawer_section_preferences">PREFERENCES</string>
+    <string name="drawer_alerts">Alerts</string>
+    <string name="drawer_help_feedback">Help &amp; Feedback</string>
+    <string name="drawer_overdue_format">%d OVERDUE</string>
+    <string name="drawer_in_care_format">%d IN CARE</string>
+    <string name="drawer_sub_current_format">%1$d in care · %2$d overdue</string>
+    <string name="drawer_sub_alerts_format">%d unread</string>
+    <string name="drawer_sub_previous_format">%d archived</string>
+    <string name="drawer_build_info_format">BUILD %1$s · %2$s\nSHELTER CONNECT NETWORK</string>
 </resources>
