@@ -180,4 +180,14 @@
     <string name="drawer_sub_alerts_format">%d unread</string>
     <string name="drawer_sub_previous_format">%d archived</string>
     <string name="drawer_build_info_format">BUILD %1$s · %2$s\nSHELTER CONNECT NETWORK</string>
+
+    <!-- Sync -->
+    <string name="sync_searching">Searching for nearby device…</string>
+    <string name="sync_confirm_title">Confirm Pairing</string>
+    <string name="sync_confirm_message">Connect to %1$s?\n\nVerify this code matches on both devices: %2$s</string>
+    <string name="sync_transferring">Transferring data…</string>
+    <string name="sync_merging">Merging records…</string>
+    <string name="sync_complete">Sync complete: %1$d added, %2$d updated</string>
+    <string name="sync_error">Sync error: %s</string>
+    <string name="sync_permissions_required">Bluetooth and location permissions are required for sync</string>
 </resources>

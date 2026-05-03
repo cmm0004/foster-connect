@@ -102,13 +102,13 @@ interface FosterCaseDao {
 
     @Query(
         "UPDATE case_medications " +
-            "SET endDateMillis = :endDateMillis, isActive = 0 WHERE id = :medicationId"
+            "SET endDateMillis = :endDateMillis, isActive = 0, updatedAtMillis = :endDateMillis WHERE id = :medicationId"
     )
     suspend fun stopMedication(medicationId: String, endDateMillis: Long)
 
     @Query(
         "UPDATE case_medications " +
-            "SET endDateMillis = :endDateMillis, isActive = 0 " +
+            "SET endDateMillis = :endDateMillis, isActive = 0, updatedAtMillis = :endDateMillis " +
             "WHERE fosterCaseId = :caseId AND isActive = 1"
     )
     suspend fun stopAllActiveMedications(caseId: String, endDateMillis: Long)

@@ -19,7 +19,7 @@ import androidx.room.RoomDatabase
         CompletedFosterRecordEntity::class,
         AssignedTraitEntity::class
     ],
-    version = 14,
+    version = 15,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -27,6 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun animalDao(): AnimalDao
     abstract fun fosterCaseDao(): FosterCaseDao
     abstract fun traitDao(): TraitDao
+    abstract fun syncDao(): SyncDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

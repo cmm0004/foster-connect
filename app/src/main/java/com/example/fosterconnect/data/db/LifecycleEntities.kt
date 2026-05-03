@@ -81,7 +81,8 @@ data class CaseWeightEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val fosterCaseId: String,
     val dateMillis: Long,
-    val weightGrams: Float
+    val weightGrams: Float,
+    val syncId: String = ""
 )
 
 @Entity(
@@ -100,7 +101,8 @@ data class CaseStoolEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val fosterCaseId: String,
     val dateMillis: Long,
-    val level: Int
+    val level: Int,
+    val syncId: String = ""
 )
 
 @Entity(
@@ -122,7 +124,8 @@ data class CaseMedicationEntity(
     val instructions: String,
     val startDateMillis: Long,
     val endDateMillis: Long?,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val updatedAtMillis: Long = 0L
 )
 
 @Entity(
@@ -163,7 +166,8 @@ data class CaseTreatmentEntity(
     val scheduledDateMillis: Long,
     val administeredDateMillis: Long? = null,
     val doseGiven: String? = null,
-    val notes: String?
+    val notes: String?,
+    val syncId: String = ""
 )
 
 @Entity(
@@ -182,7 +186,8 @@ data class CaseEventEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val fosterCaseId: String,
     val dateMillis: Long,
-    val type: String
+    val type: String,
+    val syncId: String = ""
 )
 
 @Entity(
@@ -266,7 +271,8 @@ data class AssignedTraitEntity(
     val category: String,
     val valence: String,
     val score: Int,
-    val assignedAtMillis: Long
+    val assignedAtMillis: Long,
+    val syncId: String = ""
 )
 
 data class AnimalWithCases(

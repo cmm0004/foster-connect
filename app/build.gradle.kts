@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.play.services.nearby)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.exifinterface)

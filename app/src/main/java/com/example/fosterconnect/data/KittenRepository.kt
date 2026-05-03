@@ -142,7 +142,8 @@ object KittenRepository {
                     category = trait.category,
                     valence = trait.valence,
                     score = trait.score,
-                    assignedAtMillis = System.currentTimeMillis()
+                    assignedAtMillis = System.currentTimeMillis(),
+                    syncId = UUID.randomUUID().toString()
                 )
             )
         }
@@ -183,7 +184,8 @@ object KittenRepository {
                 CaseWeightEntity(
                     fosterCaseId = fosterCaseId,
                     dateMillis = entry.dateMillis,
-                    weightGrams = entry.weightGrams
+                    weightGrams = entry.weightGrams,
+                    syncId = UUID.randomUUID().toString()
                 )
             )
         }
@@ -195,7 +197,8 @@ object KittenRepository {
                 CaseStoolEntity(
                     fosterCaseId = fosterCaseId,
                     dateMillis = entry.dateMillis,
-                    level = entry.level
+                    level = entry.level,
+                    syncId = UUID.randomUUID().toString()
                 )
             )
         }
@@ -207,7 +210,8 @@ object KittenRepository {
                 CaseEventEntity(
                     fosterCaseId = fosterCaseId,
                     dateMillis = entry.dateMillis,
-                    type = entry.type.name
+                    type = entry.type.name,
+                    syncId = UUID.randomUUID().toString()
                 )
             )
         }
@@ -233,7 +237,8 @@ object KittenRepository {
                     instructions = medication.instructions,
                     startDateMillis = medication.startDateMillis,
                     endDateMillis = medication.endDateMillis,
-                    isActive = medication.isActive
+                    isActive = medication.isActive,
+                    updatedAtMillis = System.currentTimeMillis()
                 )
             )
         }
@@ -329,7 +334,8 @@ object KittenRepository {
                     treatmentType = type,
                     scheduledDateMillis = dateMillis,
                     administeredDateMillis = null,
-                    notes = null
+                    notes = null,
+                    syncId = UUID.randomUUID().toString()
                 )
             )
         }
@@ -393,7 +399,8 @@ object KittenRepository {
                     CaseWeightEntity(
                         fosterCaseId = caseId,
                         dateMillis = initialWeightDateMillis ?: intakeDateMillis,
-                        weightGrams = initialWeightGrams
+                        weightGrams = initialWeightGrams,
+                        syncId = UUID.randomUUID().toString()
                     )
                 )
             }

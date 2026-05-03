@@ -1,5 +1,8 @@
 package com.example.fosterconnect
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -8,6 +11,8 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -21,7 +26,11 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.fosterconnect.data.KittenRepository
+import com.example.fosterconnect.data.db.AppDatabase
 import com.example.fosterconnect.databinding.ActivityMainBinding
+import com.example.fosterconnect.sync.NearbySyncManager
+import com.example.fosterconnect.sync.SyncState
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -30,6 +39,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
+    private var syncManager: NearbySyncManager? = null
+    private var syncDialog: androidx.appcompat.app.AlertDialog? = null
+
+    private val syncPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        if (results.values.all { it }) {
+            startSync()
+        } else {
+            Toast.makeText(this, R.string.sync_permissions_required, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     private val navItemIds = mapOf(
         R.id.nav_current_fosters to R.id.FosterListFragment,
@@ -83,6 +104,11 @@ class MainActivity : AppCompatActivity() {
                 drawerLayout.closeDrawers()
                 updateActiveNavItem(viewId)
             }
+        }
+
+        drawerView.findViewById<View>(R.id.nav_sync)?.setOnClickListener {
+            drawerLayout.closeDrawers()
+            requestSyncPermissions()
         }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -232,5 +258,114 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration)
                 || super.onSupportNavigateUp()
+    }
+
+    private fun requestSyncPermissions() {
+        val permissions = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE)
+            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+            permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
+        } else {
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        val needed = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (needed.isEmpty()) {
+            startSync()
+        } else {
+            syncPermissionLauncher.launch(needed.toTypedArray())
+        }
+    }
+
+    private fun startSync() {
+        val db = AppDatabase.getInstance(this)
+        val manager = NearbySyncManager(this, db)
+        syncManager = manager
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                manager.state.collect { state ->
+                    handleSyncState(state)
+                }
+            }
+        }
+
+        manager.startSync()
+    }
+
+    private fun handleSyncState(state: SyncState) {
+        when (state) {
+            is SyncState.Idle -> {
+                syncDialog?.dismiss()
+                syncDialog = null
+            }
+            is SyncState.Searching -> {
+                syncDialog?.dismiss()
+                syncDialog = MaterialAlertDialogBuilder(this)
+                    .setMessage(R.string.sync_searching)
+                    .setNegativeButton("Cancel") { _, _ -> syncManager?.stop() }
+                    .setCancelable(false)
+                    .show()
+            }
+            is SyncState.Authenticating -> {
+                syncDialog?.dismiss()
+                syncDialog = MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.sync_confirm_title)
+                    .setMessage(getString(R.string.sync_confirm_message, state.deviceName, state.authToken))
+                    .setPositiveButton("Connect") { _, _ ->
+                        syncManager?.acceptConnection(state.endpointId, state.deviceName)
+                    }
+                    .setNegativeButton("Cancel") { _, _ ->
+                        syncManager?.rejectConnection(state.endpointId)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+            is SyncState.Connected, is SyncState.Transferring -> {
+                syncDialog?.dismiss()
+                syncDialog = MaterialAlertDialogBuilder(this)
+                    .setMessage(R.string.sync_transferring)
+                    .setCancelable(false)
+                    .show()
+            }
+            is SyncState.Merging -> {
+                syncDialog?.dismiss()
+                syncDialog = MaterialAlertDialogBuilder(this)
+                    .setMessage(R.string.sync_merging)
+                    .setCancelable(false)
+                    .show()
+            }
+            is SyncState.Done -> {
+                syncDialog?.dismiss()
+                syncDialog = null
+                Toast.makeText(
+                    this,
+                    getString(R.string.sync_complete, state.stats.totalAdded, state.stats.totalUpdated),
+                    Toast.LENGTH_LONG
+                ).show()
+                syncManager = null
+            }
+            is SyncState.Error -> {
+                syncDialog?.dismiss()
+                syncDialog = null
+                Toast.makeText(
+                    this,
+                    getString(R.string.sync_error, state.message),
+                    Toast.LENGTH_LONG
+                ).show()
+                syncManager = null
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        syncManager?.stop()
+        super.onDestroy()
     }
 }
