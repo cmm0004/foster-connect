@@ -186,7 +186,7 @@
                     android:id="@+id/nav_current_fosters_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:src="@drawable/ic_pets_24"
+                    android:src="@drawable/pets_24px"
                     android:tint="@color/clinical_sage"
                     tools:ignore="UseAppTint" />
 
@@ -256,7 +256,7 @@
                     android:id="@+id/nav_alerts_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:src="@drawable/ic_notifications_24"
+                    android:src="@drawable/reminder_24px"
                     android:tint="@color/clinical_ink_muted"
                     tools:ignore="UseAppTint" />
 
@@ -325,7 +325,7 @@
                     android:id="@+id/nav_previous_fosters_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:src="@drawable/ic_history_24"
+                    android:src="@drawable/history_24px"
                     android:tint="@color/clinical_ink_muted"
                     tools:ignore="UseAppTint" />
 

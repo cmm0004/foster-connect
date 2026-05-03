@@ -6,7 +6,7 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/FosterListFragment"
-            android:icon="@drawable/ic_pets_24"
+            android:icon="@drawable/pets_24px"
             android:title="@string/menu_current_fosters" />
         <item
             android:id="@+id/MessageCenterFragment"
@@ -14,7 +14,7 @@
             android:title="@string/message_center_title" />
         <item
             android:id="@+id/PreviousFostersFragment"
-            android:icon="@drawable/ic_history_24"
+            android:icon="@drawable/history_24px"
             android:title="@string/menu_previous_fosters" />
     </group>
 </menu>
