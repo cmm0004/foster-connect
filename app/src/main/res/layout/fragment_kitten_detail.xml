@@ -72,7 +72,7 @@
                             android:layout_marginTop="4dp"
                             android:textColor="@color/clinical_ink_soft"
                             android:textSize="12sp"
-                            tools:text="&quot;chungus&quot; · DSH · Calico" />
+                            tools:text="&quot;chungus&quot; · A1347542" />
 
                         <!-- Info chips row -->
                         <LinearLayout

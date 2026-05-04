@@ -165,11 +165,4 @@ data class CompletedFoster(
     val medicalSummary: String? = null,
     val behaviorSummary: String? = null,
     val placementSummary: String? = null
-) {
-    val ageInWeeks: Int?
-        get() {
-            val birthday = estimatedBirthdayMillis ?: return null
-            val diffMillis = outDateMillis - birthday
-            return (diffMillis / (7L * 24 * 60 * 60 * 1000)).toInt()
-        }
-}
+)

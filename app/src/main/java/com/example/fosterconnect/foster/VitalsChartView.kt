@@ -178,38 +178,6 @@ class VitalsChartView @JvmOverloads constructor(
         }
     }
 
-    fun setPlaceholderData() {
-        val cal = Calendar.getInstance()
-        val weights = listOf(280f, 295f, 305f, 310f, 302f, 308f, 325f, 340f, 355f, 365f, 378f, 385f, 395f, 400f)
-        rawWeights = weights.mapIndexed { i, w ->
-            cal.timeInMillis = System.currentTimeMillis()
-            cal.add(Calendar.DAY_OF_YEAR, -(weights.size - 1 - i))
-            WeightEntry(cal.timeInMillis, w)
-        }
-        val stools = listOf(
-            3,
-            4,
-            4,
-            5,
-            4
-        )
-        rawStools = listOf(1,3,4,5,7).mapIndexed { i, s ->
-            cal.timeInMillis = System.currentTimeMillis()
-            cal.add(Calendar.DAY_OF_YEAR, -(s))
-            StoolEntry(cal.timeInMillis, stools[i])
-        }
-
-        rawEvents = listOf(4, 10).map { daysAgo ->
-            cal.timeInMillis = System.currentTimeMillis()
-            cal.add(Calendar.DAY_OF_YEAR, -daysAgo)
-            EventEntry(cal.timeInMillis, EventType.VOMITING)
-        }
-
-        birthdayMillis = rawWeights.first().dateMillis - 21L * 24 * 60 * 60 * 1000
-        rebuildTimeline()
-        invalidate()
-    }
-
     private fun expectedRange(ageDays: Float): Pair<Float, Float>? {
         return ExpectedWeight.rangeAt(ageDays / 7f)
     }

@@ -1,98 +1,466 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
-    android:background="?android:attr/colorBackground">
+    android:background="@color/clinical_bg">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <!-- App bar -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="@color/white"
+        android:elevation="1dp">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@android:drawable/ic_menu_close_clear_cancel"
-            app:title="@string/add_medication_title" />
-    </com.google.android.material.appbar.AppBarLayout>
+        <ImageButton
+            android:id="@+id/button_close"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="@drawable/bg_close_button"
+            android:src="@drawable/ic_close_small"
+            android:scaleType="center"
+            android:contentDescription="@string/cancel"
+            app:tint="@color/clinical_ink_muted" />
 
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/treatment_ledger_subtitle"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:textColor="@color/clinical_ink_muted"
+                android:letterSpacing="0.05" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/add_medication_title"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/clinical_ink"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/chip_patient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:background="@drawable/bg_patient_chip">
+
+            <TextView
+                android:id="@+id/text_patient_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:textSize="9sp"
+                android:textColor="@color/clinical_sage"
+                android:textStyle="bold"
+                android:letterSpacing="0.03"
+                tools:text="kitty · A1347542" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Scrollable body -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp">
+            android:paddingBottom="100dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_scan_label"
-                style="@style/Widget.Material3.Button.TonalButton.Icon"
+            <!-- Scan banner -->
+            <LinearLayout
+                android:id="@+id/banner_scan"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="@string/scan_label_button"
-                app:icon="@android:drawable/ic_menu_camera" />
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="11dp"
+                android:background="@drawable/bg_scan_banner">
 
-            <com.google.android.material.textfield.TextInputLayout
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_scan_qr"
+                    app:tint="@color/clinical_amber"
+                    android:contentDescription="@null" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="10dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/med_scan_title"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/clinical_amber" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/med_scan_subtitle"
+                        android:textSize="9sp"
+                        android:fontFamily="monospace"
+                        android:textColor="@color/clinical_ink_muted"
+                        android:layout_marginTop="1dp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="7dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_chevron_right_small"
+                    app:tint="@color/clinical_amber"
+                    android:contentDescription="@null" />
+            </LinearLayout>
+
+            <!-- MEDICATION section card -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:background="@drawable/bg_section_card">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/input_med_name"
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/med_name_hint"
-                    android:inputType="text" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:text="@string/med_section_medication"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:letterSpacing="0.1"
+                    android:padding="8dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:background="@drawable/bg_section_header" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_start_date"
-                style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:icon="@android:drawable/ic_menu_my_calendar" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_until_date"
-                style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:icon="@android:drawable/ic_menu_my_calendar" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/input_instructions"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="top|start"
-                    android:hint="@string/instructions_hint"
-                    android:inputType="textMultiLine|textCapSentences"
-                    android:minLines="4" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="14dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_save"
+                    <!-- Name field -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/med_label_name"
+                        style="@style/MedFieldLabel" />
+
+                    <EditText
+                        android:id="@+id/input_med_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/med_name_placeholder"
+                        android:inputType="text"
+                        style="@style/MedTextInput" />
+
+                    <!-- Dose row -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/med_label_dose"
+                        android:layout_marginTop="10dp"
+                        style="@style/MedFieldLabel" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/input_dose"
+                            android:layout_width="72dp"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/med_dose_placeholder"
+                            android:inputType="numberDecimal"
+                            style="@style/MedTextInput" />
+
+                        <Spinner
+                            android:id="@+id/spinner_dose_unit"
+                            android:layout_width="0dp"
+                            android:layout_height="38dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_spinner"
+                            android:popupBackground="@color/white" />
+
+                        <Spinner
+                            android:id="@+id/spinner_route"
+                            android:layout_width="0dp"
+                            android:layout_height="38dp"
+                            android:layout_weight="1.4"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_spinner"
+                            android:popupBackground="@color/white" />
+                    </LinearLayout>
+
+                    <!-- Frequency chips -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/med_label_frequency"
+                        android:layout_marginTop="10dp"
+                        style="@style/MedFieldLabel" />
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chip_group_frequency"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        app:chipSpacingHorizontal="6dp"
+                        app:chipSpacingVertical="6dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- SCHEDULE section card -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/save" />
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:background="@drawable/bg_section_card">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/med_section_schedule"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:letterSpacing="0.1"
+                    android:padding="8dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:background="@drawable/bg_section_header" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
+
+                    <!-- Start / End date row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/med_label_start_date"
+                                style="@style/MedFieldLabel" />
+
+                            <TextView
+                                android:id="@+id/button_start_date"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:drawableStart="@drawable/ic_calendar_small"
+                                android:drawablePadding="8dp"
+                                style="@style/MedDateButton" />
+                        </LinearLayout>
+
+                        <Space
+                            android:layout_width="10dp"
+                            android:layout_height="0dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/med_label_end_date"
+                                style="@style/MedFieldLabel" />
+
+                            <TextView
+                                android:id="@+id/button_end_date"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:drawableStart="@drawable/ic_calendar_small"
+                                android:drawablePadding="8dp"
+                                style="@style/MedDateButton" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Duration pill (auto-computed) -->
+                    <LinearLayout
+                        android:id="@+id/pill_duration"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="10dp"
+                        android:padding="7dp"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:background="@drawable/bg_duration_pill"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <View
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="@drawable/bg_dot_sage" />
+
+                        <TextView
+                            android:id="@+id/text_duration"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:fontFamily="monospace"
+                            android:textSize="10sp"
+                            android:textColor="@color/clinical_sage"
+                            tools:text="7-day course" />
+
+                        <TextView
+                            android:id="@+id/text_duration_detail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:fontFamily="monospace"
+                            android:textSize="9sp"
+                            android:textColor="@color/clinical_ink_muted"
+                            tools:text="Daily · ends May 10, 2026" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- INSTRUCTIONS section card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:background="@drawable/bg_section_card">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/med_section_instructions"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:letterSpacing="0.1"
+                    android:padding="8dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:background="@drawable/bg_section_header" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/med_label_notes"
+                        style="@style/MedFieldLabel" />
+
+                    <EditText
+                        android:id="@+id/input_instructions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/med_notes_placeholder"
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:minLines="3"
+                        android:gravity="top|start"
+                        style="@style/MedTextInput" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
+
+    <!-- Sticky bottom bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="@color/white"
+        android:elevation="4dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_cancel"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:textColor="@color/clinical_ink_muted"
+            app:strokeColor="@color/clinical_line"
+            app:cornerRadius="7dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_save"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:text="@string/save_medication"
+            android:textStyle="bold"
+            app:backgroundTint="@color/clinical_sage"
+            app:cornerRadius="7dp" />
+    </LinearLayout>
 </LinearLayout>

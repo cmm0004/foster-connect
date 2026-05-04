@@ -234,6 +234,10 @@ object KittenRepository {
                     id = medication.id,
                     fosterCaseId = fosterCaseId,
                     name = medication.name,
+                    dose = medication.dose,
+                    doseUnit = medication.doseUnit,
+                    route = medication.route,
+                    frequency = medication.frequency,
                     instructions = medication.instructions,
                     startDateMillis = medication.startDateMillis,
                     endDateMillis = medication.endDateMillis,
@@ -591,6 +595,10 @@ object KittenRepository {
             Medication(
                 id = it.id,
                 name = it.name,
+                dose = it.dose,
+                doseUnit = it.doseUnit,
+                route = it.route,
+                frequency = it.frequency,
                 instructions = it.instructions,
                 startDateMillis = it.startDateMillis,
                 endDateMillis = it.endDateMillis

@@ -36,7 +36,6 @@ import com.example.fosterconnect.history.WeightTrend
 import com.example.fosterconnect.medication.FosterTreatmentSchedule
 import com.example.fosterconnect.medication.Medication
 import com.example.fosterconnect.medication.ScheduledDose
-import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
@@ -146,7 +145,9 @@ class KittenDetailFragment : Fragment() {
         binding.textKittenName.text = fosterCase.name
 
         val nickPart = if (fosterCase.litterName != null) "\"${fosterCase.litterName}\" · " else ""
-        binding.textKittenBreed.text = "${nickPart}DSH · ${fosterCase.color.display}"
+        val idPart = if (fosterCase.externalId.isNotBlank()) fosterCase.externalId else ""
+        binding.textKittenBreed.text = "${nickPart}${idPart}".trimEnd(' ', '·').ifBlank { null }
+        binding.textKittenBreed.visibility = if (binding.textKittenBreed.text.isNullOrBlank()) android.view.View.GONE else android.view.View.VISIBLE
 
         // Info chips
         binding.layoutInfoChips.removeAllViews()
@@ -217,13 +218,9 @@ class KittenDetailFragment : Fragment() {
 
         // Vitals chart
         binding.vitalsChart.setBirthdayMillis(fosterCase.estimatedBirthdayMillis)
-        //if (fosterCase.weightEntries.isNotEmpty() || fosterCase.stoolEntries.isNotEmpty() || fosterCase.eventEntries.isNotEmpty()) {
         binding.vitalsChart.setWeightEntries(fosterCase.weightEntries)
         binding.vitalsChart.setStoolEntries(fosterCase.stoolEntries)
         binding.vitalsChart.setEventEntries(fosterCase.eventEntries)
-//        } else {
-//            binding.vitalsChart.setPlaceholderData()
-//        }
 
         binding.layoutMedications.removeAllViews()
         if (fosterCase.isCompleted) {
@@ -284,7 +281,6 @@ class KittenDetailFragment : Fragment() {
 
     private fun renderTreatmentSchedule(fosterCase: FosterCaseAnimal, currentWeightGrams: Float?) {
         binding.layoutTreatmentSchedule.removeAllViews()
-        val ctx = requireContext()
         val latestWeightEntry = fosterCase.weightEntries.lastOrNull()
 
         val schedule = FosterTreatmentSchedule.generateSchedule(
@@ -480,7 +476,6 @@ class KittenDetailFragment : Fragment() {
         val oneWeekMs = 7L * 24 * 60 * 60 * 1000
         val defaultDate = System.currentTimeMillis() + oneWeekMs
 
-        val cal = Calendar.getInstance().apply { timeInMillis = defaultDate }
         var selectedDateMillis = defaultDate
         var ponazurilChecked = true
 
@@ -680,154 +675,6 @@ class KittenDetailFragment : Fragment() {
             })
         }
         return container
-    }
-
-    private fun showTreatmentHistoryDialog() {
-        val fosterCase = KittenRepository.getFosterCase(fosterCaseId) ?: return
-        val dp = resources.displayMetrics.density
-
-        val completedDoses = fosterCase.administeredTreatments
-            .filter { it.administeredDateMillis != null }
-            .groupBy { it.scheduledDateMillis }
-            .toSortedMap()
-        val stoppedMeds = fosterCase.medications.filter { !it.isActive }
-
-        if (completedDoses.isEmpty() && stoppedMeds.isEmpty()) {
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.treatment_history_title)
-                .setMessage(getString(R.string.no_history_yet))
-                .setPositiveButton(R.string.ok, null)
-                .show()
-            return
-        }
-
-        val scrollView = androidx.core.widget.NestedScrollView(requireContext())
-        val container = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.VERTICAL
-            val pad = (16 * dp).toInt()
-            setPadding(pad, pad, pad, pad)
-        }
-        scrollView.addView(container)
-
-        if (completedDoses.isNotEmpty()) {
-            val header = TextView(requireContext()).apply {
-                text = getString(R.string.completed_treatments_header)
-                setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
-                setPadding(0, 0, 0, (8 * dp).toInt())
-            }
-            container.addView(header)
-
-            var doseNum = 0
-            for ((doseDate, treatments) in completedDoses) {
-                doseNum++
-                val card =
-                    com.google.android.material.card.MaterialCardView(requireContext()).apply {
-                        radius = 12f * dp
-                        cardElevation = 1f * dp
-                        layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        ).apply { bottomMargin = (8 * dp).toInt() }
-                    }
-
-                val content = LinearLayout(requireContext()).apply {
-                    orientation = LinearLayout.VERTICAL
-                    val padPx = (12 * dp).toInt()
-                    setPadding(padPx, padPx, padPx, padPx)
-                }
-
-                val titleText = TextView(requireContext()).apply {
-                    text = "\u2713 ${
-                        getString(
-                            R.string.dose_header_format,
-                            doseNum,
-                            dateFormat.format(Date(doseDate))
-                        )
-                    }"
-                    setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
-                }
-                content.addView(titleText)
-
-                for (t in treatments) {
-                    val displayName = com.example.fosterconnect.medication.StandardTreatment.entries
-                        .firstOrNull { it.name == t.treatmentType }?.displayName ?: t.treatmentType
-                    val label =
-                        if (t.doseGiven != null) "$displayName -${t.doseGiven}" else displayName
-                    val row = TextView(requireContext()).apply {
-                        text = label
-                        setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall)
-                        setPadding(0, (4 * dp).toInt(), 0, 0)
-                    }
-                    content.addView(row)
-                }
-
-                card.addView(content)
-                container.addView(card)
-            }
-        }
-
-        // Stopped medications
-        if (stoppedMeds.isNotEmpty()) {
-            val header = TextView(requireContext()).apply {
-                text = getString(R.string.stopped_medications_header)
-                setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
-                setPadding(0, (16 * dp).toInt(), 0, (8 * dp).toInt())
-            }
-            container.addView(header)
-
-            for (med in stoppedMeds.sortedByDescending { it.endDateMillis }) {
-                val card =
-                    com.google.android.material.card.MaterialCardView(requireContext()).apply {
-                        radius = 12f * dp
-                        cardElevation = 1f * dp
-                        layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        ).apply { bottomMargin = (8 * dp).toInt() }
-                    }
-
-                val content = LinearLayout(requireContext()).apply {
-                    orientation = LinearLayout.VERTICAL
-                    val padPx = (12 * dp).toInt()
-                    setPadding(padPx, padPx, padPx, padPx)
-                }
-
-                val nameText = TextView(requireContext()).apply {
-                    text = med.name
-                    setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
-                }
-                content.addView(nameText)
-
-                if (med.instructions.isNotBlank()) {
-                    val instructionsText = TextView(requireContext()).apply {
-                        text = med.instructions
-                        setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall)
-                        setPadding(0, (4 * dp).toInt(), 0, 0)
-                    }
-                    content.addView(instructionsText)
-                }
-
-                val dateRange = buildString {
-                    append("${dateFormat.format(Date(med.startDateMillis))} \u2014 ")
-                    append(dateFormat.format(Date(med.endDateMillis ?: 0)))
-                }
-                val dateText = TextView(requireContext()).apply {
-                    text = dateRange
-                    setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall)
-                    setPadding(0, (4 * dp).toInt(), 0, 0)
-                }
-                content.addView(dateText)
-
-                card.addView(content)
-                container.addView(card)
-            }
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.treatment_history_title)
-            .setView(scrollView)
-            .setPositiveButton(R.string.ok, null)
-            .show()
     }
 
     private fun buildMedicationCard(med: Medication): View {
@@ -1113,8 +960,12 @@ class KittenDetailFragment : Fragment() {
         setFragmentResultListener(AddMedicationDialogFragment.RESULT_KEY) { _, _ ->
             refreshUI()
         }
-        AddMedicationDialogFragment.newInstance(fosterCaseId = fosterCaseId)
-            .show(parentFragmentManager, "add_medication")
+        val fosterInfo = KittenRepository.getFosterCase(fosterCaseId)
+        AddMedicationDialogFragment.newInstance(
+            fosterCaseId = fosterCaseId,
+            patientName = fosterInfo?.name,
+            animalNumber = fosterInfo?.externalId
+        ).show(parentFragmentManager, "add_medication")
     }
 
     private fun checkWeightTrend() {

@@ -19,4 +19,50 @@
     </style>
 
     <style name="Theme.FosterConnect" parent="Base.Theme.FosterConnect" />
+
+    <!-- Add Medication form styles -->
+    <style name="MedFieldLabel">
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">9sp</item>
+        <item name="android:textColor">@color/clinical_ink_muted</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:layout_marginBottom">5dp</item>
+    </style>
+
+    <style name="MedTextInput">
+        <item name="android:background">@drawable/bg_med_input</item>
+        <item name="android:paddingStart">11dp</item>
+        <item name="android:paddingEnd">11dp</item>
+        <item name="android:paddingTop">9dp</item>
+        <item name="android:paddingBottom">9dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/clinical_ink</item>
+        <item name="android:textColorHint">@color/clinical_ink_muted</item>
+    </style>
+
+    <style name="MedDateButton">
+        <item name="android:background">@drawable/bg_med_input</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">11dp</item>
+        <item name="android:paddingTop">9dp</item>
+        <item name="android:paddingBottom">9dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/clinical_ink</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="MedFrequencyChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/white</item>
+        <item name="chipStrokeColor">@color/clinical_line</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipCornerRadius">4dp</item>
+        <item name="android:textColor">@color/clinical_ink_soft</item>
+        <item name="android:textSize">9sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="chipMinHeight">28dp</item>
+        <item name="chipStartPadding">10dp</item>
+        <item name="chipEndPadding">10dp</item>
+        <item name="checkedIconVisible">false</item>
+    </style>
 </resources>

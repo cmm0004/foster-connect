@@ -45,18 +45,6 @@ class HorizontalBarChartView @JvmOverloads constructor(
         color = 0xFFE7E0EC.toInt()
     }
 
-    fun setData(bars: List<Bar>, maxValueOverride: Float? = null) {
-        this.bars = bars
-        this.maxValue = maxValueOverride ?: max(1f, bars.maxOfOrNull { it.value } ?: 1f)
-        requestLayout()
-        invalidate()
-    }
-
-    fun setBarColor(color: Int) {
-        barPaint.color = color
-        invalidate()
-    }
-
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
         val rows = bars.size.coerceAtLeast(1)

@@ -9,8 +9,6 @@ import androidx.room.Relation
 
 enum class AnimalSpecies {
     CAT,
-    DOG,
-    OTHER
 }
 
 enum class FosterCaseStatus {
@@ -121,6 +119,10 @@ data class CaseMedicationEntity(
     @PrimaryKey val id: String,
     val fosterCaseId: String,
     val name: String,
+    val dose: String = "",
+    val doseUnit: String = "",
+    val route: String = "",
+    val frequency: String = "",
     val instructions: String,
     val startDateMillis: Long,
     val endDateMillis: Long?,

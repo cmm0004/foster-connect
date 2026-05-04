@@ -17,18 +17,11 @@ interface AnimalDao {
     @Query("SELECT COUNT(*) FROM animals")
     suspend fun countAnimals(): Int
 
-    @Transaction
-    @Query("SELECT * FROM animals ORDER BY name")
-    fun observeAnimalsWithCases(): Flow<List<AnimalWithCases>>
-
     @Query("SELECT * FROM animals WHERE id = :animalId")
     suspend fun getAnimal(animalId: String): AnimalEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAnimal(animal: AnimalEntity)
-
-    @Update
-    suspend fun updateAnimal(animal: AnimalEntity)
 
     @Query("UPDATE animals SET estimatedBirthdayMillis = :birthdayMillis, updatedAtMillis = :updatedAtMillis WHERE id = :animalId")
     suspend fun updateBirthday(animalId: String, birthdayMillis: Long, updatedAtMillis: Long)
@@ -45,11 +38,6 @@ interface AnimalDao {
 
 @Dao
 interface FosterCaseDao {
-
-    @Transaction
-    @Query("SELECT * FROM foster_cases WHERE status = 'ACTIVE' ORDER BY intakeDateMillis DESC")
-    fun observeActiveCasesWithDetails(): Flow<List<FosterCaseWithDetails>>
-
     @Transaction
     @Query("SELECT * FROM foster_cases ORDER BY intakeDateMillis DESC")
     fun observeAllCasesWithDetails(): Flow<List<FosterCaseWithDetails>>
@@ -58,14 +46,8 @@ interface FosterCaseDao {
     @Query("SELECT * FROM foster_cases WHERE id = :caseId")
     suspend fun getCaseWithDetails(caseId: String): FosterCaseWithDetails?
 
-    @Query("SELECT * FROM foster_cases WHERE animalId = :animalId ORDER BY intakeDateMillis DESC")
-    fun observeCasesForAnimal(animalId: String): Flow<List<FosterCaseEntity>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCase(fosterCase: FosterCaseEntity)
-
-    @Update
-    suspend fun updateCase(fosterCase: FosterCaseEntity)
 
     @Query("UPDATE foster_cases SET collarColor = :collarColor, updatedAtMillis = :updatedAtMillis WHERE id = :caseId")
     suspend fun updateCollarColor(caseId: String, collarColor: String?, updatedAtMillis: Long)
@@ -148,9 +130,6 @@ interface FosterCaseDao {
 
     @Query("UPDATE case_messages SET isRead = 1 WHERE id = :messageId")
     suspend fun markMessageRead(messageId: String)
-
-    @Query("SELECT * FROM case_messages WHERE fosterCaseId = :caseId ORDER BY timestamp DESC")
-    fun observeMessagesForCase(caseId: String): Flow<List<CaseMessageEntity>>
 
     @Query("SELECT * FROM case_messages ORDER BY timestamp DESC")
     fun observeAllMessages(): Flow<List<CaseMessageEntity>>
