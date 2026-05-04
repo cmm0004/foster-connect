@@ -29,6 +29,9 @@ class NearbySyncManager(
     private var connectedEndpointId: String? = null
     private var receivedBytes: ByteArrayOutputStream? = null
     private var timeoutJob: Job? = null
+    @Volatile private var localMergeDone = false
+    @Volatile private var remoteMergeDone = false
+    private var mergeStats: MergeStats? = null
 
     private val deviceId: String
         get() = prefs.getString("device_id", null) ?: UUID.randomUUID().toString().also {
@@ -65,6 +68,11 @@ class NearbySyncManager(
 
         override fun onDisconnected(endpointId: String) {
             connectedEndpointId = null
+            if (localMergeDone && _state.value !is SyncState.Done) {
+                _state.value = SyncState.Done(mergeStats ?: MergeStats())
+            } else if (!localMergeDone && _state.value is SyncState.Transferring) {
+                _state.value = SyncState.Error("Connection lost during transfer")
+            }
         }
     }
 
@@ -92,7 +100,12 @@ class NearbySyncManager(
                 }
                 Payload.Type.BYTES -> {
                     val bytes = payload.asBytes() ?: return
-                    scope.launch { handleReceivedData(bytes) }
+                    if (bytes.contentEquals(SYNC_DONE_SIGNAL)) {
+                        remoteMergeDone = true
+                        maybeDisconnect()
+                    } else {
+                        scope.launch { handleReceivedData(bytes) }
+                    }
                 }
                 else -> {}
             }
@@ -110,6 +123,9 @@ class NearbySyncManager(
     }
 
     fun startSync() {
+        localMergeDone = false
+        remoteMergeDone = false
+        mergeStats = null
         _state.value = SyncState.Searching
         startAdvertising()
         startDiscovery()
@@ -202,17 +218,42 @@ class NearbySyncManager(
             val merger = SyncMerger(db)
             val stats = merger.merge(remotePayload)
             prefs.edit().putLong("last_sync_millis", System.currentTimeMillis()).apply()
-            connectedEndpointId?.let { connectionsClient.disconnectFromEndpoint(it) }
-            connectedEndpointId = null
-            _state.value = SyncState.Done(stats)
+
+            connectedEndpointId?.let { endpointId ->
+                connectionsClient.sendPayload(endpointId, Payload.fromBytes(SYNC_DONE_SIGNAL))
+            }
+            mergeStats = stats
+            localMergeDone = true
+            maybeDisconnect()
+
+            scope.launch {
+                delay(10_000)
+                if (_state.value is SyncState.WaitingForPeer) {
+                    Log.w(TAG, "Timed out waiting for peer done signal")
+                    connectedEndpointId?.let { connectionsClient.disconnectFromEndpoint(it) }
+                    connectedEndpointId = null
+                    _state.value = SyncState.Done(mergeStats ?: MergeStats())
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error merging data", e)
             _state.value = SyncState.Error("Merge failed: ${e.message}")
         }
     }
 
+    private fun maybeDisconnect() {
+        if (localMergeDone && remoteMergeDone) {
+            connectedEndpointId?.let { connectionsClient.disconnectFromEndpoint(it) }
+            connectedEndpointId = null
+            _state.value = SyncState.Done(mergeStats ?: MergeStats())
+        } else if (localMergeDone) {
+            _state.value = SyncState.WaitingForPeer
+        }
+    }
+
     companion object {
         private const val TAG = "NearbySyncManager"
         private const val SERVICE_ID = "com.example.fosterconnect.sync"
+        private val SYNC_DONE_SIGNAL = "SYNC_DONE".toByteArray(Charsets.UTF_8)
     }
 }

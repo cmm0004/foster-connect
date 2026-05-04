@@ -208,6 +208,7 @@
     <string name="sync_confirm_message">Connect to %1$s?\n\nVerify this code matches on both devices: %2$s</string>
     <string name="sync_transferring">Transferring data…</string>
     <string name="sync_merging">Merging records…</string>
+    <string name="sync_waiting_for_peer">Waiting for other device to finish…</string>
     <string name="sync_complete">Sync complete: %1$d added, %2$d updated</string>
     <string name="sync_error">Sync error: %s</string>
     <string name="sync_permissions_required">Bluetooth and location permissions are required for sync</string>

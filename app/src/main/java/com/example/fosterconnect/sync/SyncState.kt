@@ -11,6 +11,7 @@ sealed class SyncState {
     object Connected : SyncState()
     object Transferring : SyncState()
     object Merging : SyncState()
+    object WaitingForPeer : SyncState()
     data class Done(val stats: MergeStats) : SyncState()
     data class Error(val message: String) : SyncState()
 }

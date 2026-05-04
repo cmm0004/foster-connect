@@ -357,6 +357,14 @@ class MainActivity : AppCompatActivity() {
                     .show()
             }
 
+            is SyncState.WaitingForPeer -> {
+                syncDialog?.dismiss()
+                syncDialog = MaterialAlertDialogBuilder(this)
+                    .setMessage(R.string.sync_waiting_for_peer)
+                    .setCancelable(false)
+                    .show()
+            }
+
             is SyncState.Done -> {
                 syncDialog?.dismiss()
                 syncDialog = null
