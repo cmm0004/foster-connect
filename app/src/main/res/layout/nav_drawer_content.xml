@@ -57,7 +57,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="monospace"
                     android:letterSpacing="0.05"
-                    android:text="@string/drawer_vet_protocol"
+                    android:text="@string/clinical_subtitle"
                     android:textColor="#99FFFFFF"
                     android:textSize="9sp" />
             </LinearLayout>
@@ -537,28 +537,6 @@
             </LinearLayout>
 
             <!-- Build info footer -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="12dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/drawer_footer_bg"
-                android:orientation="vertical"
-                android:padding="11dp">
-
-                <TextView
-                    android:id="@+id/drawer_build_info"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="monospace"
-                    android:letterSpacing="0.04"
-                    android:lineSpacingMultiplier="1.8"
-                    android:textColor="@color/clinical_ink_muted"
-                    android:textSize="8sp"
-                    tools:text="BUILD 1.0 · APR 26 2026\nSHELTER CONNECT NETWORK" />
-            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

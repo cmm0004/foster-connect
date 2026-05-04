@@ -76,7 +76,11 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
 
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.FosterListFragment, R.id.MessageCenterFragment, R.id.PreviousFostersFragment), drawerLayout
+            setOf(
+                R.id.FosterListFragment,
+                R.id.MessageCenterFragment,
+                R.id.PreviousFostersFragment
+            ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
@@ -130,9 +134,17 @@ class MainActivity : AppCompatActivity() {
         )
 
         val items = listOf(
-            NavItemConfig(R.id.nav_current_fosters, R.id.nav_current_fosters_icon, R.id.nav_current_fosters_label),
+            NavItemConfig(
+                R.id.nav_current_fosters,
+                R.id.nav_current_fosters_icon,
+                R.id.nav_current_fosters_label
+            ),
             NavItemConfig(R.id.nav_alerts, R.id.nav_alerts_icon, R.id.nav_alerts_label),
-            NavItemConfig(R.id.nav_previous_fosters, R.id.nav_previous_fosters_icon, R.id.nav_previous_fosters_label),
+            NavItemConfig(
+                R.id.nav_previous_fosters,
+                R.id.nav_previous_fosters_icon,
+                R.id.nav_previous_fosters_label
+            ),
         )
 
         for (item in items) {
@@ -145,12 +157,14 @@ class MainActivity : AppCompatActivity() {
                 if (isActive) R.drawable.nav_item_active_bg else R.drawable.nav_item_default_bg
             )
             icon.setColorFilter(
-                ContextCompat.getColor(this,
+                ContextCompat.getColor(
+                    this,
                     if (isActive) R.color.clinical_sage else R.color.clinical_ink_muted
                 )
             )
             label.setTextColor(
-                ContextCompat.getColor(this,
+                ContextCompat.getColor(
+                    this,
                     if (isActive) R.color.clinical_sage else R.color.clinical_ink
                 )
             )
@@ -180,15 +194,6 @@ class MainActivity : AppCompatActivity() {
         drawerView.findViewById<TextView>(R.id.nav_previous_fosters_sub)?.text =
             getString(R.string.drawer_sub_previous_format, 0)
 
-        val versionName = try {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0"
-        } catch (e: Exception) {
-            "1.0"
-        }
-        val dateStr = java.text.SimpleDateFormat("MMM dd yyyy", java.util.Locale.US)
-            .format(java.util.Date()).uppercase()
-        drawerView.findViewById<TextView>(R.id.drawer_build_info)?.text =
-            getString(R.string.drawer_build_info_format, versionName, dateStr)
     }
 
     private fun observeDrawerCounts() {
@@ -305,6 +310,7 @@ class MainActivity : AppCompatActivity() {
                 syncDialog?.dismiss()
                 syncDialog = null
             }
+
             is SyncState.Searching -> {
                 syncDialog?.dismiss()
                 syncDialog = MaterialAlertDialogBuilder(this)
@@ -313,11 +319,18 @@ class MainActivity : AppCompatActivity() {
                     .setCancelable(false)
                     .show()
             }
+
             is SyncState.Authenticating -> {
                 syncDialog?.dismiss()
                 syncDialog = MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.sync_confirm_title)
-                    .setMessage(getString(R.string.sync_confirm_message, state.deviceName, state.authToken))
+                    .setMessage(
+                        getString(
+                            R.string.sync_confirm_message,
+                            state.deviceName,
+                            state.authToken
+                        )
+                    )
                     .setPositiveButton("Connect") { _, _ ->
                         syncManager?.acceptConnection(state.endpointId, state.deviceName)
                     }
@@ -327,6 +340,7 @@ class MainActivity : AppCompatActivity() {
                     .setCancelable(false)
                     .show()
             }
+
             is SyncState.Connected, is SyncState.Transferring -> {
                 syncDialog?.dismiss()
                 syncDialog = MaterialAlertDialogBuilder(this)
@@ -334,6 +348,7 @@ class MainActivity : AppCompatActivity() {
                     .setCancelable(false)
                     .show()
             }
+
             is SyncState.Merging -> {
                 syncDialog?.dismiss()
                 syncDialog = MaterialAlertDialogBuilder(this)
@@ -341,16 +356,22 @@ class MainActivity : AppCompatActivity() {
                     .setCancelable(false)
                     .show()
             }
+
             is SyncState.Done -> {
                 syncDialog?.dismiss()
                 syncDialog = null
                 Toast.makeText(
                     this,
-                    getString(R.string.sync_complete, state.stats.totalAdded, state.stats.totalUpdated),
+                    getString(
+                        R.string.sync_complete,
+                        state.stats.totalAdded,
+                        state.stats.totalUpdated
+                    ),
                     Toast.LENGTH_LONG
                 ).show()
                 syncManager = null
             }
+
             is SyncState.Error -> {
                 syncDialog?.dismiss()
                 syncDialog = null

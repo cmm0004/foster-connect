@@ -123,7 +123,7 @@
     <string name="delete">Delete</string>
 
     <!-- Clinical Dashboard strings -->
-    <string name="clinical_subtitle">Version v1.0</string>
+    <string name="clinical_subtitle">v1.0</string>
     <string name="patient_chart_label">PATIENT CHART</string>
     <string name="action_required">ACTION REQUIRED</string>
     <string name="stable">STABLE</string>
@@ -185,7 +185,7 @@
     <string name="collar_color_title">Collar Color</string>
 
     <!-- Drawer strings -->
-    <string name="drawer_vet_protocol">VET PROTOCOL v1.0</string>
+    <string name="drawer_vet_protocol">v1.0</string>
     <string name="drawer_current_litter">CURRENT LITTER</string>
     <string name="drawer_litter_placeholder">No Active Litter</string>
     <string name="drawer_section_navigation">NAVIGATION</string>
