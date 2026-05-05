@@ -17,7 +17,16 @@
         <action
             android:id="@+id/action_FosterList_to_Gallery"
             app:destination="@id/GalleryFragment" />
+        <action
+            android:id="@+id/action_FosterList_to_AddLitter"
+            app:destination="@id/AddLitterFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/AddLitterFragment"
+        android:name="com.example.fosterconnect.foster.AddLitterFragment"
+        android:label="Add Litter"
+        tools:layout="@layout/fragment_add_litter" />
 
     <fragment
         android:id="@+id/GalleryFragment"

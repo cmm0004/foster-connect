@@ -49,6 +49,7 @@ class KittenDetailFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
+    private val shortDateFormat = SimpleDateFormat("MMM d", Locale.getDefault())
     private lateinit var fosterCaseId: String
 
     private fun formatWeight(grams: Float): String {
@@ -403,44 +404,7 @@ class KittenDetailFragment : Fragment() {
     }
 
     private fun buildMedicationHistoryRow(med: com.example.fosterconnect.medication.Medication): View {
-        val ctx = requireContext()
-        val dp = resources.displayMetrics.density
-        val content = LinearLayout(ctx).apply {
-            orientation = LinearLayout.VERTICAL
-            val hPad = (14 * dp).toInt()
-            val vPad = (10 * dp).toInt()
-            setPadding(hPad, vPad, hPad, vPad)
-        }
-        val nameText = TextView(ctx).apply {
-            text = med.name
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(ContextCompat.getColor(ctx, R.color.clinical_ink))
-            textSize = 12f
-        }
-        content.addView(nameText)
-        if (med.instructions.isNotBlank()) {
-            val instrText = TextView(ctx).apply {
-                text = med.instructions
-                setTextColor(ContextCompat.getColor(ctx, R.color.clinical_ink_soft))
-                textSize = 11f
-                setPadding(0, (4 * dp).toInt(), 0, 0)
-            }
-            content.addView(instrText)
-        }
-        val dateRange = buildString {
-            append(dateFormat.format(Date(med.startDateMillis)))
-            append(" \u2014 ")
-            append(dateFormat.format(Date(med.endDateMillis ?: med.startDateMillis)))
-        }
-        val dateText = TextView(ctx).apply {
-            text = dateRange
-            setTextColor(ContextCompat.getColor(ctx, R.color.clinical_ink_muted))
-            textSize = 10f
-            typeface = Typeface.MONOSPACE
-            setPadding(0, (4 * dp).toInt(), 0, 0)
-        }
-        content.addView(dateText)
-        return content
+        return buildMedicationCard(med)
     }
 
     private fun buildDivider(): View {
@@ -683,30 +647,44 @@ class KittenDetailFragment : Fragment() {
 
         view.findViewById<TextView>(R.id.text_med_name).text = med.name
 
-        if (med.isActive) {
-            val dayNumber = daysSinceStart(med.startDateMillis) + 1
-            view.findViewById<TextView>(R.id.text_med_day).apply {
-                text = getString(R.string.day_n_format, dayNumber)
+        val detailParts = listOfNotNull(
+            med.dose.takeIf { it.isNotBlank() }?.let { "$it ${med.doseUnit}".trim() },
+            med.route.takeIf { it.isNotBlank() },
+            med.frequency.takeIf { it.isNotBlank() }
+        )
+        view.findViewById<TextView>(R.id.text_med_detail_line).apply {
+            if (detailParts.isNotEmpty()) {
+                text = detailParts.joinToString(" · ")
                 visibility = View.VISIBLE
+            } else {
+                visibility = View.GONE
             }
         }
 
+        view.findViewById<TextView>(R.id.text_med_start).text =
+            shortDateFormat.format(Date(med.startDateMillis))
+
+        if (med.endDateMillis != null) {
+            view.findViewById<TextView>(R.id.text_med_end).text =
+                shortDateFormat.format(Date(med.endDateMillis))
+
+            val days = ((med.endDateMillis - med.startDateMillis) / (1000 * 60 * 60 * 24)).toInt()
+            view.findViewById<TextView>(R.id.text_med_course).text = when {
+                days <= 0 -> "Single dose"
+                days == 1 -> "1-day course"
+                else -> "$days-day course"
+            }
+        } else {
+            view.findViewById<TextView>(R.id.text_med_end).text = "Ongoing"
+            view.findViewById<TextView>(R.id.text_med_course).text = "Open-ended"
+        }
+
         if (med.instructions.isNotBlank()) {
-            view.findViewById<TextView>(R.id.text_med_instructions).apply {
+            view.findViewById<TextView>(R.id.text_med_notes).apply {
                 text = med.instructions
                 visibility = View.VISIBLE
             }
         }
-
-        val dateRange = buildString {
-            append("Started: ${dateFormat.format(Date(med.startDateMillis))}")
-            if (med.endDateMillis != null) {
-                val label = if (med.isActive) "Until" else "Ended"
-                append("\n$label: ${dateFormat.format(Date(med.endDateMillis))}")
-            }
-        }
-        view.findViewById<TextView>(R.id.text_med_dates).text = dateRange
-
 
         return view
     }

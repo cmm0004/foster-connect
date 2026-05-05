@@ -1,56 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:paddingHorizontal="14dp"
-    android:paddingVertical="10dp">
+    android:paddingVertical="12dp">
 
-    <!-- Name -->
+    <!-- Accent bar -->
+    <View
+        android:id="@+id/view_accent_bar"
+        android:layout_width="3dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="10dp"
+        android:background="@color/clinical_sage" />
+
+    <!-- Content column -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Name -->
+        <TextView
+            android:id="@+id/text_med_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/clinical_ink"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="Metro" />
+
+        <!-- Dose / Route / Frequency -->
+        <TextView
+            android:id="@+id/text_med_detail_line"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.02"
+            android:textColor="@color/clinical_ink_muted"
+            android:textSize="10sp"
+            tools:text="0.09 ml · Oral · Daily" />
+
+        <!-- Schedule row: STARTED / ENDS / COURSE -->
+        <LinearLayout
+            android:id="@+id/layout_schedule_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:orientation="horizontal">
+
+            <!-- Started -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.05"
+                    android:text="STARTED"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="8sp" />
+
+                <TextView
+                    android:id="@+id/text_med_start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:text="May 3" />
+            </LinearLayout>
+
+            <!-- Ends -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.05"
+                    android:text="ENDS"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="8sp" />
+
+                <TextView
+                    android:id="@+id/text_med_end"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:text="May 10" />
+            </LinearLayout>
+
+            <!-- Course -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.05"
+                    android:text="COURSE"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="8sp" />
+
+                <TextView
+                    android:id="@+id/text_med_course"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:text="7-day course" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Notes (shown only if present) -->
+        <TextView
+            android:id="@+id/text_med_notes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_med_notes"
+            android:lineSpacingMultiplier="1.55"
+            android:paddingHorizontal="9dp"
+            android:paddingVertical="6dp"
+            android:textColor="@color/clinical_ink_soft"
+            android:textSize="11sp"
+            android:textStyle="italic"
+            android:visibility="gone"
+            tools:text="Mix with a small amount of wet food." />
+    </LinearLayout>
+
+    <!-- Edit button -->
     <TextView
-        android:id="@+id/text_med_name"
+        android:id="@+id/button_edit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/clinical_ink"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        tools:text="Ponazuril" />
-
-    <!-- Day number (active only) -->
-    <TextView
-        android:id="@+id/text_med_day"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_gravity="top"
+        android:background="@drawable/bg_edit_button"
         android:fontFamily="monospace"
-        android:textColor="@color/clinical_sage"
-        android:textSize="11sp"
-        android:visibility="gone"
-        tools:text="Day 3" />
-
-    <!-- Instructions -->
-    <TextView
-        android:id="@+id/text_med_instructions"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp"
+        android:text="EDIT"
         android:textColor="@color/clinical_ink_soft"
-        android:textSize="12sp"
-        android:visibility="gone"
-        tools:text="0.3ml once daily" />
-
-    <!-- Date range -->
-    <TextView
-        android:id="@+id/text_med_dates"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:fontFamily="monospace"
-        android:textColor="@color/clinical_ink_muted"
-        android:textSize="10sp"
-        tools:text="Started: April 10, 2026" />
-
+        android:textSize="9sp" />
 
 </LinearLayout>

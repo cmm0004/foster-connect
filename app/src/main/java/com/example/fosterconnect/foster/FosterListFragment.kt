@@ -168,7 +168,7 @@ class FosterListFragment : Fragment() {
         }
 
         binding.buttonNewFoster.setOnClickListener {
-            showReviewDialog(null)
+            findNavController().navigate(R.id.action_FosterList_to_AddLitter)
         }
         binding.buttonNewFoster.setOnLongClickListener {
             scanTestAgreement()

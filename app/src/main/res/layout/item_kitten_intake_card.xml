@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="224dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="10dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="10dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/clinical_line"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Card header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_kitten_card_header"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="10dp">
+
+            <ImageView
+                android:id="@+id/image_kitten_avatar"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="Kitten avatar" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/text_kitten_index"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.08"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:id="@+id/text_kitten_name_preview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:textColor="@color/clinical_ink"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/button_remove_kitten"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Remove kitten"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:scaleType="centerInside"
+                android:visibility="gone"
+                app:tint="@color/clinical_ink_muted" />
+        </LinearLayout>
+
+        <!-- Fields -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- Name -->
+            <TextView
+                style="@style/MedFieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NAME" />
+
+            <EditText
+                android:id="@+id/input_kitten_name"
+                style="@style/MedTextInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="e.g. Biscuit"
+                android:inputType="textCapWords"
+                android:importantForAutofill="no" />
+
+            <!-- Animal ID -->
+            <TextView
+                style="@style/MedFieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="ANIMAL ID" />
+
+            <EditText
+                android:id="@+id/input_kitten_animal_id"
+                style="@style/MedTextInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="e.g. 123124"
+                android:inputType="text"
+                android:importantForAutofill="no" />
+
+            <!-- Color -->
+            <TextView
+                style="@style/MedFieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="COLOR" />
+
+            <AutoCompleteTextView
+                android:id="@+id/input_kitten_color"
+                style="@style/MedTextInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select color"
+                android:inputType="none"
+                android:importantForAutofill="no" />
+
+            <!-- Sex segmented control -->
+            <TextView
+                style="@style/MedFieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="SEX" />
+
+            <LinearLayout
+                android:id="@+id/layout_sex_segment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_sex_segment"
+                android:orientation="horizontal"
+                android:padding="2dp">
+
+                <TextView
+                    android:id="@+id/btn_sex_male"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:paddingVertical="6dp"
+                    android:text="Male"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:id="@+id/btn_sex_female"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:paddingVertical="6dp"
+                    android:text="Female"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:id="@+id/btn_sex_unknown"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:paddingVertical="6dp"
+                    android:text="Unknown"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="9sp" />
+            </LinearLayout>
+
+            <!-- Age row -->
+            <TextView
+                style="@style/MedFieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="AGE" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/input_kitten_age"
+                    style="@style/MedTextInput"
+                    android:layout_width="56dp"
+                    android:layout_height="wrap_content"
+                    android:hint="0"
+                    android:inputType="number"
+                    android:importantForAutofill="no" />
+
+                <AutoCompleteTextView
+                    android:id="@+id/input_kitten_age_unit"
+                    style="@style/MedTextInput"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:hint="Unit"
+                    android:inputType="none"
+                    android:importantForAutofill="no" />
+            </LinearLayout>
+
+            <!-- Weight row -->
+            <TextView
+                style="@style/MedFieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="WEIGHT" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/input_kitten_weight"
+                    style="@style/MedTextInput"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="0"
+                    android:inputType="numberDecimal"
+                    android:importantForAutofill="no" />
+
+                <TextView
+                    android:id="@+id/input_kitten_weight_date"
+                    style="@style/MedDateButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:hint="Date"
+                    android:textColorHint="@color/clinical_ink_muted" />
+            </LinearLayout>
+
+            <!-- Weight unit segmented control -->
+            <LinearLayout
+                android:id="@+id/layout_weight_unit_segment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_sex_segment"
+                android:orientation="horizontal"
+                android:padding="2dp">
+
+                <TextView
+                    android:id="@+id/btn_unit_lbs"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:paddingVertical="6dp"
+                    android:text="Pounds"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:id="@+id/btn_unit_grams"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:paddingVertical="6dp"
+                    android:text="Grams"
+                    android:textColor="@color/clinical_ink_muted"
+                    android:textSize="9sp" />
+            </LinearLayout>
+
+            <!-- Breed -->
+
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
