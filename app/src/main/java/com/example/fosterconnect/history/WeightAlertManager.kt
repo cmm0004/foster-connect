@@ -1,6 +1,6 @@
 package com.example.fosterconnect.history
 
-import com.example.fosterconnect.foster.Kitten
+import com.example.fosterconnect.foster.FosterCaseAnimal
 
 enum class WeightTrend {
     NORMAL,
@@ -12,8 +12,8 @@ object WeightAlertManager {
 
     private const val CONSECUTIVE_DECLINES_THRESHOLD = 3
 
-    fun evaluate(kitten: Kitten): WeightTrend {
-        val entries = kitten.weightEntries
+    fun evaluate(fosterCase: FosterCaseAnimal): WeightTrend {
+        val entries = fosterCase.weightEntries
         if (entries.size < CONSECUTIVE_DECLINES_THRESHOLD) return WeightTrend.NORMAL
 
         val recent = entries.takeLast(CONSECUTIVE_DECLINES_THRESHOLD)
@@ -23,7 +23,7 @@ object WeightAlertManager {
 
         if (!allDecliningOrFlat) return WeightTrend.NORMAL
 
-        return if (kitten.weightDeclineWarned) {
+        return if (fosterCase.weightDeclineWarned) {
             WeightTrend.DECLINING_AFTER_WARNING
         } else {
             WeightTrend.DECLINING

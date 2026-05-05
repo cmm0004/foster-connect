@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(xargs ls:*)",
-      "Bash(./gradlew assembleDebug)"
+      "Bash(./gradlew assembleDebug)",
+      "Bash(./gradlew :app:mergeDebugResources)",
+      "Bash(xargs cat *)",
+      "Bash(grep -E \"\\\\.\\(xml|kt\\)$\")",
+      "Read(//private/tmp/foster_design/**)",
+      "Bash(tar xf *)",
+      "Bash(./gradlew :app:assembleDebug)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Read(//private/tmp/**)",
+      "Bash(cp /Users/cmccollough/.claude/projects/-Users-cmccollough-AndroidStudioProjects-FosterConnect/f6c67907-92dc-4c3a-9bc3-8fff8b94f4ae/tool-results/webfetch-1777934647015-i4ap46.bin design.gz)",
+      "Bash(gunzip -f design.gz)",
+      "Bash(grep -E \"\\\\.\\(kt|java\\)$\")"
     ]
   }
 }

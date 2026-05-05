@@ -9,6 +9,7 @@ enum class StandardTreatment(val displayName: String) {
 }
 
 data class ScheduledDose(
+    val treatmentId: Long,
     val treatment: StandardTreatment,
     val scheduledDateMillis: Long,
     val doseLabel: String,
@@ -19,8 +20,8 @@ data class ScheduledDose(
 
 object FosterTreatmentSchedule {
 
-    private const val TWO_WEEKS_MS = 14L * 24 * 60 * 60 * 1000
-    private const val EIGHT_WEEKS_MS = 8L * 7 * 24 * 60 * 60 * 1000
+    private const val ONE_DAY_MS = 24L * 60 * 60 * 1000
+    private const val TWO_WEEKS_MS = 14L * ONE_DAY_MS
     private const val GRAMS_PER_LB = 453.592f
 
     // Ponazuril dosing table: (weight in lbs, dose in cc)
@@ -75,59 +76,71 @@ object FosterTreatmentSchedule {
         80.0f to 16.0f
     )
 
+    const val TWO_WEEKS = TWO_WEEKS_MS
+
     fun generateSchedule(
-        intakeDateMillis: Long,
-        birthdayMillis: Long?,
-        currentWeightGrams: Float?,
-        administeredTreatments: List<AdministeredTreatment>
+        nextVaccineDateMillis: Long?,
+        latestWeightGrams: Float?,
+        latestWeightDateMillis: Long?,
+        treatments: List<AdministeredTreatment>
     ): List<ScheduledDose> {
+        if (nextVaccineDateMillis == null) return emptyList()
+
         val now = System.currentTimeMillis()
-        val cutoffMillis = if (birthdayMillis != null) birthdayMillis + EIGHT_WEEKS_MS else null
-        val doses = mutableListOf<ScheduledDose>()
+        val todayStart = now - (now % ONE_DAY_MS)
 
-        var doseNumber = 1
-        var doseDate = intakeDateMillis
-        // Generate up to a reasonable max (e.g., 10 doses) if no birthday cutoff
-        val maxDoses = 10
+        val currentDoseTreatments = treatments.filter { it.scheduledDateMillis == nextVaccineDateMillis }
+        if (currentDoseTreatments.isEmpty()) return emptyList()
 
-        while (doseNumber <= maxDoses) {
-            if (cutoffMillis != null && doseDate > cutoffMillis) break
+        val completedDoseCount = treatments
+            .filter { it.treatmentType == StandardTreatment.FVRCP.name && it.administeredDateMillis != null }
+            .map { it.scheduledDateMillis }
+            .distinct()
+            .count()
+        val doseNumber = completedDoseCount + 1
+        val isPast = nextVaccineDateMillis < todayStart
 
-            for (treatment in StandardTreatment.entries) {
-                val isAdministered = administeredTreatments.any {
-                    it.treatmentType == treatment.name && it.scheduledDateMillis == doseDate
-                }
-                doses.add(
-                    ScheduledDose(
-                        treatment = treatment,
-                        scheduledDateMillis = doseDate,
-                        doseLabel = getDoseLabel(treatment, currentWeightGrams),
-                        doseNumber = doseNumber,
-                        isPast = doseDate < now,
-                        isAdministered = isAdministered
-                    )
-                )
-            }
-
-            doseDate += TWO_WEEKS_MS
-            doseNumber++
+        return currentDoseTreatments.mapNotNull { t ->
+            val treatment = StandardTreatment.entries.firstOrNull { it.name == t.treatmentType } ?: return@mapNotNull null
+            ScheduledDose(
+                treatmentId = t.id,
+                treatment = treatment,
+                scheduledDateMillis = nextVaccineDateMillis,
+                doseLabel = getDoseLabel(treatment, isPast || nextVaccineDateMillis < now, todayStart, latestWeightGrams, latestWeightDateMillis),
+                doseNumber = doseNumber,
+                isPast = isPast,
+                isAdministered = t.administeredDateMillis != null
+            )
         }
-
-        return doses
     }
 
-    private fun getDoseLabel(treatment: StandardTreatment, weightGrams: Float?): String {
+    fun isCurrentDoseComplete(schedule: List<ScheduledDose>): Boolean {
+        if (schedule.isEmpty()) return false
+        return schedule.all { it.isAdministered }
+    }
+
+    private fun getDoseLabel(
+        treatment: StandardTreatment,
+        isDueOrPast: Boolean,
+        todayStart: Long,
+        weightGrams: Float?,
+        weightDateMillis: Long?
+    ): String {
         return when (treatment) {
-            StandardTreatment.FVRCP -> "Administer vaccine"
-            StandardTreatment.PYRANTEL -> {
-                if (weightGrams == null || weightGrams <= 0f) return "Weigh kitten first"
-                val ml = pyrantelDoseMl(weightGrams)
-                "%.2f ml".format(ml)
-            }
-            StandardTreatment.PONAZURIL -> {
-                if (weightGrams == null || weightGrams <= 0f) return "Weigh kitten first"
-                val cc = ponazurilDoseCc(weightGrams) ?: return "Weight too low for dosing"
-                "%.2f cc".format(cc)
+            StandardTreatment.FVRCP -> "1"
+            StandardTreatment.PYRANTEL, StandardTreatment.PONAZURIL -> {
+                if (!isDueOrPast) return "determined day-of"
+                if (weightGrams == null || weightGrams <= 0f) return "Update weight"
+                val weightIsToday = weightDateMillis != null && weightDateMillis >= todayStart
+                if (!weightIsToday) return "Update weight"
+                when (treatment) {
+                    StandardTreatment.PYRANTEL -> "%.2f ml".format(pyrantelDoseMl(weightGrams))
+                    StandardTreatment.PONAZURIL -> {
+                        val cc = ponazurilDoseCc(weightGrams) ?: return "Weight too low"
+                        "%.2f cc".format(cc)
+                    }
+                    else -> ""
+                }
             }
         }
     }

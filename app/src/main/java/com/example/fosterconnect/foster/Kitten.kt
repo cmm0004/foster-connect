@@ -1,66 +1,160 @@
 package com.example.fosterconnect.foster
 
+import androidx.annotation.DrawableRes
+import com.example.fosterconnect.R
+import com.example.fosterconnect.history.EventEntry
+import com.example.fosterconnect.history.Message
+import com.example.fosterconnect.history.StoolEntry
 import com.example.fosterconnect.history.WeightEntry
 import com.example.fosterconnect.medication.Medication
+import java.util.Locale
+import java.util.Locale.getDefault
+
+@DrawableRes
+fun CoatColor.defaultProfileDrawable(name: String): Int {
+    if (name.uppercase() == "NOSE CAT") {
+        return R.drawable.nose_cat
+    }
+    if (name.uppercase() == "CONEDOG") {
+        return R.drawable.conedog
+    }
+    if (name.uppercase() in listOf("WASABI", "GINGER", "DAIKON")) {
+        return R.drawable.dog
+    }
+    if (name.uppercase() == "WAFFLES") {
+        return R.drawable.precious_angel
+    }
+    return when(this) {
+        CoatColor.BLACK -> R.drawable.black
+        CoatColor.WHITE -> R.drawable.white
+        CoatColor.GRAY_TABBY -> R.drawable.all_grey_tabby
+        CoatColor.DILUTED -> R.drawable.dilutedtabby
+        CoatColor.CALICO -> R.drawable.calico
+        CoatColor.TORTOISESHELL -> R.drawable.tortoiseshell
+        CoatColor.TUXEDO -> R.drawable.tuxedo
+        CoatColor.CHOC_FLAMEPOINT -> R.drawable.chocolateflamepoint
+        CoatColor.ORANGE_TABBY -> R.drawable.default_kitten_profile
+        CoatColor.GRAY -> R.drawable.grey_kitten
+        CoatColor.GRAY_TUXEDO -> R.drawable.grey_with_socks
+        CoatColor.GRAY_TABBY_TUXEDO -> R.drawable.greytabby
+        CoatColor.ORANGE_SPOTTED -> R.drawable.orange_white_spot
+        CoatColor.GRAY_FLAMEPOINT -> R.drawable.grey_flamepoint
+        CoatColor.ORANGE_FLAMEPOINT -> R.drawable.flamepoint
+        CoatColor.BLACK_SPOTTED -> R.drawable.black_white_spotted
+        CoatColor.TAB_TORTIE -> R.drawable.tab_tortie
+        CoatColor.BROWN_TABBY -> R.drawable.brown_tabby
+        CoatColor.BLOTCHED_TABBY -> R.drawable.blotched_tabby
+        CoatColor.DILUTED_TORTOISESHELL -> R.drawable.dilutedtortoiseshell
+    }
+}
 
 enum class Sex(val display: String) {
     MALE("Male"),
-    FEMALE("Female")
-}
-
-enum class Breed(val display: String) {
-    DOMESTIC_SHORT_HAIR("Domestic Short Hair"),
-    DOMESTIC_MEDIUM_HAIR("Domestic Medium Hair"),
-    DOMESTIC_LONG_HAIR("Domestic Long Hair"),
-    SIAMESE("Siamese"),
-    MAINE_COON("Maine Coon"),
-    PERSIAN("Persian"),
-    TABBY("Tabby"),
-    CALICO("Calico"),
-    TUXEDO("Tuxedo")
+    FEMALE("Female"),
+    NEUTERED("Neutered"),
+    SPAYED("Spayed")
 }
 
 enum class CoatColor(val display: String) {
     BLACK("Black"),
     WHITE("White"),
-    ORANGE("Orange"),
     GRAY("Gray"),
-    BROWN("Brown"),
-    CALICO("Calico"),
-    TORTOISESHELL("Tortoiseshell"),
     GRAY_TABBY("Gray Tabby"),
+    DILUTED("Diluted"),
+    CALICO("Calico"),
+    TORTOISESHELL("Tortie"),
+    DILUTED_TORTOISESHELL("Dil. Tortie"),
+    TAB_TORTIE("Tab Tortie"),
     ORANGE_TABBY("Orange Tabby"),
     BROWN_TABBY("Brown Tabby"),
-    TUXEDO("Tuxedo")
+    TUXEDO("Tuxedo"),
+    GRAY_TUXEDO("Grey Tuxedo"),
+    GRAY_TABBY_TUXEDO("Grey Tabby Tuxedo"),
+    CHOC_FLAMEPOINT("Chocolate Flamepoint"),
+    GRAY_FLAMEPOINT("Gray Flamepoint"),
+    ORANGE_FLAMEPOINT("Flamepoint"),
+    BLACK_SPOTTED("Black Spotted"),
+    ORANGE_SPOTTED("Orange Spotted"),
+    BLOTCHED_TABBY("Blotched Tabby")
 }
 
-data class AdministeredTreatment(
-    val treatmentType: String,
-    val scheduledDateMillis: Long,
-    val administeredDateMillis: Long
+enum class CollarColor(val display: String, val colorResId: Int) {
+    RED("Red", R.color.collar_red),
+    BLUE("Blue", R.color.collar_blue),
+    GREEN("Green", R.color.collar_green),
+    YELLOW("Yellow", R.color.collar_yellow),
+    PURPLE("Purple", R.color.collar_purple),
+    BLACK("Black", R.color.collar_black),
+    WHITE("White", R.color.collar_white),
+    ORANGE("Orange", R.color.collar_orange);
+
+    companion object {
+        fun fromName(name: String?): CollarColor? =
+            if (name == null) null else runCatching { valueOf(name) }.getOrNull()
+    }
+}
+
+data class FosterPhoto(
+    val id: String,
+    val uri: String,
+    val addedAtMillis: Long
 )
 
-data class Kitten(
-    val id: String = java.util.UUID.randomUUID().toString(),
+data class AdministeredTreatment(
+    val id: Long = 0,
+    val treatmentType: String,
+    val scheduledDateMillis: Long,
+    val administeredDateMillis: Long? = null,
+    val doseGiven: String? = null
+)
+
+data class FosterCaseAnimal(
+    val animalId: String,
+    val fosterCaseId: String,
     val externalId: String = "",
     val name: String,
-    val breed: Breed,
+    val litterName: String? = null,
     val color: CoatColor,
     val sex: Sex,
-    val isAltered: Boolean,
     val intakeDateMillis: Long,
     val estimatedBirthdayMillis: Long? = null,
-    val weightEntries: MutableList<WeightEntry> = mutableListOf(),
-    val medications: MutableList<Medication> = mutableListOf(),
-    val administeredTreatments: MutableList<AdministeredTreatment> = mutableListOf(),
-    var weightDeclineWarned: Boolean = false,
-    var isAdopted: Boolean = false,
-    var adoptionDateMillis: Long? = null
+    val weightEntries: List<WeightEntry> = emptyList(),
+    val stoolEntries: List<StoolEntry> = emptyList(),
+    val eventEntries: List<EventEntry> = emptyList(),
+    val medications: List<Medication> = emptyList(),
+    val photos: List<FosterPhoto> = emptyList(),
+    val nextVaccineDateMillis: Long? = null,
+    val administeredTreatments: List<AdministeredTreatment> = emptyList(),
+    val messages: List<Message> = emptyList(),
+    val collarColor: CollarColor? = null,
+    val weightDeclineWarned: Boolean = false,
+    val outDateMillis: Long? = null,
+    val isCompleted: Boolean = false
 ) {
     val ageInWeeks: Int?
         get() {
-            val bday = estimatedBirthdayMillis ?: return null
-            val diffMillis = System.currentTimeMillis() - bday
+            val birthday = estimatedBirthdayMillis ?: return null
+            val diffMillis = System.currentTimeMillis() - birthday
             return (diffMillis / (7L * 24 * 60 * 60 * 1000)).toInt()
         }
 }
+
+data class CompletedFoster(
+    val completedRecordId: String,
+    val animalId: String,
+    val fosterCaseId: String,
+    val externalId: String = "",
+    val name: String,
+    val litterName: String? = null,
+    val color: CoatColor,
+    val sex: Sex,
+    val estimatedBirthdayMillis: Long? = null,
+    val intakeDateMillis: Long,
+    val outDateMillis: Long,
+    val daysFostered: Int,
+    val finalWeightGrams: Float? = null,
+    val weightChangeGrams: Float? = null,
+    val medicalSummary: String? = null,
+    val behaviorSummary: String? = null,
+    val placementSummary: String? = null
+)

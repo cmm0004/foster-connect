@@ -7,19 +7,27 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [
-        KittenEntity::class,
-        WeightEntryEntity::class,
-        MedicationEntity::class,
-        AdministeredTreatmentEntity::class,
-        MessageEntity::class
+        AnimalEntity::class,
+        FosterCaseEntity::class,
+        CaseWeightEntity::class,
+        CaseStoolEntity::class,
+        CaseMedicationEntity::class,
+        CasePhotoEntity::class,
+        CaseTreatmentEntity::class,
+        CaseEventEntity::class,
+        CaseMessageEntity::class,
+        CompletedFosterRecordEntity::class,
+        AssignedTraitEntity::class
     ],
-    version = 1,
+    version = 18,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun kittenDao(): KittenDao
-    abstract fun messageDao(): MessageDao
+    abstract fun animalDao(): AnimalDao
+    abstract fun fosterCaseDao(): FosterCaseDao
+    abstract fun traitDao(): TraitDao
+    abstract fun syncDao(): SyncDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -30,7 +38,10 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "foster_connect.db"
-                ).build().also { INSTANCE = it }
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                    .also { INSTANCE = it }
             }
         }
     }

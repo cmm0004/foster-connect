@@ -14,6 +14,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fosterconnect.R
 import com.example.fosterconnect.data.KittenRepository
 import com.example.fosterconnect.databinding.FragmentPreviousFostersBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class PreviousFostersFragment : Fragment() {
@@ -34,22 +38,46 @@ class PreviousFostersFragment : Fragment() {
 
         binding.recyclerPreviousFosters.layoutManager = LinearLayoutManager(requireContext())
 
+        val headerDateFormat = SimpleDateFormat("MM / dd / yy", Locale.US)
+        binding.textDate.text = headerDateFormat.format(Date())
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                KittenRepository.kittensFlow.collect { kittens ->
-                    val adoptedKittens = kittens.filter { it.isAdopted }
-                    if (adoptedKittens.isEmpty()) {
-                        binding.textEmptyPrevious.visibility = View.VISIBLE
+                combine(
+                    KittenRepository.completedFostersFlow,
+                    KittenRepository.caseTraitScoresFlow
+                ) { completed, scores -> completed to scores }
+                .collect { (completed, scores) ->
+                    if (completed.isEmpty()) {
                         binding.recyclerPreviousFosters.visibility = View.GONE
+                        binding.textEmptyPrevious.visibility = View.VISIBLE
+                        binding.textPreviousCount.text =
+                            getString(R.string.previous_count_format, 0)
                     } else {
-                        binding.textEmptyPrevious.visibility = View.GONE
                         binding.recyclerPreviousFosters.visibility = View.VISIBLE
-                        binding.recyclerPreviousFosters.adapter = KittenAdapter(adoptedKittens) { kitten ->
-                            findNavController().navigate(
-                                R.id.action_PreviousFosters_to_KittenDetail,
-                                bundleOf("kittenId" to kitten.id)
-                            )
-                        }
+                        binding.textEmptyPrevious.visibility = View.GONE
+                        binding.textPreviousCount.text =
+                            getString(R.string.previous_count_format, completed.size)
+                        val sorted = completed.sortedByDescending { it.outDateMillis }
+                        binding.recyclerPreviousFosters.adapter = PreviousFosterAdapter(
+                            fosters = sorted,
+                            scoresByCase = scores,
+                            onRankClick = { foster ->
+                                findNavController().navigate(
+                                    R.id.action_PreviousFosters_to_KittenRanking,
+                                    bundleOf(
+                                        "animalId" to foster.animalId,
+                                        "fosterCaseId" to foster.fosterCaseId
+                                    )
+                                )
+                            },
+                            onClick = { foster ->
+                                findNavController().navigate(
+                                    R.id.action_PreviousFosters_to_KittenDetail,
+                                    bundleOf("fosterCaseId" to foster.fosterCaseId)
+                                )
+                            }
+                        )
                     }
                 }
             }

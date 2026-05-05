@@ -14,6 +14,28 @@
         <action
             android:id="@+id/action_FosterList_to_KittenDetail"
             app:destination="@id/KittenDetailFragment" />
+        <action
+            android:id="@+id/action_FosterList_to_Gallery"
+            app:destination="@id/GalleryFragment" />
+        <action
+            android:id="@+id/action_FosterList_to_AddLitter"
+            app:destination="@id/AddLitterFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/AddLitterFragment"
+        android:name="com.example.fosterconnect.foster.AddLitterFragment"
+        android:label="Add Litter"
+        tools:layout="@layout/fragment_add_litter" />
+
+    <fragment
+        android:id="@+id/GalleryFragment"
+        android:name="com.example.fosterconnect.foster.GalleryFragment"
+        android:label="Gallery"
+        tools:layout="@layout/fragment_gallery">
+        <argument
+            android:name="fosterCaseId"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -23,7 +45,7 @@
         tools:layout="@layout/fragment_kitten_detail">
 
         <argument
-            android:name="kittenId"
+            android:name="fosterCaseId"
             app:argType="string" />
     </fragment>
 
@@ -45,6 +67,27 @@
         <action
             android:id="@+id/action_PreviousFosters_to_KittenDetail"
             app:destination="@id/KittenDetailFragment" />
+        <action
+            android:id="@+id/action_PreviousFosters_to_KittenRanking"
+            app:destination="@id/KittenRankingFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/KittenRankingFragment"
+        android:name="com.example.fosterconnect.foster.KittenRankingFragment"
+        android:label="Rank Kitten"
+        tools:layout="@layout/fragment_kitten_ranking">
+        <argument
+            android:name="animalId"
+            app:argType="string" />
+
+        <argument
+            android:name="fosterCaseId"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_KittenRanking_to_Gallery"
+            app:destination="@id/GalleryFragment" />
     </fragment>
 
 </navigation>
