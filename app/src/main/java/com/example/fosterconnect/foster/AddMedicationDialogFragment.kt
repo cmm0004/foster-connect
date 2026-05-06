@@ -46,6 +46,7 @@ class AddMedicationDialogFragment : DialogFragment() {
     private lateinit var fosterCaseId: String
     private var patientName: String? = null
     private var animalNumber: String? = null
+    private var editMedicationId: String? = null
     private var startDateMillis: Long = 0L
     private var endDateMillis: Long = 0L
     private var selectedFrequency: String = ""
@@ -98,20 +99,25 @@ class AddMedicationDialogFragment : DialogFragment() {
         fosterCaseId = requireArguments().getString(ARG_FOSTER_CASE_ID)!!
         patientName = requireArguments().getString(ARG_PATIENT_NAME)
         animalNumber = requireArguments().getString(ARG_ANIMAL_NUMBER)
+        editMedicationId = requireArguments().getString(ARG_EDIT_MEDICATION_ID)
         val todayCal = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
+        val args = requireArguments()
         startDateMillis = savedInstanceState?.getLong(STATE_START_DATE)
+            ?: args.getLong(ARG_EDIT_START_DATE, 0L).takeIf { it > 0 }
             ?: todayCal.timeInMillis
         endDateMillis = savedInstanceState?.getLong(STATE_END_DATE)
+            ?: args.getLong(ARG_EDIT_END_DATE, 0L).takeIf { it > 0 }
             ?: Calendar.getInstance().apply {
                 timeInMillis = todayCal.timeInMillis
                 add(Calendar.DAY_OF_YEAR, 7)
             }.timeInMillis
-        selectedFrequency = savedInstanceState?.getString(STATE_FREQUENCY) ?: ""
+        selectedFrequency = savedInstanceState?.getString(STATE_FREQUENCY)
+            ?: args.getString(ARG_EDIT_FREQUENCY, "") ?: ""
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -160,6 +166,25 @@ class AddMedicationDialogFragment : DialogFragment() {
         if (savedInstanceState == null) {
             requireArguments().getString(ARG_PREFILL_NAME)?.let { nameInput?.setText(it) }
             requireArguments().getString(ARG_PREFILL_INSTRUCTIONS)?.let { instructionsInput?.setText(it) }
+            requireArguments().getString(ARG_EDIT_DOSE)?.let { doseInput?.setText(it) }
+            requireArguments().getString(ARG_EDIT_DOSE_UNIT)?.let { unit ->
+                val adapter = doseUnitSpinner?.adapter ?: return@let
+                for (i in 0 until adapter.count) {
+                    if (adapter.getItem(i).toString() == unit) {
+                        doseUnitSpinner?.setSelection(i)
+                        break
+                    }
+                }
+            }
+            requireArguments().getString(ARG_EDIT_ROUTE)?.let { route ->
+                val adapter = routeSpinner?.adapter ?: return@let
+                for (i in 0 until adapter.count) {
+                    if (adapter.getItem(i).toString() == route) {
+                        routeSpinner?.setSelection(i)
+                        break
+                    }
+                }
+            }
         }
 
         updateStartDateLabel()
@@ -390,6 +415,7 @@ class AddMedicationDialogFragment : DialogFragment() {
             startDateMillis = startDateMillis,
             endDateMillis = endDateMillis
         )
+        editMedicationId?.let { KittenRepository.deleteMedication(it) }
         KittenRepository.addMedication(fosterCaseId, medication)
         setFragmentResult(RESULT_KEY, bundleOf())
         dismiss()
@@ -402,6 +428,13 @@ class AddMedicationDialogFragment : DialogFragment() {
         private const val ARG_ANIMAL_NUMBER = "animal_number"
         private const val ARG_PREFILL_NAME = "prefill_name"
         private const val ARG_PREFILL_INSTRUCTIONS = "prefill_instructions"
+        private const val ARG_EDIT_MEDICATION_ID = "edit_medication_id"
+        private const val ARG_EDIT_DOSE = "edit_dose"
+        private const val ARG_EDIT_DOSE_UNIT = "edit_dose_unit"
+        private const val ARG_EDIT_ROUTE = "edit_route"
+        private const val ARG_EDIT_FREQUENCY = "edit_frequency"
+        private const val ARG_EDIT_START_DATE = "edit_start_date"
+        private const val ARG_EDIT_END_DATE = "edit_end_date"
         private const val STATE_START_DATE = "start_date_millis"
         private const val STATE_END_DATE = "end_date_millis"
         private const val STATE_FREQUENCY = "frequency"
@@ -419,6 +452,28 @@ class AddMedicationDialogFragment : DialogFragment() {
                 ARG_ANIMAL_NUMBER to animalNumber,
                 ARG_PREFILL_NAME to prefillName,
                 ARG_PREFILL_INSTRUCTIONS to prefillInstructions,
+            )
+        }
+
+        fun editInstance(
+            fosterCaseId: String,
+            patientName: String? = null,
+            animalNumber: String? = null,
+            medication: Medication
+        ) = AddMedicationDialogFragment().apply {
+            arguments = bundleOf(
+                ARG_FOSTER_CASE_ID to fosterCaseId,
+                ARG_PATIENT_NAME to patientName,
+                ARG_ANIMAL_NUMBER to animalNumber,
+                ARG_PREFILL_NAME to medication.name,
+                ARG_PREFILL_INSTRUCTIONS to medication.instructions,
+                ARG_EDIT_MEDICATION_ID to medication.id,
+                ARG_EDIT_DOSE to medication.dose,
+                ARG_EDIT_DOSE_UNIT to medication.doseUnit,
+                ARG_EDIT_ROUTE to medication.route,
+                ARG_EDIT_FREQUENCY to medication.frequency,
+                ARG_EDIT_START_DATE to medication.startDateMillis,
+                ARG_EDIT_END_DATE to (medication.endDateMillis ?: 0L),
             )
         }
     }

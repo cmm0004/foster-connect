@@ -346,31 +346,19 @@ class AddLitterFragment : Fragment() {
 
     private fun updateSummary() {
         val count = kittens.size
-        val named = kittens.count { it.name.isNotBlank() }
-
-        val litterName = inputLitterName.text?.toString()?.trim().orEmpty()
-        val canCreate = litterName.isNotEmpty() && named > 0
-        buttonCreate.isEnabled = canCreate
+        buttonCreate.isEnabled = true
         buttonCreate.text = "Create $count ${if (count == 1) "Kitten" else "Kittens"}"
     }
 
     private fun createLitter() {
         val ctx = requireContext()
-        val litterName = inputLitterName.text?.toString()?.trim().orEmpty()
-        if (litterName.isEmpty()) {
-            Toast.makeText(ctx, "Litter name is required", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val namedKittens = kittens.filter { it.name.isNotBlank() }
-        if (namedKittens.isEmpty()) {
-            Toast.makeText(ctx, "At least one kitten must be named", Toast.LENGTH_SHORT).show()
-            return
+        val litterName = inputLitterName.text?.toString()?.trim().let {
+            if (it.isNullOrEmpty()) "No Name" else it
         }
 
         val intakeMillis = intakeDateMillis ?: System.currentTimeMillis()
 
-        for (kitten in namedKittens) {
+        val kittenCreationData = kittens.map { kitten ->
             val estimatedBirthday = kitten.age?.let {
                 ParsedAge(it, kitten.ageUnit).estimatedBirthdayMillis(intakeMillis)
             }
@@ -380,20 +368,23 @@ class AddLitterFragment : Fragment() {
                     WeightUnit.POUNDS -> w * 453.592f
                 }
             }
-            KittenRepository.createFosterCase(
+            KittenRepository.KittenCreationData(
                 externalId = kitten.animalId,
-                name = kitten.name.trim(),
-                litterName = litterName,
+                name = kitten.name.trim().ifEmpty { "No Name" },
                 color = kitten.color ?: CoatColor.BLACK,
                 sex = kitten.sex ?: Sex.FEMALE,
-                intakeDateMillis = intakeMillis,
                 estimatedBirthdayMillis = estimatedBirthday,
                 initialWeightGrams = weightGrams,
                 initialWeightDateMillis = kitten.weightDateMillis
             )
         }
+        KittenRepository.createLitter(
+            litterName = litterName,
+            intakeDateMillis = intakeMillis,
+            kittens = kittenCreationData
+        )
 
-        val count = namedKittens.size
+        val count = kittens.size
         Toast.makeText(ctx, "Created $count ${if (count == 1) "kitten" else "kittens"}", Toast.LENGTH_SHORT).show()
         findNavController().popBackStack()
     }

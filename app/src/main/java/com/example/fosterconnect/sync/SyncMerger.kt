@@ -9,6 +9,15 @@ class SyncMerger(private val db: AppDatabase) {
         val syncDao = db.syncDao()
         var stats = MergeStats()
 
+        // 0. Litters (String PK, LWW by updatedAtMillis)
+        val localLitters = syncDao.getAllLitters().associateBy { it.id }
+        for (remoteLitter in remote.litters) {
+            val local = localLitters[remoteLitter.id]
+            if (local == null || remoteLitter.updatedAtMillis > local.updatedAtMillis) {
+                syncDao.upsertLitter(remoteLitter)
+            }
+        }
+
         // 1. Animals (String PK, LWW by updatedAtMillis)
         val localAnimals = syncDao.getAllAnimals().associateBy { it.id }
         for (remoteAnimal in remote.animals) {

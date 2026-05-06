@@ -145,7 +145,7 @@ class KittenDetailFragment : Fragment() {
         binding.imageProfile.setImageResource(fosterCase.color.defaultProfileDrawable(fosterCase.name))
         binding.textKittenName.text = fosterCase.name
 
-        val nickPart = if (fosterCase.litterName != null) "\"${fosterCase.litterName}\" · " else ""
+        val nickPart = if (fosterCase.litterName.isNotEmpty()) "\"${fosterCase.litterName}\" · " else ""
         val idPart = if (fosterCase.externalId.isNotBlank()) fosterCase.externalId else ""
         binding.textKittenBreed.text = "${nickPart}${idPart}".trimEnd(' ', '·').ifBlank { null }
         binding.textKittenBreed.visibility = if (binding.textKittenBreed.text.isNullOrBlank()) android.view.View.GONE else android.view.View.VISIBLE
@@ -320,7 +320,7 @@ class KittenDetailFragment : Fragment() {
                 .setTitle(R.string.complete_dose_title)
                 .setMessage(R.string.complete_dose_message)
                 .setPositiveButton(R.string.complete_dose) { _, _ ->
-                    KittenRepository.completeTreatmentDose(fosterCaseId)
+                    KittenRepository.completeTreatmentDose(fosterCase.litterId)
                     refreshUI()
                 }
                 .setNegativeButton(android.R.string.cancel, null)
@@ -484,7 +484,7 @@ class KittenDetailFragment : Fragment() {
             .setPositiveButton(R.string.schedule) { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     val success = KittenRepository.scheduleNextTreatment(
-                        fosterCaseId,
+                        fosterCase.litterId,
                         selectedDateMillis,
                         ponazurilChecked
                     )
@@ -686,7 +686,24 @@ class KittenDetailFragment : Fragment() {
             }
         }
 
+        view.findViewById<View>(R.id.button_edit)?.setOnClickListener {
+            showEditMedicationDialog(med)
+        }
+
         return view
+    }
+
+    private fun showEditMedicationDialog(medication: Medication) {
+        setFragmentResultListener(AddMedicationDialogFragment.RESULT_KEY) { _, _ ->
+            refreshUI()
+        }
+        val fosterInfo = KittenRepository.getFosterCase(fosterCaseId)
+        AddMedicationDialogFragment.editInstance(
+            fosterCaseId = fosterCaseId,
+            patientName = fosterInfo?.name,
+            animalNumber = fosterInfo?.externalId,
+            medication = medication
+        ).show(parentFragmentManager, "edit_medication")
     }
 
     private fun exportFosterHistory() {

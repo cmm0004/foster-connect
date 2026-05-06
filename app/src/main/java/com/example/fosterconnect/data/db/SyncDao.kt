@@ -8,6 +8,12 @@ import androidx.room.Query
 @Dao
 interface SyncDao {
 
+    @Query("SELECT * FROM litters")
+    suspend fun getAllLitters(): List<LitterEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertLitter(litter: LitterEntity)
+
     @Query("SELECT * FROM animals")
     suspend fun getAllAnimals(): List<AnimalEntity>
 

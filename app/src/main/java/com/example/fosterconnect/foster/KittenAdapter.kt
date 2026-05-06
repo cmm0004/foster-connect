@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.GridLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -22,21 +23,45 @@ import com.example.fosterconnect.R
 import com.example.fosterconnect.databinding.ItemKittenBinding
 import com.example.fosterconnect.medication.FosterTreatmentSchedule
 
+private sealed class ListItem {
+    data class Header(val litterId: String, val litterName: String, val count: Int) : ListItem()
+    data class Animal(val fosterCase: FosterCaseAnimal) : ListItem()
+}
+
 class KittenAdapter(
-    private val fosterCases: List<FosterCaseAnimal>,
+    fosterCases: List<FosterCaseAnimal>,
     private val onClick: (FosterCaseAnimal) -> Unit,
     private val onNameUpdate: ((FosterCaseAnimal, String) -> Unit)? = null,
-    private val onCollarColorUpdate: ((FosterCaseAnimal, CollarColor?) -> Unit)? = null
-) : RecyclerView.Adapter<KittenAdapter.ViewHolder>() {
+    private val onCollarColorUpdate: ((FosterCaseAnimal, CollarColor?) -> Unit)? = null,
+    private val onLitterNameUpdate: ((String, String) -> Unit)? = null
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    class ViewHolder(val binding: ItemKittenBinding) : RecyclerView.ViewHolder(binding.root) {
+    private val items: List<ListItem> = buildList {
+        val grouped = fosterCases.groupBy { it.litterId }
+        val showHeaders = grouped.size > 1 || grouped.keys.singleOrNull()?.let {
+            fosterCases.firstOrNull()?.litterName?.isNotEmpty() == true
+        } == true
+        for ((litterId, animals) in grouped) {
+            if (showHeaders) {
+                val name = animals.firstOrNull()?.litterName?.takeIf { it.isNotEmpty() } ?: "Unnamed"
+                add(ListItem.Header(litterId ?: "", name, animals.size))
+            }
+            animals.forEach { add(ListItem.Animal(it)) }
+        }
+    }
+
+    class AnimalViewHolder(val binding: ItemKittenBinding) : RecyclerView.ViewHolder(binding.root) {
         var fillAnimator: ValueAnimator? = null
         var isEditing = false
     }
 
+    class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val textLitterName: TextView = itemView.findViewById(R.id.text_litter_name)
+    }
+
     private val longPressDurationMs = 600L
 
-    private fun resetEditIcon(holder: ViewHolder) {
+    private fun resetEditIcon(holder: AnimalViewHolder) {
         val ctx = holder.itemView.context
         holder.binding.iconEdit.alpha = 0.4f
         holder.binding.iconEdit.drawable?.colorFilter =
@@ -46,13 +71,40 @@ class KittenAdapter(
             )
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemKittenBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding)
+    override fun getItemViewType(position: Int) = when (items[position]) {
+        is ListItem.Header -> VIEW_TYPE_HEADER
+        is ListItem.Animal -> VIEW_TYPE_ANIMAL
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val fosterCase = fosterCases[position]
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        return if (viewType == VIEW_TYPE_HEADER) {
+            HeaderViewHolder(inflater.inflate(R.layout.item_litter_header, parent, false))
+        } else {
+            AnimalViewHolder(ItemKittenBinding.inflate(inflater, parent, false))
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (val item = items[position]) {
+            is ListItem.Header -> {
+                val headerHolder = holder as HeaderViewHolder
+                headerHolder.textLitterName.text =
+                    "LITTER · ${item.litterName.uppercase()}"
+                if (onLitterNameUpdate != null && item.litterId.isNotEmpty()) {
+                    headerHolder.itemView.setOnLongClickListener { v ->
+                        v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                        showLitterRenameDialog(v, item)
+                        true
+                    }
+                }
+                return
+            }
+            is ListItem.Animal -> bindAnimal(holder as AnimalViewHolder, item.fosterCase)
+        }
+    }
+
+    private fun bindAnimal(holder: AnimalViewHolder, fosterCase: FosterCaseAnimal) {
         val ctx = holder.itemView.context
 
         holder.isEditing = false
@@ -128,7 +180,7 @@ class KittenAdapter(
         }
     }
 
-    private fun setupLongPressEdit(holder: ViewHolder, fosterCase: FosterCaseAnimal) {
+    private fun setupLongPressEdit(holder: AnimalViewHolder, fosterCase: FosterCaseAnimal) {
         val ctx = holder.itemView.context
         val startColor = ContextCompat.getColor(ctx, R.color.clinical_line_dark)
         val sageColor = ContextCompat.getColor(ctx, R.color.clinical_sage)
@@ -178,7 +230,7 @@ class KittenAdapter(
         }
     }
 
-    private fun showLongPressOptions(holder: ViewHolder, fosterCase: FosterCaseAnimal) {
+    private fun showLongPressOptions(holder: AnimalViewHolder, fosterCase: FosterCaseAnimal) {
         val ctx = holder.itemView.context
         val hasName = onNameUpdate != null
         val hasCollar = onCollarColorUpdate != null
@@ -205,7 +257,7 @@ class KittenAdapter(
         }
     }
 
-    private fun showCollarColorPicker(holder: ViewHolder, fosterCase: FosterCaseAnimal) {
+    private fun showCollarColorPicker(holder: AnimalViewHolder, fosterCase: FosterCaseAnimal) {
         val ctx = holder.itemView.context
         val dp = ctx.resources.displayMetrics.density
         val swatchSize = (40 * dp).toInt()
@@ -262,7 +314,36 @@ class KittenAdapter(
         dialog.show()
     }
 
-    private fun enterEditMode(holder: ViewHolder, fosterCase: FosterCaseAnimal) {
+    private fun showLitterRenameDialog(anchor: View, header: ListItem.Header) {
+        val ctx = anchor.context
+        val dp = ctx.resources.displayMetrics.density
+        val input = EditText(ctx).apply {
+            setText(header.litterName)
+            filters = arrayOf(android.text.InputFilter.AllCaps())
+            setSelection(text?.length ?: 0)
+            typeface = Typeface.MONOSPACE
+            textSize = 14f
+            setPadding((20 * dp).toInt(), (16 * dp).toInt(), (20 * dp).toInt(), (8 * dp).toInt())
+        }
+        AlertDialog.Builder(ctx)
+            .setTitle("Rename Litter")
+            .setView(input)
+            .setPositiveButton("Save") { _, _ ->
+                val newName = input.text?.toString()?.trim().orEmpty()
+                if (newName.isNotEmpty() && newName != header.litterName) {
+                    onLitterNameUpdate?.invoke(header.litterId, newName)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+        input.requestFocus()
+        input.postDelayed({
+            val imm = ctx.getSystemService(InputMethodManager::class.java)
+            imm?.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT)
+        }, 200)
+    }
+
+    private fun enterEditMode(holder: AnimalViewHolder, fosterCase: FosterCaseAnimal) {
         holder.isEditing = true
         val ctx = holder.itemView.context
 
@@ -295,7 +376,7 @@ class KittenAdapter(
         }
     }
 
-    private fun commitEdit(holder: ViewHolder, fosterCase: FosterCaseAnimal) {
+    private fun commitEdit(holder: AnimalViewHolder, fosterCase: FosterCaseAnimal) {
         if (!holder.isEditing) return
         holder.isEditing = false
 
@@ -313,7 +394,7 @@ class KittenAdapter(
         }
     }
 
-    private fun addChip(holder: ViewHolder, text: String, textColorRes: Int, bgColorRes: Int) {
+    private fun addChip(holder: AnimalViewHolder, text: String, textColorRes: Int, bgColorRes: Int) {
         val ctx = holder.itemView.context
         val dp = ctx.resources.displayMetrics.density
         val chip = TextView(ctx).apply {
@@ -336,10 +417,15 @@ class KittenAdapter(
         holder.binding.layoutStatusChips.addView(chip, params)
     }
 
-    override fun getItemCount() = fosterCases.size
+    override fun getItemCount() = items.size
 
     private fun lerp(a: Int, b: Int, t: Float): Int = (a + (b - a) * t).toInt()
     private fun red(c: Int) = (c shr 16) and 0xFF
     private fun green(c: Int) = (c shr 8) and 0xFF
     private fun blue(c: Int) = c and 0xFF
+
+    companion object {
+        private const val VIEW_TYPE_HEADER = 0
+        private const val VIEW_TYPE_ANIMAL = 1
+    }
 }

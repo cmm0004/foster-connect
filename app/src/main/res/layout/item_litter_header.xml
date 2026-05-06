@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="14dp"
+    android:paddingBottom="6dp">
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1"
+        android:background="@color/clinical_line" />
+
+    <TextView
+        android:id="@+id/text_litter_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.08"
+        android:textAllCaps="true"
+        android:textColor="@color/clinical_ink_muted"
+        android:textSize="10sp"
+        tools:text="LITTER · SUNSHINE" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1"
+        android:background="@color/clinical_line" />
+
+</LinearLayout>

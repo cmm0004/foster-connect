@@ -185,6 +185,7 @@ class NearbySyncManager(
                 val payload = SyncPayload(
                     deviceId = deviceId,
                     timestampMillis = System.currentTimeMillis(),
+                    litters = syncDao.getAllLitters(),
                     animals = syncDao.getAllAnimals(),
                     fosterCases = syncDao.getAllFosterCases(),
                     weights = syncDao.getAllWeights(),

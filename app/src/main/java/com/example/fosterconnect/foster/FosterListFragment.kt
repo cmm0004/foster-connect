@@ -160,6 +160,9 @@ class FosterListFragment : Fragment() {
                         },
                         onCollarColorUpdate = { fosterCase, collarColor ->
                             KittenRepository.setCollarColor(fosterCase.fosterCaseId, collarColor)
+                        },
+                        onLitterNameUpdate = { litterId, newName ->
+                            KittenRepository.setLitterName(litterId, newName)
                         }
                     )
                 }

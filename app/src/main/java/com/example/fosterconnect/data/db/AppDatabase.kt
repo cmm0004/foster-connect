@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [
+        LitterEntity::class,
         AnimalEntity::class,
         FosterCaseEntity::class,
         CaseWeightEntity::class,
@@ -19,11 +20,12 @@ import androidx.room.RoomDatabase
         CompletedFosterRecordEntity::class,
         AssignedTraitEntity::class
     ],
-    version = 18,
+    version = 21,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
+    abstract fun litterDao(): LitterDao
     abstract fun animalDao(): AnimalDao
     abstract fun fosterCaseDao(): FosterCaseDao
     abstract fun traitDao(): TraitDao

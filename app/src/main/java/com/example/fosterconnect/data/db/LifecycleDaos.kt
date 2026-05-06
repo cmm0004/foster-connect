@@ -9,6 +9,33 @@ import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
+interface LitterDao {
+
+    @Query("SELECT * FROM litters ORDER BY createdAtMillis DESC")
+    fun observeAllLitters(): Flow<List<LitterEntity>>
+
+    @Query("SELECT * FROM litters WHERE id = :litterId")
+    suspend fun getLitter(litterId: String): LitterEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLitter(litter: LitterEntity)
+
+    @Query("UPDATE litters SET name = :name, updatedAtMillis = :updatedAtMillis WHERE id = :litterId")
+    suspend fun updateName(litterId: String, name: String, updatedAtMillis: Long)
+
+    @Transaction
+    @Query("SELECT * FROM litters WHERE id = :litterId")
+    suspend fun getLitterWithAnimals(litterId: String): LitterWithAnimals?
+
+    @Query(
+        "SELECT fc.id FROM foster_cases fc " +
+            "INNER JOIN animals a ON fc.animalId = a.id " +
+            "WHERE a.litterId = :litterId AND fc.status = 'ACTIVE'"
+    )
+    suspend fun getActiveCaseIdsForLitter(litterId: String): List<String>
+}
+
+@Dao
 interface AnimalDao {
 
     @Query("SELECT * FROM animals ORDER BY name")
@@ -29,8 +56,8 @@ interface AnimalDao {
     @Query("UPDATE animals SET externalId = :externalId, updatedAtMillis = :updatedAtMillis WHERE id = :animalId")
     suspend fun updateExternalId(animalId: String, externalId: String, updatedAtMillis: Long)
 
-    @Query("UPDATE animals SET litterName = :litterName, updatedAtMillis = :updatedAtMillis WHERE id = :animalId")
-    suspend fun updateLitterName(animalId: String, litterName: String?, updatedAtMillis: Long)
+    @Query("UPDATE animals SET litterId = :litterId, updatedAtMillis = :updatedAtMillis WHERE id = :animalId")
+    suspend fun updateLitterId(animalId: String, litterId: String, updatedAtMillis: Long)
 
     @Query("UPDATE animals SET name = :name, updatedAtMillis = :updatedAtMillis WHERE id = :animalId")
     suspend fun updateName(animalId: String, name: String, updatedAtMillis: Long)
@@ -54,12 +81,6 @@ interface FosterCaseDao {
 
     @Query("UPDATE foster_cases SET weightDeclineWarned = :warned, updatedAtMillis = :updatedAtMillis WHERE id = :caseId")
     suspend fun updateWeightDeclineWarned(caseId: String, warned: Boolean, updatedAtMillis: Long)
-
-    @Query("UPDATE foster_cases SET nextVaccineDateMillis = :dateMillis, updatedAtMillis = :updatedAtMillis WHERE id = :caseId")
-    suspend fun updateNextVaccineDate(caseId: String, dateMillis: Long, updatedAtMillis: Long)
-
-    @Query("UPDATE foster_cases SET nextVaccineDateMillis = NULL, updatedAtMillis = :updatedAtMillis WHERE id = :caseId")
-    suspend fun clearNextVaccineDate(caseId: String, updatedAtMillis: Long)
 
     @Query(
         "UPDATE foster_cases " +
@@ -95,8 +116,14 @@ interface FosterCaseDao {
     )
     suspend fun stopAllActiveMedications(caseId: String, endDateMillis: Long)
 
+    @Query("DELETE FROM case_medications WHERE id = :medicationId")
+    suspend fun deleteMedication(medicationId: String)
+
     @Query("DELETE FROM case_treatments WHERE fosterCaseId = :caseId AND administeredDateMillis IS NULL")
     suspend fun deleteAllUnadministeredTreatments(caseId: String)
+
+    @Query("DELETE FROM case_treatments WHERE litterId = :litterId AND administeredDateMillis IS NULL")
+    suspend fun deleteAllUnadministeredTreatmentsForLitter(litterId: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPhoto(photo: CasePhotoEntity)

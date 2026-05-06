@@ -7,6 +7,7 @@ import org.json.JSONObject
 data class SyncPayload(
     val deviceId: String,
     val timestampMillis: Long,
+    val litters: List<LitterEntity>,
     val animals: List<AnimalEntity>,
     val fosterCases: List<FosterCaseEntity>,
     val weights: List<CaseWeightEntity>,
@@ -22,6 +23,15 @@ data class SyncPayload(
         val root = JSONObject()
         root.put("deviceId", deviceId)
         root.put("timestampMillis", timestampMillis)
+        root.put("litters", JSONArray().apply {
+            for (l in litters) put(JSONObject().apply {
+                put("id", l.id)
+                put("name", l.name)
+                put("intakeDateMillis", l.intakeDateMillis)
+                put("createdAtMillis", l.createdAtMillis)
+                put("updatedAtMillis", l.updatedAtMillis)
+            })
+        })
         root.put("animals", JSONArray().apply {
             for (a in animals) put(JSONObject().apply {
                 put("id", a.id)
@@ -29,7 +39,7 @@ data class SyncPayload(
                 put("name", a.name)
                 put("color", a.color)
                 put("sex", a.sex)
-                put("litterName", a.litterName ?: "")
+                put("litterId", a.litterId)
                 put("estimatedBirthdayMillis", a.estimatedBirthdayMillis ?: -1L)
                 put("createdAtMillis", a.createdAtMillis)
                 put("updatedAtMillis", a.updatedAtMillis)
@@ -43,7 +53,6 @@ data class SyncPayload(
                 put("intakeDateMillis", c.intakeDateMillis)
                 put("outDateMillis", c.outDateMillis ?: -1L)
                 put("weightDeclineWarned", c.weightDeclineWarned)
-                put("nextVaccineDateMillis", c.nextVaccineDateMillis ?: -1L)
                 put("collarColor", c.collarColor ?: "")
                 put("notes", c.notes ?: "")
                 put("createdAtMillis", c.createdAtMillis)
@@ -77,6 +86,7 @@ data class SyncPayload(
         root.put("treatments", JSONArray().apply {
             for (t in treatments) put(JSONObject().apply {
                 put("fosterCaseId", t.fosterCaseId)
+                put("litterId", t.litterId)
                 put("treatmentType", t.treatmentType)
                 put("scheduledDateMillis", t.scheduledDateMillis)
                 put("administeredDateMillis", t.administeredDateMillis ?: -1L)
@@ -143,6 +153,21 @@ data class SyncPayload(
             val deviceId = json.getString("deviceId")
             val timestampMillis = json.getLong("timestampMillis")
 
+            val litters = mutableListOf<LitterEntity>()
+            val littersArr = json.optJSONArray("litters")
+            if (littersArr != null) {
+                for (i in 0 until littersArr.length()) {
+                    val o = littersArr.getJSONObject(i)
+                    litters.add(LitterEntity(
+                        id = o.getString("id"),
+                        name = o.getString("name"),
+                        intakeDateMillis = o.getLong("intakeDateMillis"),
+                        createdAtMillis = o.getLong("createdAtMillis"),
+                        updatedAtMillis = o.getLong("updatedAtMillis")
+                    ))
+                }
+            }
+
             val animals = mutableListOf<AnimalEntity>()
             val animalsArr = json.getJSONArray("animals")
             for (i in 0 until animalsArr.length()) {
@@ -153,7 +178,7 @@ data class SyncPayload(
                     name = o.getString("name"),
                     color = o.getString("color"),
                     sex = o.getString("sex"),
-                    litterName = o.getString("litterName").takeIf { it.isNotEmpty() },
+                    litterId = o.getString("litterId"),
                     estimatedBirthdayMillis = o.getLong("estimatedBirthdayMillis").takeIf { it >= 0 },
                     createdAtMillis = o.getLong("createdAtMillis"),
                     updatedAtMillis = o.getLong("updatedAtMillis")
@@ -171,7 +196,6 @@ data class SyncPayload(
                     intakeDateMillis = o.getLong("intakeDateMillis"),
                     outDateMillis = o.getLong("outDateMillis").takeIf { it >= 0 },
                     weightDeclineWarned = o.getBoolean("weightDeclineWarned"),
-                    nextVaccineDateMillis = o.getLong("nextVaccineDateMillis").takeIf { it >= 0 },
                     collarColor = o.getString("collarColor").takeIf { it.isNotEmpty() },
                     notes = o.getString("notes").takeIf { it.isNotEmpty() },
                     createdAtMillis = o.getLong("createdAtMillis"),
@@ -225,6 +249,7 @@ data class SyncPayload(
                 treatments.add(CaseTreatmentEntity(
                     id = 0,
                     fosterCaseId = o.getString("fosterCaseId"),
+                    litterId = o.getString("litterId"),
                     treatmentType = o.getString("treatmentType"),
                     scheduledDateMillis = o.getLong("scheduledDateMillis"),
                     administeredDateMillis = o.getLong("administeredDateMillis").takeIf { it >= 0 },
@@ -304,6 +329,7 @@ data class SyncPayload(
             return SyncPayload(
                 deviceId = deviceId,
                 timestampMillis = timestampMillis,
+                litters = litters,
                 animals = animals,
                 fosterCases = fosterCases,
                 weights = weights,

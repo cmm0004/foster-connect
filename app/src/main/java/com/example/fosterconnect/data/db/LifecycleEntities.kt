@@ -12,9 +12,29 @@ enum class FosterCaseStatus {
     COMPLETED
 }
 
+@Entity(tableName = "litters")
+data class LitterEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val intakeDateMillis: Long,
+    val createdAtMillis: Long,
+    val updatedAtMillis: Long
+)
+
 @Entity(
     tableName = "animals",
-    indices = [Index(value = ["externalId"], unique = true)]
+    foreignKeys = [
+        ForeignKey(
+            entity = LitterEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["litterId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index(value = ["externalId"], unique = true),
+        Index(value = ["litterId"])
+    ]
 )
 data class AnimalEntity(
     @PrimaryKey val id: String,
@@ -22,7 +42,7 @@ data class AnimalEntity(
     val name: String,
     val color: String,
     val sex: String,
-    val litterName: String?,
+    val litterId: String,
     val estimatedBirthdayMillis: Long?,
     val createdAtMillis: Long,
     val updatedAtMillis: Long
@@ -50,7 +70,6 @@ data class FosterCaseEntity(
     val intakeDateMillis: Long,
     val outDateMillis: Long?,
     val weightDeclineWarned: Boolean,
-    val nextVaccineDateMillis: Long? = null,
     val collarColor: String? = null,
     val notes: String?,
     val createdAtMillis: Long,
@@ -151,13 +170,20 @@ data class CasePhotoEntity(
             parentColumns = ["id"],
             childColumns = ["fosterCaseId"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = LitterEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["litterId"],
+            onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("fosterCaseId")]
+    indices = [Index("fosterCaseId"), Index("litterId")]
 )
 data class CaseTreatmentEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val fosterCaseId: String,
+    val litterId: String,
     val treatmentType: String,
     val scheduledDateMillis: Long,
     val administeredDateMillis: Long? = null,
@@ -269,6 +295,12 @@ data class AssignedTraitEntity(
     val score: Int,
     val assignedAtMillis: Long,
     val syncId: String = ""
+)
+
+data class LitterWithAnimals(
+    @Embedded val litter: LitterEntity,
+    @Relation(parentColumn = "id", entityColumn = "litterId")
+    val animals: List<AnimalEntity>
 )
 
 data class AnimalWithCases(

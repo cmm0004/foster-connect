@@ -179,21 +179,12 @@ class MainActivity : AppCompatActivity() {
     private fun setupDrawerContent() {
         val drawerView = binding.navDrawer.root
 
-        drawerView.findViewById<TextView>(R.id.drawer_session_name)?.text =
-            getString(R.string.drawer_litter_placeholder)
-
-        drawerView.findViewById<TextView>(R.id.drawer_overdue_badge)?.text =
-            getString(R.string.drawer_overdue_format, 0)
-        drawerView.findViewById<TextView>(R.id.drawer_in_care_badge)?.text =
-            getString(R.string.drawer_in_care_format, 0)
-
         drawerView.findViewById<TextView>(R.id.nav_current_fosters_sub)?.text =
             getString(R.string.drawer_sub_current_format, 0, 0)
         drawerView.findViewById<TextView>(R.id.nav_alerts_sub)?.text =
             getString(R.string.drawer_sub_alerts_format, 0)
         drawerView.findViewById<TextView>(R.id.nav_previous_fosters_sub)?.text =
             getString(R.string.drawer_sub_previous_format, 0)
-
     }
 
     private fun observeDrawerCounts() {
@@ -205,10 +196,6 @@ class MainActivity : AppCompatActivity() {
                 ) { active, completed ->
                     active to completed.size
                 }.collect { (active, previousCount) ->
-                    val litterName = active.firstOrNull()?.litterName
-                    val drawerView = binding.navDrawer.root
-                    drawerView.findViewById<TextView>(R.id.drawer_session_name)?.text =
-                        litterName ?: getString(R.string.drawer_litter_placeholder)
                     updateDrawerCounts(active.size, 0, 0, previousCount)
                 }
             }
@@ -218,12 +205,6 @@ class MainActivity : AppCompatActivity() {
     fun updateDrawerCounts(inCare: Int, overdue: Int, unreadAlerts: Int, previousCount: Int) {
         val drawerView = binding.navDrawer.root
 
-        drawerView.findViewById<TextView>(R.id.drawer_overdue_badge)?.apply {
-            text = getString(R.string.drawer_overdue_format, overdue)
-            visibility = if (overdue > 0) View.VISIBLE else View.GONE
-        }
-        drawerView.findViewById<TextView>(R.id.drawer_in_care_badge)?.text =
-            getString(R.string.drawer_in_care_format, inCare)
 
         drawerView.findViewById<TextView>(R.id.nav_current_fosters_sub)?.text =
             getString(R.string.drawer_sub_current_format, inCare, overdue)

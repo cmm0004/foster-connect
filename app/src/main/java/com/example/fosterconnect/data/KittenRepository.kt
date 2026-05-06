@@ -17,6 +17,7 @@ import com.example.fosterconnect.data.db.CompletedFosterRecordWithAnimal
 import com.example.fosterconnect.data.db.FosterCaseEntity
 import com.example.fosterconnect.data.db.FosterCaseStatus
 import com.example.fosterconnect.data.db.FosterCaseWithDetails
+import com.example.fosterconnect.data.db.LitterEntity
 import com.example.fosterconnect.data.db.AssignedTraitEntity
 import com.example.fosterconnect.foster.AdministeredTreatment
 import com.example.fosterconnect.foster.CoatColor
@@ -86,13 +87,16 @@ object KittenRepository {
 
         scope.launch {
             combine(
+                db.litterDao().observeAllLitters(),
                 db.animalDao().observeAnimals(),
                 db.fosterCaseDao().observeAllCasesWithDetails()
-            ) { animals, cases ->
+            ) { litters, animals, cases ->
+                val litterById = litters.associateBy { it.id }
                 val animalById = animals.associateBy { it.id }
                 cases.mapNotNull { details ->
                     val animal = animalById[details.fosterCase.animalId] ?: return@mapNotNull null
-                    details.toDomain(animal)
+                    val litter = litterById[animal.litterId]
+                    details.toDomain(animal, litter)
                 }
             }.collect { cases ->
                 _fosterCasesFlow.value = cases
@@ -101,9 +105,13 @@ object KittenRepository {
         }
 
         scope.launch {
-            db.fosterCaseDao().observeCompletedRecords().collect { records ->
-                _completedFostersFlow.value = records.map { it.toDomain() }
-            }
+            combine(
+                db.litterDao().observeAllLitters(),
+                db.fosterCaseDao().observeCompletedRecords()
+            ) { litters, records ->
+                val litterById = litters.associateBy { it.id }
+                records.map { it.toDomain(litterById) }
+            }.collect { _completedFostersFlow.value = it }
         }
 
         scope.launch {
@@ -276,6 +284,12 @@ object KittenRepository {
         }
     }
 
+    fun deleteMedication(medicationId: String) {
+        scope.launch {
+            db.fosterCaseDao().deleteMedication(medicationId)
+        }
+    }
+
     fun stopMedication(medicationId: String) {
         scope.launch {
             db.fosterCaseDao().stopMedication(medicationId, System.currentTimeMillis())
@@ -294,9 +308,9 @@ object KittenRepository {
         }
     }
 
-    fun setLitterName(animalId: String, litterName: String?) {
+    fun setLitterName(litterId: String, name: String) {
         scope.launch {
-            db.animalDao().updateLitterName(animalId, litterName, System.currentTimeMillis())
+            db.litterDao().updateName(litterId, name, System.currentTimeMillis())
         }
     }
 
@@ -316,30 +330,34 @@ object KittenRepository {
         }
     }
 
-    fun completeTreatmentDose(fosterCaseId: String) {
+    fun completeTreatmentDose(litterId: String) {
         scope.launch {
-            db.fosterCaseDao().clearNextVaccineDate(fosterCaseId, System.currentTimeMillis())
+            db.fosterCaseDao().deleteAllUnadministeredTreatmentsForLitter(litterId)
         }
     }
 
-    suspend fun scheduleNextTreatment(fosterCaseId: String, dateMillis: Long, includePonazuril: Boolean): Boolean {
-        val existing = db.fosterCaseDao().countAdministeredTreatmentsOnDate(fosterCaseId, dateMillis)
-        if (existing > 0) return false
-        db.fosterCaseDao().deleteScheduledTreatments(fosterCaseId, dateMillis)
-        db.fosterCaseDao().updateNextVaccineDate(fosterCaseId, dateMillis, System.currentTimeMillis())
-        val treatments = mutableListOf("FVRCP", "PYRANTEL")
-        if (includePonazuril) treatments.add("PONAZURIL")
-        for (type in treatments) {
-            db.fosterCaseDao().insertTreatment(
-                CaseTreatmentEntity(
-                    fosterCaseId = fosterCaseId,
-                    treatmentType = type,
-                    scheduledDateMillis = dateMillis,
-                    administeredDateMillis = null,
-                    notes = null,
-                    syncId = UUID.randomUUID().toString()
+    suspend fun scheduleNextTreatment(litterId: String, dateMillis: Long, includePonazuril: Boolean): Boolean {
+        val caseIds = db.litterDao().getActiveCaseIdsForLitter(litterId)
+        if (caseIds.isEmpty()) return false
+        for (caseId in caseIds) {
+            val existing = db.fosterCaseDao().countAdministeredTreatmentsOnDate(caseId, dateMillis)
+            if (existing > 0) continue
+            db.fosterCaseDao().deleteScheduledTreatments(caseId, dateMillis)
+            val types = mutableListOf("FVRCP", "PYRANTEL")
+            if (includePonazuril) types.add("PONAZURIL")
+            for (type in types) {
+                db.fosterCaseDao().insertTreatment(
+                    CaseTreatmentEntity(
+                        fosterCaseId = caseId,
+                        litterId = litterId,
+                        treatmentType = type,
+                        scheduledDateMillis = dateMillis,
+                        administeredDateMillis = null,
+                        notes = null,
+                        syncId = UUID.randomUUID().toString()
+                    )
                 )
-            )
+            }
         }
         return true
     }
@@ -347,6 +365,51 @@ object KittenRepository {
     fun markTreatmentAdministered(treatmentId: Long, doseGiven: String?) {
         scope.launch {
             db.fosterCaseDao().markTreatmentAdministered(treatmentId, System.currentTimeMillis(), doseGiven)
+        }
+    }
+
+    data class KittenCreationData(
+        val externalId: String,
+        val name: String,
+        val color: CoatColor,
+        val sex: Sex,
+        val estimatedBirthdayMillis: Long?,
+        val initialWeightGrams: Float?,
+        val initialWeightDateMillis: Long?
+    )
+
+    fun createLitter(
+        litterName: String,
+        intakeDateMillis: Long,
+        kittens: List<KittenCreationData>
+    ) {
+        scope.launch {
+            val now = System.currentTimeMillis()
+            val litterId = UUID.randomUUID().toString()
+            db.litterDao().insertLitter(
+                LitterEntity(
+                    id = litterId,
+                    name = litterName,
+                    intakeDateMillis = intakeDateMillis,
+
+                    createdAtMillis = now,
+                    updatedAtMillis = now
+                )
+            )
+            for (kitten in kittens) {
+                insertFosterCase(
+                    litterId = litterId,
+                    externalId = kitten.externalId,
+                    name = kitten.name,
+                    color = kitten.color,
+                    sex = kitten.sex,
+                    intakeDateMillis = intakeDateMillis,
+                    estimatedBirthdayMillis = kitten.estimatedBirthdayMillis,
+                    initialWeightGrams = kitten.initialWeightGrams,
+                    initialWeightDateMillis = kitten.initialWeightDateMillis,
+                    now = now
+                )
+            }
         }
     }
 
@@ -359,50 +422,85 @@ object KittenRepository {
         intakeDateMillis: Long,
         estimatedBirthdayMillis: Long?,
         initialWeightGrams: Float?,
-        initialWeightDateMillis: Long?,
-        nextVaccineDateMillis: Long? = null
+        initialWeightDateMillis: Long?
     ) {
         scope.launch {
             val now = System.currentTimeMillis()
-            val animalId = UUID.randomUUID().toString()
-            val caseId = UUID.randomUUID().toString()
-            db.animalDao().insertAnimal(
-                AnimalEntity(
-                    id = animalId,
-                    externalId = externalId.ifBlank { null },
-                    name = name,
-                    color = color.name,
-                    sex = sex.name,
-                    litterName = litterName,
-                    estimatedBirthdayMillis = estimatedBirthdayMillis,
-                    createdAtMillis = now,
-                    updatedAtMillis = now
-                )
-            )
-            db.fosterCaseDao().insertCase(
-                FosterCaseEntity(
-                    id = caseId,
-                    animalId = animalId,
-                    status = FosterCaseStatus.ACTIVE.name,
+            val litterId = UUID.randomUUID().toString()
+            db.litterDao().insertLitter(
+                LitterEntity(
+                    id = litterId,
+                    name = litterName ?: name,
                     intakeDateMillis = intakeDateMillis,
-                    outDateMillis = null,
-                    weightDeclineWarned = false,
-                    nextVaccineDateMillis = nextVaccineDateMillis,
-                    notes = null,
+
                     createdAtMillis = now,
                     updatedAtMillis = now
                 )
             )
-            if (initialWeightGrams != null) {
-                db.fosterCaseDao().insertWeight(
-                    CaseWeightEntity(
-                        fosterCaseId = caseId,
-                        dateMillis = initialWeightDateMillis ?: intakeDateMillis,
-                        weightGrams = initialWeightGrams,
-                        syncId = UUID.randomUUID().toString()
-                    )
+            insertFosterCase(
+                litterId = litterId,
+                externalId = externalId,
+                name = name,
+                color = color,
+                sex = sex,
+                intakeDateMillis = intakeDateMillis,
+                estimatedBirthdayMillis = estimatedBirthdayMillis,
+                initialWeightGrams = initialWeightGrams,
+                initialWeightDateMillis = initialWeightDateMillis,
+                now = now
+            )
+        }
+    }
+
+    private suspend fun insertFosterCase(
+        litterId: String,
+        externalId: String,
+        name: String,
+        color: CoatColor,
+        sex: Sex,
+        intakeDateMillis: Long,
+        estimatedBirthdayMillis: Long?,
+        initialWeightGrams: Float?,
+        initialWeightDateMillis: Long?,
+        now: Long
+    ) {
+        val animalId = UUID.randomUUID().toString()
+        val caseId = UUID.randomUUID().toString()
+        db.animalDao().insertAnimal(
+            AnimalEntity(
+                id = animalId,
+                externalId = externalId.ifBlank { null },
+                name = name,
+                color = color.name,
+                sex = sex.name,
+                litterId = litterId,
+                estimatedBirthdayMillis = estimatedBirthdayMillis,
+                createdAtMillis = now,
+                updatedAtMillis = now
+            )
+        )
+        db.fosterCaseDao().insertCase(
+            FosterCaseEntity(
+                id = caseId,
+                animalId = animalId,
+                status = FosterCaseStatus.ACTIVE.name,
+                intakeDateMillis = intakeDateMillis,
+                outDateMillis = null,
+                weightDeclineWarned = false,
+                notes = null,
+                createdAtMillis = now,
+                updatedAtMillis = now
+            )
+        )
+        if (initialWeightGrams != null) {
+            db.fosterCaseDao().insertWeight(
+                CaseWeightEntity(
+                    fosterCaseId = caseId,
+                    dateMillis = initialWeightDateMillis ?: intakeDateMillis,
+                    weightGrams = initialWeightGrams,
+                    syncId = UUID.randomUUID().toString()
                 )
-            }
+            )
         }
     }
 
@@ -508,6 +606,8 @@ object KittenRepository {
         val records = JSONArray(json)
         val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
 
+        val litterIdsByName = mutableMapOf<String, String>()
+
         for (index in 0 until records.length()) {
             val record = records.getJSONObject(index)
             val externalId = record.optString("anumber").trim()
@@ -519,6 +619,24 @@ object KittenRepository {
             val completedAt = runCatching { dateFormat.parse(outDate)?.time }.getOrNull() ?: continue
             val sex = record.optString("sex").trim().takeIf { it.isNotEmpty() } ?: Sex.SPAYED.name
             val color = record.optString("color").trim().takeIf { it.isNotEmpty() } ?: CoatColor.BLACK.name
+            val intakeDate = completedAt - 14L * MILLIS_PER_DAY
+
+            val litterKey = litterName ?: "solo-$externalId"
+            val litterId = litterIdsByName.getOrPut(litterKey) {
+                val id = "litter-$litterKey"
+                db.litterDao().insertLitter(
+                    LitterEntity(
+                        id = id,
+                        name = litterName ?: name,
+                        intakeDateMillis = intakeDate,
+    
+                        createdAtMillis = intakeDate,
+                        updatedAtMillis = completedAt
+                    )
+                )
+                id
+            }
+
             val animalId = "animal-$externalId"
             val caseId = "case-$externalId"
             db.animalDao().insertAnimal(
@@ -528,7 +646,7 @@ object KittenRepository {
                     name = name,
                     color = color,
                     sex = sex,
-                    litterName = litterName,
+                    litterId = litterId,
                     estimatedBirthdayMillis = null,
                     createdAtMillis = completedAt,
                     updatedAtMillis = completedAt
@@ -539,11 +657,11 @@ object KittenRepository {
                     id = caseId,
                     animalId = animalId,
                     status = FosterCaseStatus.COMPLETED.name,
-                    intakeDateMillis = completedAt - 14L * MILLIS_PER_DAY,
+                    intakeDateMillis = intakeDate,
                     outDateMillis = completedAt,
                     weightDeclineWarned = false,
                     notes = null,
-                    createdAtMillis = completedAt - 14L * MILLIS_PER_DAY,
+                    createdAtMillis = intakeDate,
                     updatedAtMillis = completedAt
                 )
             )
@@ -552,7 +670,7 @@ object KittenRepository {
                     id = "completed-$caseId",
                     animalId = animalId,
                     fosterCaseId = caseId,
-                    intakeDateMillis = completedAt - 14L * MILLIS_PER_DAY,
+                    intakeDateMillis = intakeDate,
                     outDateMillis = completedAt,
                     daysFostered = 14,
                     finalWeightGrams = null,
@@ -566,17 +684,20 @@ object KittenRepository {
         }
     }
 
-    private fun FosterCaseWithDetails.toDomain(animal: AnimalEntity): FosterCaseAnimal = FosterCaseAnimal(
+    private fun FosterCaseWithDetails.toDomain(animal: AnimalEntity, litter: LitterEntity?): FosterCaseAnimal = FosterCaseAnimal(
         animalId = animal.id,
         fosterCaseId = fosterCase.id,
         externalId = animal.externalId.orEmpty(),
         name = animal.name,
-        litterName = animal.litterName,
+        litterId = animal.litterId,
+        litterName = litter?.name.orEmpty(),
         color = safeColor(animal.color),
         sex = safeSex(animal.sex),
         intakeDateMillis = fosterCase.intakeDateMillis,
         estimatedBirthdayMillis = animal.estimatedBirthdayMillis,
-        nextVaccineDateMillis = fosterCase.nextVaccineDateMillis,
+        nextVaccineDateMillis = treatments
+            .filter { it.administeredDateMillis == null }
+            .maxOfOrNull { it.scheduledDateMillis },
         weightEntries = weights.sortedBy { it.dateMillis }.map { WeightEntry(it.dateMillis, it.weightGrams) },
         stoolEntries = stools.sortedBy { it.dateMillis }.map { StoolEntry(it.dateMillis, it.level) },
         eventEntries = events.sortedBy { it.dateMillis }.mapNotNull { e ->
@@ -615,13 +736,14 @@ object KittenRepository {
         isCompleted = fosterCase.status == FosterCaseStatus.COMPLETED.name
     )
 
-    private fun CompletedFosterRecordWithAnimal.toDomain(): CompletedFoster = CompletedFoster(
+    private fun CompletedFosterRecordWithAnimal.toDomain(litterById: Map<String, LitterEntity>): CompletedFoster = CompletedFoster(
         completedRecordId = completedRecord.id,
         animalId = animal.id,
         fosterCaseId = completedRecord.fosterCaseId,
         externalId = animal.externalId.orEmpty(),
         name = animal.name,
-        litterName = animal.litterName,
+        litterId = animal.litterId,
+        litterName = litterById[animal.litterId]?.name.orEmpty(),
         color = safeColor(animal.color),
         sex = safeSex(animal.sex),
         estimatedBirthdayMillis = animal.estimatedBirthdayMillis,
